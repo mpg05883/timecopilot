@@ -11,7 +11,7 @@ authors = [
 ]
 dependencies = []
 
-[dependency-group]
+[dependency-groups]
 dev = [
     "pre-commit",
     "pytest",
