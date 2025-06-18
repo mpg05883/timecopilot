@@ -1,15 +1,20 @@
 [build-system]
-requires = ["setuptools >= 61.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "timecopilot"
 version = "0.0.3"
 requires-python = ">=3.8"
-dependencies = [
-  "pre-commit",
-  "pytest",
-  "pytest-cov",
+authors = [
+    { name = "Azul Garza", email = "azul.garza.r@gmail.com" }
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+    "pytest",
+    "pytest-cov",
 ]
 
 [tool.coverage]
