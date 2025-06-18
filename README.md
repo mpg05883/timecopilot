@@ -15,10 +15,10 @@ pip install uv
 
 ### 2. create a virtual environment
 
-create an environment using python 3.10 (or your preferred version):
+create an environment (or your preferred version):
 
 ```bash
-uv venv --python 3.10
+uv venv
 ```
 
 ### 3. activate the environment
