@@ -14,13 +14,23 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
-      - run: uv build
-      - name: import test (wheel)
+      - name: Clone repo
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Build package
+        run: uv build
+
+      - name: Perform import test (wheel)
         run: uv run --isolated --no-project -p 3.13 --with dist/*.whl -- python -c "import timecopilot"
-      - name: import test (source distribution)
+
+      - name: Perform import test (source distribution)
         run: uv run --isolated --no-project -p 3.13 --with dist/*.tar.gz -- python -c "import timecopilot"
-      - run: uv publish --trusted-publishing always
-      - name: after publishing test
+
+      - name: Publish package
+        run: uv publish --trusted-publishing always
+
+      - name: After publishing test
         run: uv run --isolated --no-project -p 3.13 --with timecopilot -- python -c "import timecopilot"
