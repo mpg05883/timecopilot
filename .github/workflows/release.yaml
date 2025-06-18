@@ -12,6 +12,7 @@ jobs:
     environment:
       name: release
     permissions:
+      contents: read
       id-token: write
     steps:
       - name: Clone repo
