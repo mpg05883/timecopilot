@@ -14,7 +14,7 @@ dependencies = [
 
 [tool.coverage]
 branch = true
-source = ["src"]
+source = ["timecopilot"]
 
 [tool.coverage.run]
 omit = [
@@ -34,7 +34,7 @@ testpaths = ["tests"]
 [tool.ruff]
 fix = true
 line-length = 88
-src = ["src"]
+src = ["timecopilot"]
 
 [tool.ruff.format]
 docstring-code-format = true
@@ -47,8 +47,5 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-local-folder = ["src"]
+known-local-folder = ["timecopilot"]
 no-lines-before = ["local-folder"]
-
-[tool.setuptools]
-packages = ["src"]
