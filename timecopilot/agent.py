@@ -170,3 +170,18 @@ async def cross_validation_tool(
     return "\n".join(
         [f"{model.alias}: {eval_df[model.alias].iloc[0]}" for model in callable_models]
     )
+
+
+@forecasting_agent.tool
+async def forecast_tool(ctx: RunContext[ExperimentDataset], model: str) -> str:
+    callable_model = MODELS[model]
+    fcst_df = callable_model.forecast(
+        df=ctx.deps.df,
+        h=ctx.deps.horizon,
+        freq=ctx.deps.pandas_frequency,
+    )
+    output = (
+        f"Forecasted values for the next {ctx.deps.horizon} "
+        f"periods: {fcst_df[model].tolist()}"
+    )
+    return output
