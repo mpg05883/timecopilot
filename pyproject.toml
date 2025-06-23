@@ -13,6 +13,7 @@ dependencies = [
   "pydantic-ai",
   "statsforecast",
   "tsfeatures",
+  "gluonts",
 ]
 
 [dependency-groups]
