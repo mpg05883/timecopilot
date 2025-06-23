@@ -9,7 +9,10 @@ requires-python = ">=3.8"
 authors = [
     { name = "Azul Garza", email = "azul.garza.r@gmail.com" }
 ]
-dependencies = []
+dependencies = [
+  "pydantic-ai",
+  "statsforecast",
+]
 
 [dependency-groups]
 dev = [
