@@ -108,7 +108,7 @@ forecasting_agent = Agent(
 
 @forecasting_agent.system_prompt
 async def add_time_series(ctx: RunContext[TimeSeries]) -> str:
-    output = f"The time series is: {ctx.deps.y}, " f"the date column is: {ctx.deps.ds}"
+    output = f"The time series is: {ctx.deps.y}, the date column is: {ctx.deps.ds}"
     return output
 
 
