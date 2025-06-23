@@ -12,6 +12,7 @@ authors = [
 dependencies = [
   "pydantic-ai",
   "statsforecast",
+  "tsfeatures",
 ]
 
 [dependency-groups]
