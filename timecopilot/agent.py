@@ -1,8 +1,7 @@
-from dataclasses import dataclass
 from typing import Callable, List
 
 from pydantic import BaseModel, Field
-from pydantic_ai import Agent, RunContext
+from pydantic_ai import Agent, ModelRetry, RunContext
 from tsfeatures import (
     acf_features,
     arch_stat,
@@ -74,19 +73,22 @@ TSFEATURES: dict[str, Callable] = {
 }
 
 
-@dataclass
 class ForecastAgentOutput(BaseModel):
-    forecast: List[float] = Field(
-        description="The forecasted values for the time series"
+    features_used: List[str] = Field(
+        description="Time series features that were considered"
     )
     selected_model: str = Field(
         description="The model that was selected for the forecast"
     )
+    cross_validation_results: str = Field(description="The cross-validation results.")
+    is_better_than_seasonal_naive: bool = Field(
+        description="Whether the selected model is better than the seasonal naive model"
+    )
     reason_for_selection: str = Field(
         description="Explanation for why the selected model was chosen"
     )
-    features_used: List[str] = Field(
-        description="Time series features that were considered"
+    forecast: List[float] = Field(
+        description="The forecasted values for the time series"
     )
 
 
@@ -184,4 +186,18 @@ async def forecast_tool(ctx: RunContext[ExperimentDataset], model: str) -> str:
         f"Forecasted values for the next {ctx.deps.horizon} "
         f"periods: {fcst_df[model].tolist()}"
     )
+    return output
+
+
+@forecasting_agent.output_validator
+async def validate_best_model(
+    ctx: RunContext[ExperimentDataset],
+    output: ForecastAgentOutput,
+) -> ForecastAgentOutput:
+    if not output.is_better_than_seasonal_naive:
+        raise ModelRetry(
+            "The selected model is not better than the seasonal naive model. "
+            "Please try again with a different model."
+            "The cross-validation results are: {output.cross_validation_results}"
+        )
     return output
