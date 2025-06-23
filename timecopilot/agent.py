@@ -1,8 +1,6 @@
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Callable, List, Union
+from typing import Callable, List
 
-import pandas as pd
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, RunContext
 from tsfeatures import (
@@ -26,6 +24,35 @@ from tsfeatures import (
     unitroot_pp,
 )
 
+from .models.benchmarks import (
+    ADIDA,
+    IMAPA,
+    AutoARIMA,
+    AutoCES,
+    AutoETS,
+    CrostonClassic,
+    DOTheta,
+    HistoricAverage,
+    SeasonalNaive,
+    Theta,
+    ZeroModel,
+)
+from .utils.experiment_handler import ExperimentDataset
+
+MODELS = {
+    "ADIDA": ADIDA(),
+    "AutoARIMA": AutoARIMA(),
+    "AutoCES": AutoCES(),
+    "AutoETS": AutoETS(),
+    "CrostonClassic": CrostonClassic(),
+    "DOTheta": DOTheta(),
+    "HistoricAverage": HistoricAverage(),
+    "IMAPA": IMAPA(),
+    "SeasonalNaive": SeasonalNaive(),
+    "Theta": Theta(),
+    "ZeroModel": ZeroModel(),
+}
+
 TSFEATURES: dict[str, Callable] = {
     "acf_features": acf_features,
     "arch_stat": arch_stat,
@@ -48,19 +75,6 @@ TSFEATURES: dict[str, Callable] = {
 
 
 @dataclass
-class TimeSeries:
-    y: List[float]
-    ds: List[Union[str, datetime]]
-
-    @classmethod
-    def from_pandas(cls, df: pd.DataFrame) -> "TimeSeries":
-        return cls(y=df["y"].tolist(), ds=df["ds"].tolist())
-
-    def to_pandas(self) -> pd.DataFrame:
-        return pd.DataFrame({"ds": self.ds, "y": self.y})
-
-
-@dataclass
 class ForecastAgentOutput(BaseModel):
     forecast: List[float] = Field(
         description="The forecasted values for the time series"
@@ -78,7 +92,7 @@ class ForecastAgentOutput(BaseModel):
 
 forecasting_agent = Agent(
     model="openai:gpt-4o-mini",
-    deps_type=TimeSeries,
+    deps_type=ExperimentDataset,
     output_type=ForecastAgentOutput,
     system_prompt=f"""
     You're a forecasting expert. You will be given a time series as a list of numbers 
@@ -88,7 +102,7 @@ forecasting_agent = Agent(
     as input are:
     {", ".join(TSFEATURES.keys())}.
 
-    You can select among these models as tools: ets, autoarima, theta, autotheta.
+    You can select among these models as tools: {", ".join(MODELS.keys())}.
 
     Since time is limited, you need to be smart about model selection. Your target is 
     to beat a seasonal naive. You can compute the seasonal naive model using the 
@@ -107,18 +121,52 @@ forecasting_agent = Agent(
 
 
 @forecasting_agent.system_prompt
-async def add_time_series(ctx: RunContext[TimeSeries]) -> str:
-    output = f"The time series is: {ctx.deps.y}, the date column is: {ctx.deps.ds}"
+async def add_time_series(ctx: RunContext[ExperimentDataset]) -> str:
+    output = (
+        f"The time series is: {ctx.deps.df['y'].tolist()}, "
+        f"the date column is: {ctx.deps.df['ds'].tolist()}"
+    )
     return output
 
 
 @forecasting_agent.tool
-async def tsfeatures_tool(ctx: RunContext[TimeSeries], features: List[str]) -> str:
-    df = ctx.deps.to_pandas()
+async def tsfeatures_tool(
+    ctx: RunContext[ExperimentDataset],
+    features: List[str],
+) -> str:
     features_df = tsfeatures(
-        df,
+        ctx.deps.df,
         features=[TSFEATURES[feature] for feature in features],
     )
     return "\n".join(
         [f"{col}: {features_df[col].iloc[0]}" for col in features_df.columns]
+    )
+
+
+@forecasting_agent.tool
+async def cross_validation_tool(
+    ctx: RunContext[ExperimentDataset],
+    models: List[str],
+) -> str:
+    models_fcst_cv = None
+    callable_models = [MODELS[str_model] for str_model in models]
+    for model in callable_models:
+        fcst_cv = model.cross_validation(
+            df=ctx.deps.df,
+            h=ctx.deps.horizon,
+            freq=ctx.deps.pandas_frequency,
+        )
+        if models_fcst_cv is None:
+            models_fcst_cv = fcst_cv
+        else:
+            models_fcst_cv = models_fcst_cv.merge(
+                fcst_cv.drop(columns=["y"]), on=["unique_id", "ds"]
+            )
+    eval_df = ctx.deps.evaluate_forecast_df(
+        forecast_df=models_fcst_cv,
+        models=[model.alias for model in callable_models],
+    )
+    eval_df = eval_df.groupby(["metric"], as_index=False).mean(numeric_only=True)
+    return "\n".join(
+        [f"{model.alias}: {eval_df[model.alias].iloc[0]}" for model in callable_models]
     )

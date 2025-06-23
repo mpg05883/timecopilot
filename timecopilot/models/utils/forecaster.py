@@ -23,6 +23,8 @@ def maybe_convert_col_to_datetime(df: pd.DataFrame, col_name: str) -> pd.DataFra
 
 
 class Forecaster:
+    alias: str
+
     def forecast(
         self,
         df: pd.DataFrame,
