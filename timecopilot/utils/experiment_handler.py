@@ -113,6 +113,14 @@ class ExperimentDataset(DatasetParams):
         df = pd.read_parquet(parquet_path)
         return cls.from_df(df=df)
 
+    @classmethod
+    def from_csv(
+        cls,
+        csv_path: str | Path,
+    ) -> "ExperimentDataset":
+        df = pd.read_csv(csv_path)
+        return cls.from_df(df=df)
+
     def evaluate_forecast_df(
         self,
         forecast_df: pd.DataFrame,
