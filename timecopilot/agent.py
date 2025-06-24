@@ -222,9 +222,17 @@ class TimeCopilot:
             ctx: RunContext[ExperimentDataset],
             features: list[str],
         ) -> str:
+            callable_features = []
+            for feature in features:
+                if feature not in TSFEATURES:
+                    raise ModelRetry(
+                        f"Feature {feature} is not available. Available features are: "
+                        f"{', '.join(TSFEATURES.keys())}"
+                    )
+                callable_features.append(TSFEATURES[feature])
             features_df = tsfeatures(
                 ctx.deps.df,
-                features=[TSFEATURES[feature] for feature in features],
+                features=callable_features,
                 freq=ctx.deps.seasonality,
             )
             return "\n".join(
@@ -237,7 +245,14 @@ class TimeCopilot:
             models: list[str],
         ) -> str:
             models_fcst_cv = None
-            callable_models = [MODELS[str_model] for str_model in models]
+            callable_models = []
+            for str_model in models:
+                if str_model not in MODELS:
+                    raise ModelRetry(
+                        f"Model {str_model} is not available. Available models are: "
+                        f"{', '.join(MODELS.keys())}"
+                    )
+                callable_models.append(MODELS[str_model])
             for model in callable_models:
                 fcst_cv = model.cross_validation(
                     df=ctx.deps.df,
