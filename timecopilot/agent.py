@@ -239,5 +239,9 @@ class TimeCopilot:
         print(result.output)
 
 
-if __name__ == "__main__":
+def main():
     fire.Fire(TimeCopilot)
+
+
+if __name__ == "__main__":
+    main()

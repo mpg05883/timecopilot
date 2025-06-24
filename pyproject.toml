@@ -26,6 +26,9 @@ dev = [
     "pytest-cov",
 ]
 
+[project.scripts]
+timecopilot = "timecopilot.agent:main"
+
 [tool.coverage]
 branch = true
 source = ["timecopilot"]
