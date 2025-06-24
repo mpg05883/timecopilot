@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Callable
 
 import fire
+import logfire
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, ModelRetry, RunContext
@@ -42,6 +43,8 @@ from .models.benchmarks import (
 from .utils.experiment_handler import ExperimentDataset
 
 load_dotenv()
+logfire.configure()
+logfire.instrument_pydantic_ai()
 
 MODELS = {
     "ADIDA": ADIDA(),
