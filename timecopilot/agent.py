@@ -1,7 +1,8 @@
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable
 
 import fire
+from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, ModelRetry, RunContext
 from tsfeatures import (
@@ -40,6 +41,8 @@ from .models.benchmarks import (
 )
 from .utils.experiment_handler import ExperimentDataset
 
+load_dotenv()
+
 MODELS = {
     "ADIDA": ADIDA(),
     "AutoARIMA": AutoARIMA(),
@@ -76,7 +79,7 @@ TSFEATURES: dict[str, Callable] = {
 
 
 class ForecastAgentOutput(BaseModel):
-    features_used: List[str] = Field(
+    features_used: list[str] = Field(
         description="Time series features that were considered"
     )
     selected_model: str = Field(
@@ -89,7 +92,7 @@ class ForecastAgentOutput(BaseModel):
     reason_for_selection: str = Field(
         description="Explanation for why the selected model was chosen"
     )
-    forecast: List[float] = Field(
+    forecast: list[float] = Field(
         description="The forecasted values for the time series"
     )
 
@@ -147,7 +150,7 @@ async def add_time_series(ctx: RunContext[ExperimentDataset]) -> str:
 @forecasting_agent.tool
 async def tsfeatures_tool(
     ctx: RunContext[ExperimentDataset],
-    features: List[str],
+    features: list[str],
 ) -> str:
     features_df = tsfeatures(
         ctx.deps.df,
@@ -161,7 +164,7 @@ async def tsfeatures_tool(
 @forecasting_agent.tool
 async def cross_validation_tool(
     ctx: RunContext[ExperimentDataset],
-    models: List[str],
+    models: list[str],
 ) -> str:
     models_fcst_cv = None
     callable_models = [MODELS[str_model] for str_model in models]
