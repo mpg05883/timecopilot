@@ -1,5 +1,7 @@
+from pathlib import Path
 from typing import Callable, List
 
+import fire
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, ModelRetry, RunContext
 from tsfeatures import (
@@ -212,3 +214,17 @@ async def validate_best_model(
             "The cross-validation results are: {output.cross_validation_results}"
         )
     return output
+
+
+class TimeCopilot:
+    async def forecast(self, path: str | Path, prompt: str):
+        dataset = ExperimentDataset.from_csv(path)
+        result = await forecasting_agent.run(
+            deps=dataset,
+            prompt=prompt,
+        )
+        print(result.output)
+
+
+if __name__ == "__main__":
+    fire.Fire(TimeCopilot)
