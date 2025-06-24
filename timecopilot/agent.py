@@ -155,6 +155,7 @@ async def tsfeatures_tool(
     features_df = tsfeatures(
         ctx.deps.df,
         features=[TSFEATURES[feature] for feature in features],
+        freq=ctx.deps.seasonality,
     )
     return "\n".join(
         [f"{col}: {features_df[col].iloc[0]}" for col in features_df.columns]
@@ -220,7 +221,7 @@ async def validate_best_model(
 
 
 class TimeCopilot:
-    async def forecast(self, path: str | Path, prompt: str):
+    async def forecast(self, path: str | Path, prompt: str = ""):
         dataset = ExperimentDataset.from_csv(path)
         result = await forecasting_agent.run(
             deps=dataset,
