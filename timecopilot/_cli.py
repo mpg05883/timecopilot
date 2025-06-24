@@ -21,9 +21,12 @@ class TimeCopilot:
         path: str | Path,
         model: str = "openai:gpt-4o-mini",
         prompt: str = "",
+        retries: int = 3,
     ):
-        with self.console.status("[bold green]Running forecast analysis..."):
-            forecasting_agent = TimeCopilotAgent(model=model)
+        with self.console.status(
+            "[bold blue]TimeCopilot is navigating through time...[/bold blue]"
+        ):
+            forecasting_agent = TimeCopilotAgent(model=model, retries=retries)
             result = await forecasting_agent.forecast(
                 df=path,
                 prompt=prompt,
