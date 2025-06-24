@@ -95,6 +95,9 @@ class ForecastAgentOutput(BaseModel):
     forecast: list[float] = Field(
         description="The forecasted values for the time series"
     )
+    user_prompt_response: str = Field(
+        description="The response to the user's prompt, if any"
+    )
 
 
 forecasting_agent = Agent(
@@ -122,6 +125,7 @@ forecasting_agent = Agent(
     3. Use cross_validation_tool to compare model performance
     4. Choose the best performing model that beats SeasonalNaive
     5. Generate final forecasts using forecast_tool
+    6. If the user provides a prompt, use the generated forecast to generate a response
 
     The evaluation will use MASE (Mean Absolute Scaled Error) by default.
     Use at least one cross-validation window for evaluation.
@@ -134,6 +138,7 @@ forecasting_agent = Agent(
     - Rationale for the final model selection
     - Whether the chosen model beats SeasonalNaive
     - The forecasted values
+    - The response to the user's prompt, if any
     """,
 )
 
@@ -225,8 +230,8 @@ class TimeCopilot:
     async def forecast(self, path: str | Path, prompt: str = ""):
         dataset = ExperimentDataset.from_csv(path)
         result = await forecasting_agent.run(
+            user_prompt=prompt,
             deps=dataset,
-            prompt=prompt,
         )
         print(result.output)
 
