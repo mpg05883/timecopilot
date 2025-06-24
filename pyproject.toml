@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "timecopilot"
 version = "0.0.3"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 authors = [
     { name = "Azul Garza", email = "azul.garza.r@gmail.com" }
 ]
