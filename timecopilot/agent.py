@@ -1,9 +1,7 @@
 from pathlib import Path
 from typing import Callable
 
-import fire
-import logfire
-from dotenv import load_dotenv
+import pandas as pd
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, ModelRetry, RunContext
 from tsfeatures import (
@@ -41,10 +39,6 @@ from .models.benchmarks import (
     ZeroModel,
 )
 from .utils.experiment_handler import ExperimentDataset
-
-load_dotenv()
-logfire.configure()
-logfire.instrument_pydantic_ai()
 
 MODELS = {
     "ADIDA": ADIDA(),
@@ -103,11 +97,12 @@ class ForecastAgentOutput(BaseModel):
     )
 
 
-forecasting_agent = Agent(
-    model="openai:gpt-4o-mini",
-    deps_type=ExperimentDataset,
-    output_type=ForecastAgentOutput,
-    system_prompt=f"""
+class TimeCopilot:
+    def __init__(
+        self,
+        **kwargs,
+    ):
+        self.system_prompt = f"""
     You're a forecasting expert. You will be given a time series as a list of numbers 
     and your task is to determine the best forecasting model for that series. You have 
     access to the following tools:
@@ -142,106 +137,108 @@ forecasting_agent = Agent(
     - Whether the chosen model beats SeasonalNaive
     - The forecasted values
     - The response to the user's prompt, if any
-    """,
-)
-
-
-@forecasting_agent.system_prompt
-async def add_time_series(ctx: RunContext[ExperimentDataset]) -> str:
-    output = (
-        f"The time series is: {ctx.deps.df['y'].tolist()}, "
-        f"the date column is: {ctx.deps.df['ds'].tolist()}"
-    )
-    return output
-
-
-@forecasting_agent.tool
-async def tsfeatures_tool(
-    ctx: RunContext[ExperimentDataset],
-    features: list[str],
-) -> str:
-    features_df = tsfeatures(
-        ctx.deps.df,
-        features=[TSFEATURES[feature] for feature in features],
-        freq=ctx.deps.seasonality,
-    )
-    return "\n".join(
-        [f"{col}: {features_df[col].iloc[0]}" for col in features_df.columns]
-    )
-
-
-@forecasting_agent.tool
-async def cross_validation_tool(
-    ctx: RunContext[ExperimentDataset],
-    models: list[str],
-) -> str:
-    models_fcst_cv = None
-    callable_models = [MODELS[str_model] for str_model in models]
-    for model in callable_models:
-        fcst_cv = model.cross_validation(
-            df=ctx.deps.df,
-            h=ctx.deps.horizon,
-            freq=ctx.deps.pandas_frequency,
+        """
+        self.forecasting_agent = Agent(
+            deps_type=ExperimentDataset,
+            output_type=ForecastAgentOutput,
+            system_prompt=self.system_prompt,
+            **kwargs,
         )
-        if models_fcst_cv is None:
-            models_fcst_cv = fcst_cv
-        else:
-            models_fcst_cv = models_fcst_cv.merge(
-                fcst_cv.drop(columns=["y"]),
-                on=["unique_id", "cutoff", "ds"],
+
+        @self.forecasting_agent.system_prompt
+        async def add_time_series(ctx: RunContext[ExperimentDataset]) -> str:
+            output = (
+                f"The time series is: {ctx.deps.df['y'].tolist()}, "
+                f"the date column is: {ctx.deps.df['ds'].tolist()}"
             )
-    eval_df = ctx.deps.evaluate_forecast_df(
-        forecast_df=models_fcst_cv,
-        models=[model.alias for model in callable_models],
-    )
-    eval_df = eval_df.groupby(["metric"], as_index=False).mean(numeric_only=True)
-    return "\n".join(
-        [f"{model.alias}: {eval_df[model.alias].iloc[0]}" for model in callable_models]
-    )
+            return output
 
+        @self.forecasting_agent.tool
+        async def tsfeatures_tool(
+            ctx: RunContext[ExperimentDataset],
+            features: list[str],
+        ) -> str:
+            features_df = tsfeatures(
+                ctx.deps.df,
+                features=[TSFEATURES[feature] for feature in features],
+                freq=ctx.deps.seasonality,
+            )
+            return "\n".join(
+                [f"{col}: {features_df[col].iloc[0]}" for col in features_df.columns]
+            )
 
-@forecasting_agent.tool
-async def forecast_tool(ctx: RunContext[ExperimentDataset], model: str) -> str:
-    callable_model = MODELS[model]
-    fcst_df = callable_model.forecast(
-        df=ctx.deps.df,
-        h=ctx.deps.horizon,
-        freq=ctx.deps.pandas_frequency,
-    )
-    output = (
-        f"Forecasted values for the next {ctx.deps.horizon} "
-        f"periods: {fcst_df[model].tolist()}"
-    )
-    return output
+        @self.forecasting_agent.tool
+        async def cross_validation_tool(
+            ctx: RunContext[ExperimentDataset],
+            models: list[str],
+        ) -> str:
+            models_fcst_cv = None
+            callable_models = [MODELS[str_model] for str_model in models]
+            for model in callable_models:
+                fcst_cv = model.cross_validation(
+                    df=ctx.deps.df,
+                    h=ctx.deps.horizon,
+                    freq=ctx.deps.pandas_frequency,
+                )
+                if models_fcst_cv is None:
+                    models_fcst_cv = fcst_cv
+                else:
+                    models_fcst_cv = models_fcst_cv.merge(
+                        fcst_cv.drop(columns=["y"]),
+                        on=["unique_id", "cutoff", "ds"],
+                    )
+            eval_df = ctx.deps.evaluate_forecast_df(
+                forecast_df=models_fcst_cv,
+                models=[model.alias for model in callable_models],
+            )
+            eval_df = eval_df.groupby(
+                ["metric"],
+                as_index=False,
+            ).mean(numeric_only=True)
+            return "\n".join(
+                [
+                    f"{model.alias}: {eval_df[model.alias].iloc[0]}"
+                    for model in callable_models
+                ]
+            )
 
+        @self.forecasting_agent.tool
+        async def forecast_tool(ctx: RunContext[ExperimentDataset], model: str) -> str:
+            callable_model = MODELS[model]
+            fcst_df = callable_model.forecast(
+                df=ctx.deps.df,
+                h=ctx.deps.horizon,
+                freq=ctx.deps.pandas_frequency,
+            )
+            output = (
+                f"Forecasted values for the next {ctx.deps.horizon} "
+                f"periods: {fcst_df[model].tolist()}"
+            )
+            return output
 
-@forecasting_agent.output_validator
-async def validate_best_model(
-    ctx: RunContext[ExperimentDataset],
-    output: ForecastAgentOutput,
-) -> ForecastAgentOutput:
-    if not output.is_better_than_seasonal_naive:
-        raise ModelRetry(
-            "The selected model is not better than the seasonal naive model. "
-            "Please try again with a different model."
-            "The cross-validation results are: {output.cross_validation_results}"
-        )
-    return output
+        @self.forecasting_agent.output_validator
+        async def validate_best_model(
+            ctx: RunContext[ExperimentDataset],
+            output: ForecastAgentOutput,
+        ) -> ForecastAgentOutput:
+            if not output.is_better_than_seasonal_naive:
+                raise ModelRetry(
+                    "The selected model is not better than the seasonal naive model. "
+                    "Please try again with a different model."
+                    "The cross-validation results are: "
+                    "{output.cross_validation_results}"
+                )
+            return output
 
-
-class TimeCopilot:
-    async def forecast(self, path: str | Path, prompt: str = ""):
-        dataset = ExperimentDataset.from_csv(path)
-        result = await forecasting_agent.run(
+    async def forecast(self, df: pd.DataFrame | str | Path, prompt: str = ""):
+        if isinstance(df, str | Path):
+            dataset = ExperimentDataset.from_csv(df)
+        elif isinstance(df, pd.DataFrame):
+            dataset = ExperimentDataset.from_df(df=df)
+        else:
+            raise ValueError(f"Invalid input type: {type(df)}")
+        result = await self.forecasting_agent.run(
             user_prompt=prompt,
             deps=dataset,
         )
-        print(result.output)
-
-
-def main():
-    fire.Fire(TimeCopilot)
-
-
-if __name__ == "__main__":
-    main()
+        return result

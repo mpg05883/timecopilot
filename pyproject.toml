@@ -27,7 +27,7 @@ dev = [
 ]
 
 [project.scripts]
-timecopilot = "timecopilot.agent:main"
+timecopilot = "timecopilot._cli:main"
 
 [tool.coverage]
 branch = true
