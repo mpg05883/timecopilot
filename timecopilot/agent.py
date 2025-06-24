@@ -85,13 +85,31 @@ class ForecastAgentOutput(BaseModel):
             "feature names and their values separated by commas."
         )
     )
+    tsfeatures_analysis: str = Field(
+        description=(
+            "Analysis of what the time series features reveal about the data "
+            "and their implications for forecasting."
+        )
+    )
     selected_model: str = Field(
         description="The model that was selected for the forecast"
+    )
+    model_details: str = Field(
+        description=(
+            "Technical details about the selected model including its assumptions, "
+            "strengths, and typical use cases."
+        )
     )
     cross_validation_results: list[str] = Field(
         description=(
             "The cross-validation results as a string of model names "
             "and their scores separated by commas."
+        )
+    )
+    model_comparison: str = Field(
+        description=(
+            "Detailed comparison of model performances, explaining why certain "
+            "models performed better or worse on this specific time series."
         )
     )
     is_better_than_seasonal_naive: bool = Field(
@@ -102,6 +120,12 @@ class ForecastAgentOutput(BaseModel):
     )
     forecast: list[float] = Field(
         description="The forecasted values for the time series"
+    )
+    forecast_analysis: str = Field(
+        description=(
+            "Detailed interpretation of the forecast, including trends, patterns, "
+            "and potential problems."
+        )
     )
     user_prompt_response: str = Field(
         description="The response to the user's prompt, if any"
@@ -116,6 +140,13 @@ class ForecastAgentOutput(BaseModel):
             "", title="[bold blue]Forecast Results[/bold blue]", expand=False
         )
 
+        # Time Series Analysis Section
+        features_analysis = Panel(
+            f"[bold]Time Series Analysis:[/bold]\n{self.tsfeatures_analysis}",
+            title="Feature Analysis",
+            style="blue",
+        )
+
         # Features table
         features_table = Table(title="Features Analyzed", show_header=True)
         features_table.add_column("Feature", style="cyan")
@@ -126,6 +157,17 @@ class ForecastAgentOutput(BaseModel):
                 feature_name.strip(), f"{float(feature_value.strip()):.2f}"
             )
 
+        # Model Selection Section
+        model_info = Panel(
+            f"[bold]Selected Model:[/bold] {self.selected_model}\n\n"
+            f"[bold]Model Details:[/bold]\n{self.model_details}\n\n"
+            f"[bold]Selection Rationale:[/bold]\n{self.reason_for_selection}\n\n"
+            "[bold]Performance vs Seasonal Naive:[/bold] "
+            f"{'✓' if self.is_better_than_seasonal_naive else '✗'}",
+            title="Model Selection",
+            style="green",
+        )
+
         # Cross validation results
         cv_table = Table(title="Cross Validation Results", show_header=True)
         cv_table.add_column("Model", style="cyan")
@@ -134,22 +176,24 @@ class ForecastAgentOutput(BaseModel):
             model, score = result_line.split(":")
             cv_table.add_row(model.strip(), f"{float(score.strip()):.2f}")
 
-        # Model selection info
-        model_info = Panel(
-            f"[bold green]Selected Model:[/bold green] {self.selected_model}\n"
-            f"[bold]Reason:[/bold] {self.reason_for_selection}\n"
-            "[bold]Better than Seasonal Naive:[/bold] "
-            f"{'✓' if self.is_better_than_seasonal_naive else '✗'}",
-            title="Model Selection",
-            expand=False,
+        model_comparison_panel = Panel(
+            f"[bold]Model Comparison:[/bold]\n{self.model_comparison}",
+            title="Performance Analysis",
+            style="yellow",
         )
 
-        # Forecast values
+        # Forecast Section
         forecast_table = Table(title="Forecast Values", show_header=True)
         forecast_table.add_column("Period", style="cyan")
         forecast_table.add_column("Value", style="magenta")
         for i, value in enumerate(self.forecast, 1):
             forecast_table.add_row(f"t+{i}", f"{value:.2f}")
+
+        forecast_details = Panel(
+            f"[bold]Forecast Analysis:[/bold]\n{self.forecast_analysis}",
+            title="Forecast Details",
+            style="magenta",
+        )
 
         # User prompt response if exists
         prompt_panel = None
@@ -160,15 +204,30 @@ class ForecastAgentOutput(BaseModel):
                 style="italic",
             )
 
-        # Print everything
+        # Print everything with clear sections
         console.print("\n")
         console.print(main_panel)
+
+        # Time Series Analysis
+        console.print("[bold]1. Time Series Analysis[/bold]")
         console.print(features_table)
-        console.print(cv_table)
+        console.print(features_analysis)
+
+        # Model Selection and Evaluation
+        console.print("\n[bold]2. Model Selection and Evaluation[/bold]")
         console.print(model_info)
+        console.print(cv_table)
+        console.print(model_comparison_panel)
+
+        # Forecast Results
+        console.print("\n[bold]3. Forecast Results[/bold]")
         console.print(forecast_table)
+        console.print(forecast_details)
+
         if prompt_panel:
+            console.print("\n[bold]4. User Response[/bold]")
             console.print(prompt_panel)
+
         console.print("\n")
 
 
@@ -178,40 +237,63 @@ class TimeCopilot:
         **kwargs,
     ):
         self.system_prompt = f"""
-    You're a forecasting expert. You will be given a time series as a list of numbers 
-    and your task is to determine the best forecasting model for that series. You have 
-    access to the following tools:
+        You're a forecasting expert. You will be given a time series 
+        as a list of numbers
+        and your task is to determine the best forecasting model for that series. 
+        You have access to the following tools:
 
-    1. tsfeatures_tool: Calculates time series features to help with model selection.
-    Available features are: {", ".join(TSFEATURES.keys())}
+        1. tsfeatures_tool: Calculates time series features to help 
+        with model selection.
+        Available features are: {", ".join(TSFEATURES.keys())}
 
-    2. cross_validation_tool: Performs cross-validation for one or more models.
-    Takes a list of model names and returns their cross-validation results.
-    Available models are: {", ".join(MODELS.keys())}
+        2. cross_validation_tool: Performs cross-validation for one or more models.
+        Takes a list of model names and returns their cross-validation results.
+        Available models are: {", ".join(MODELS.keys())}
 
-    3. forecast_tool: Generates forecasts using a selected model.
-    Takes a model name and returns forecasted values.
+        3. forecast_tool: Generates forecasts using a selected model.
+        Takes a model name and returns forecasted values.
 
-    Your task is to:
-    1. Analyze the time series using tsfeatures_tool to understand its characteristics
-    2. Based on the features, select promising models to evaluate
-    3. Use cross_validation_tool to compare model performance
-    4. Choose the best performing model that beats SeasonalNaive
-    5. Generate final forecasts using forecast_tool
-    6. If the user provides a prompt, use the generated forecast to generate a response
+        Your task is to provide a comprehensive analysis following these steps:
 
-    The evaluation will use MASE (Mean Absolute Scaled Error) by default.
-    Use at least one cross-validation window for evaluation.
-    The seasonality will be inferred from the date column.
+        1. Time Series Feature Analysis:
+           - Calculate relevant time series features
+           - Analyze what these features reveal about the data's nature
+           - Explain the implications for forecasting strategy
+           - Identify key characteristics that will influence model selection
 
-    For each step, explain your reasoning and decision-making process.
-    Your final output must include:
-    - Features analyzed and their implications
-    - Models evaluated and their cross-validation results  
-    - Rationale for the final model selection
-    - Whether the chosen model beats SeasonalNaive
-    - The forecasted values
-    - The response to the user's prompt, if any
+        2. Model Selection and Evaluation:
+           - Select candidate models based on the time series values and features
+           - Document each model's technical details and assumptions
+           - Explain why these models are suitable for the identified features
+           - Perform cross-validation to evaluate performance
+           - Compare models quantitatively and qualitatively
+           - Verify performance against the seasonal naive benchmark
+
+        3. Final Model Selection and Forecasting:
+           - Choose the best performing model with clear justification
+           - Generate and analyze the forecast
+           - Interpret trends and patterns in the forecast
+           - Discuss reliability and potential uncertainties
+           - Address any specific aspects from the user's prompt
+
+        The evaluation will use MASE (Mean Absolute Scaled Error) by default.
+        Use at least one cross-validation window for evaluation.
+        The seasonality will be inferred from the date column.
+
+        Your output must include:
+        - Comprehensive feature analysis with clear implications
+        - Detailed model comparison and selection rationale
+        - Technical details of the selected model
+        - Clear interpretation of cross-validation results
+        - Analysis of the forecast and its implications
+        - Response to any user queries
+
+        Focus on providing:
+        - Clear connections between features and model choices
+        - Technical accuracy with accessible explanations
+        - Quantitative support for decisions
+        - Practical implications of the forecast
+        - Thorough responses to user concerns
         """
         self.forecasting_agent = Agent(
             deps_type=ExperimentDataset,
