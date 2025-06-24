@@ -179,7 +179,8 @@ async def cross_validation_tool(
             models_fcst_cv = fcst_cv
         else:
             models_fcst_cv = models_fcst_cv.merge(
-                fcst_cv.drop(columns=["y"]), on=["unique_id", "ds"]
+                fcst_cv.drop(columns=["y"]),
+                on=["unique_id", "cutoff", "ds"],
             )
     eval_df = ctx.deps.evaluate_forecast_df(
         forecast_df=models_fcst_cv,
