@@ -10,7 +10,7 @@ authors = [
     { name = "Azul Garza", email = "azul.garza.r@gmail.com" }
 ]
 dependencies = [
-  "pydantic-ai",
+  "pydantic-ai[logfire]",
   "statsforecast",
   "tsfeatures",
   "gluonts",
