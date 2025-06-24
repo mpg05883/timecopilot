@@ -16,6 +16,7 @@ dependencies = [
   "gluonts",
   "utilsforecast",
   "fire",
+  "python-dotenv",
 ]
 
 [dependency-groups]
