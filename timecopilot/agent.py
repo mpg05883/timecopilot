@@ -135,98 +135,124 @@ class ForecastAgentOutput(BaseModel):
         """Pretty print the forecast results using rich formatting."""
         console = console or Console()
 
-        # Create main panel
-        main_panel = Panel(
-            "", title="[bold blue]Forecast Results[/bold blue]", expand=False
-        )
-
-        # Time Series Analysis Section
-        features_analysis = Panel(
-            f"[bold]Time Series Analysis:[/bold]\n{self.tsfeatures_analysis}",
-            title="Feature Analysis",
+        # Create header with title and overview
+        header = Panel(
+            f"[bold cyan]{self.selected_model}[/bold cyan] forecast analysis\n"
+            f"[{'green' if self.is_better_than_seasonal_naive else 'red'}]"
+            f"{'✓ Better' if self.is_better_than_seasonal_naive else '✗ Not better'} "
+            "than Seasonal Naive[/"
+            f"{'green' if self.is_better_than_seasonal_naive else 'red'}]",
+            title="[bold blue]TimeCopilot Forecast[/bold blue]",
             style="blue",
         )
 
-        # Features table
-        features_table = Table(title="Features Analyzed", show_header=True)
-        features_table.add_column("Feature", style="cyan")
-        features_table.add_column("Value", style="magenta")
+        # Time Series Analysis Section
+        ts_features = Table(
+            title="Time Series Features",
+            show_header=True,
+            title_style="bold cyan",
+            header_style="bold magenta",
+        )
+        ts_features.add_column("Feature", style="cyan")
+        ts_features.add_column("Value", style="magenta")
+
+        # Group features by category for better organization
         for feature in self.tsfeatures_results:
             feature_name, feature_value = feature.split(":")
-            features_table.add_row(
-                feature_name.strip(), f"{float(feature_value.strip()):.2f}"
+            ts_features.add_row(
+                feature_name.strip(), f"{float(feature_value.strip()):.3f}"
             )
 
+        ts_analysis = Panel(
+            f"{self.tsfeatures_analysis}",
+            title="[bold cyan]Feature Analysis[/bold cyan]",
+            style="blue",
+        )
+
         # Model Selection Section
-        model_info = Panel(
-            f"[bold]Selected Model:[/bold] {self.selected_model}\n\n"
-            f"[bold]Model Details:[/bold]\n{self.model_details}\n\n"
-            f"[bold]Selection Rationale:[/bold]\n{self.reason_for_selection}\n\n"
-            "[bold]Performance vs Seasonal Naive:[/bold] "
-            f"{'✓' if self.is_better_than_seasonal_naive else '✗'}",
-            title="Model Selection",
+        model_details = Panel(
+            f"[bold]Technical Details[/bold]\n{self.model_details}\n\n"
+            f"[bold]Selection Rationale[/bold]\n{self.reason_for_selection}",
+            title="[bold green]Model Information[/bold green]",
             style="green",
         )
 
-        # Cross validation results
-        cv_table = Table(title="Cross Validation Results", show_header=True)
-        cv_table.add_column("Model", style="cyan")
-        cv_table.add_column("Score", style="magenta")
-        for result_line in self.cross_validation_results:
-            model, score = result_line.split(":")
-            cv_table.add_row(model.strip(), f"{float(score.strip()):.2f}")
+        # Model Comparison Table
+        model_scores = Table(
+            title="Model Performance", show_header=True, title_style="bold yellow"
+        )
+        model_scores.add_column("Model", style="yellow")
+        model_scores.add_column("MASE", style="cyan", justify="right")
 
-        model_comparison_panel = Panel(
-            f"[bold]Model Comparison:[/bold]\n{self.model_comparison}",
-            title="Performance Analysis",
+        # Sort models by performance
+        cv_results = []
+        for result in self.cross_validation_results:
+            model, score = result.split(":")
+            cv_results.append((model.strip(), float(score.strip())))
+
+        cv_results.sort(key=lambda x: x[1])  # Sort by score
+        for model, score in cv_results:  # type: ignore
+            model_scores.add_row(model, f"{score:.2f}")
+
+        model_analysis = Panel(
+            self.model_comparison,
+            title="[bold yellow]Performance Analysis[/bold yellow]",
             style="yellow",
         )
 
-        # Forecast Section
-        forecast_table = Table(title="Forecast Values", show_header=True)
-        forecast_table.add_column("Period", style="cyan")
-        forecast_table.add_column("Value", style="magenta")
+        # Forecast Results Section
+        forecast_table = Table(
+            title="Forecast Values", show_header=True, title_style="bold magenta"
+        )
+        forecast_table.add_column("Period", style="magenta")
+        forecast_table.add_column("Value", style="cyan", justify="right")
+
+        # Show all individual values with period indicators
         for i, value in enumerate(self.forecast, 1):
             forecast_table.add_row(f"t+{i}", f"{value:.2f}")
 
-        forecast_details = Panel(
-            f"[bold]Forecast Analysis:[/bold]\n{self.forecast_analysis}",
-            title="Forecast Details",
+        # Add note about number of periods if many
+        if len(self.forecast) > 12:
+            forecast_table.caption = (
+                f"[dim]Showing all {len(self.forecast)} forecasted periods. "
+                "Use aggregation functions for summarized views.[/dim]"
+            )
+
+        forecast_analysis = Panel(
+            self.forecast_analysis,
+            title="[bold magenta]Forecast Analysis[/bold magenta]",
             style="magenta",
         )
 
-        # User prompt response if exists
-        prompt_panel = None
+        # Optional user response section
+        user_response = None
         if self.user_prompt_response:
-            prompt_panel = Panel(
+            user_response = Panel(
                 self.user_prompt_response,
-                title="Response to User Prompt",
-                style="italic",
+                title="[bold]Response to Query[/bold]",
+                style="cyan",
             )
 
-        # Print everything with clear sections
+        # Print all sections with clear separation
         console.print("\n")
-        console.print(main_panel)
+        console.print(header)
 
-        # Time Series Analysis
-        console.print("[bold]1. Time Series Analysis[/bold]")
-        console.print(features_table)
-        console.print(features_analysis)
+        console.print("\n[bold]1. Time Series Analysis[/bold]")
+        console.print(ts_features)
+        console.print(ts_analysis)
 
-        # Model Selection and Evaluation
-        console.print("\n[bold]2. Model Selection and Evaluation[/bold]")
-        console.print(model_info)
-        console.print(cv_table)
-        console.print(model_comparison_panel)
+        console.print("\n[bold]2. Model Selection[/bold]")
+        console.print(model_details)
+        console.print(model_scores)
+        console.print(model_analysis)
 
-        # Forecast Results
         console.print("\n[bold]3. Forecast Results[/bold]")
         console.print(forecast_table)
-        console.print(forecast_details)
+        console.print(forecast_analysis)
 
-        if prompt_panel:
-            console.print("\n[bold]4. User Response[/bold]")
-            console.print(prompt_panel)
+        if user_response:
+            console.print("\n[bold]4. Additional Information[/bold]")
+            console.print(user_response)
 
         console.print("\n")
 
@@ -256,18 +282,23 @@ class TimeCopilot:
         Your task is to provide a comprehensive analysis following these steps:
 
         1. Time Series Feature Analysis:
-           - Calculate relevant time series features
-           - Analyze what these features reveal about the data's nature
-           - Explain the implications for forecasting strategy
-           - Identify key characteristics that will influence model selection
+           - Calculate a focused set of key time series features
+           - Quickly identify the main characteristics (trend, seasonality, 
+                stationarity, etc.)
+           - Use these insights to guide efficient model selection
+           - Avoid over-analysis - focus on features that directly inform model choice
 
         2. Model Selection and Evaluation:
-           - Select candidate models based on the time series values and features
+           - Start with simple models that can potentially beat seasonal naive
+           - Select additional candidate models based on the time series 
+                values and features
            - Document each model's technical details and assumptions
            - Explain why these models are suitable for the identified features
            - Perform cross-validation to evaluate performance
-           - Compare models quantitatively and qualitatively
-           - Verify performance against the seasonal naive benchmark
+           - Compare models quantitatively and qualitatively against seasonal naive
+           - If initial models don't beat seasonal naive, try more complex models
+           - Prioritize finding a model that outperforms seasonal naive benchmark
+           - Balance model complexity with forecast accuracy
 
         3. Final Model Selection and Forecasting:
            - Choose the best performing model with clear justification
