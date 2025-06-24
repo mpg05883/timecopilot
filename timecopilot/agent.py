@@ -79,13 +79,16 @@ TSFEATURES: dict[str, Callable] = {
 
 
 class ForecastAgentOutput(BaseModel):
-    features_used: list[str] = Field(
-        description="Time series features that were considered"
+    tsfeatures_results: list[str] = Field(
+        description=(
+            "The time series features that were considered as a list of strings of "
+            "feature names and their values separated by commas."
+        )
     )
     selected_model: str = Field(
         description="The model that was selected for the forecast"
     )
-    cross_validation_results: str = Field(
+    cross_validation_results: list[str] = Field(
         description=(
             "The cross-validation results as a string of model names "
             "and their scores separated by commas."
@@ -116,17 +119,20 @@ class ForecastAgentOutput(BaseModel):
         # Features table
         features_table = Table(title="Features Analyzed", show_header=True)
         features_table.add_column("Feature", style="cyan")
-        for feature in self.features_used:
-            features_table.add_row(feature)
+        features_table.add_column("Value", style="magenta")
+        for feature in self.tsfeatures_results:
+            feature_name, feature_value = feature.split(":")
+            features_table.add_row(
+                feature_name.strip(), f"{float(feature_value.strip()):.2f}"
+            )
 
         # Cross validation results
-        cv_results = self.cross_validation_results.split(",")
         cv_table = Table(title="Cross Validation Results", show_header=True)
         cv_table.add_column("Model", style="cyan")
         cv_table.add_column("Score", style="magenta")
-        for result_line in cv_results:
+        for result_line in self.cross_validation_results:
             model, score = result_line.split(":")
-            cv_table.add_row(model.strip(), score.strip())
+            cv_table.add_row(model.strip(), f"{float(score.strip()):.2f}")
 
         # Model selection info
         model_info = Panel(
@@ -240,7 +246,8 @@ class TimeCopilot:
                 features=callable_features,
                 freq=ctx.deps.seasonality,
             )
-            return "\n".join(
+            features_df = features_df.drop(columns=["unique_id"])
+            return ",".join(
                 [f"{col}: {features_df[col].iloc[0]}" for col in features_df.columns]
             )
 
