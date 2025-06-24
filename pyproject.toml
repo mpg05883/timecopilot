@@ -15,6 +15,7 @@ dependencies = [
   "tsfeatures",
   "gluonts",
   "utilsforecast",
+  "fire",
 ]
 
 [dependency-groups]
