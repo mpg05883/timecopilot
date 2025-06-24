@@ -2,7 +2,7 @@ import warnings
 from dataclasses import asdict, dataclass
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, List
+from typing import Any, Callable
 
 import pandas as pd
 from utilsforecast.evaluation import evaluate
@@ -16,7 +16,7 @@ warnings.simplefilter(
 
 def mase(
     df: pd.DataFrame,
-    models: List[str],
+    models: list[str],
     seasonality: int,
     train_df: pd.DataFrame,
     id_col: str = "unique_id",
@@ -124,7 +124,7 @@ class ExperimentDataset(DatasetParams):
     def evaluate_forecast_df(
         self,
         forecast_df: pd.DataFrame,
-        models: List[str],
+        models: list[str],
     ) -> pd.DataFrame:
         """
         Parameters
