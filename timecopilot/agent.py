@@ -4,6 +4,9 @@ from typing import Callable
 import pandas as pd
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, ModelRetry, RunContext
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
 from tsfeatures import (
     acf_features,
     arch_stat,
@@ -95,6 +98,67 @@ class ForecastAgentOutput(BaseModel):
     user_prompt_response: str = Field(
         description="The response to the user's prompt, if any"
     )
+
+    def prettify(self, console: Console | None = None) -> None:
+        """Pretty print the forecast results using rich formatting."""
+        console = console or Console()
+
+        # Create main panel
+        main_panel = Panel(
+            "", title="[bold blue]Forecast Results[/bold blue]", expand=False
+        )
+
+        # Features table
+        features_table = Table(title="Features Analyzed", show_header=True)
+        features_table.add_column("Feature", style="cyan")
+        for feature in self.features_used:
+            features_table.add_row(feature)
+
+        # Cross validation results
+        cv_results = self.cross_validation_results.split("\n")
+        cv_table = Table(title="Cross Validation Results", show_header=True)
+        cv_table.add_column("Model", style="cyan")
+        cv_table.add_column("Score", style="magenta")
+        for result_line in cv_results:
+            model, score = result_line.split(":")
+            cv_table.add_row(model.strip(), score.strip())
+
+        # Model selection info
+        model_info = Panel(
+            f"[bold green]Selected Model:[/bold green] {self.selected_model}\n"
+            f"[bold]Reason:[/bold] {self.reason_for_selection}\n"
+            "[bold]Better than Seasonal Naive:[/bold] "
+            f"{'✓' if self.is_better_than_seasonal_naive else '✗'}",
+            title="Model Selection",
+            expand=False,
+        )
+
+        # Forecast values
+        forecast_table = Table(title="Forecast Values", show_header=True)
+        forecast_table.add_column("Period", style="cyan")
+        forecast_table.add_column("Value", style="magenta")
+        for i, value in enumerate(self.forecast, 1):
+            forecast_table.add_row(f"t+{i}", f"{value:.2f}")
+
+        # User prompt response if exists
+        prompt_panel = None
+        if self.user_prompt_response:
+            prompt_panel = Panel(
+                self.user_prompt_response,
+                title="Response to User Prompt",
+                style="italic",
+            )
+
+        # Print everything
+        console.print("\n")
+        console.print(main_panel)
+        console.print(features_table)
+        console.print(cv_table)
+        console.print(model_info)
+        console.print(forecast_table)
+        if prompt_panel:
+            console.print(prompt_panel)
+        console.print("\n")
 
 
 class TimeCopilot:
@@ -231,14 +295,16 @@ class TimeCopilot:
             return output
 
     async def forecast(self, df: pd.DataFrame | str | Path, prompt: str = ""):
-        if isinstance(df, str | Path):
+        if isinstance(df, (str, Path)):
             dataset = ExperimentDataset.from_csv(df)
         elif isinstance(df, pd.DataFrame):
             dataset = ExperimentDataset.from_df(df=df)
         else:
             raise ValueError(f"Invalid input type: {type(df)}")
+
         result = await self.forecasting_agent.run(
             user_prompt=prompt,
             deps=dataset,
         )
+
         return result
