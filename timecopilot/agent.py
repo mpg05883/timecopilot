@@ -85,7 +85,12 @@ class ForecastAgentOutput(BaseModel):
     selected_model: str = Field(
         description="The model that was selected for the forecast"
     )
-    cross_validation_results: str = Field(description="The cross-validation results.")
+    cross_validation_results: str = Field(
+        description=(
+            "The cross-validation results as a string of model names "
+            "and their scores separated by commas."
+        )
+    )
     is_better_than_seasonal_naive: bool = Field(
         description="Whether the selected model is better than the seasonal naive model"
     )
@@ -115,7 +120,7 @@ class ForecastAgentOutput(BaseModel):
             features_table.add_row(feature)
 
         # Cross validation results
-        cv_results = self.cross_validation_results.split("\n")
+        cv_results = self.cross_validation_results.split(",")
         cv_table = Table(title="Cross Validation Results", show_header=True)
         cv_table.add_column("Model", style="cyan")
         cv_table.add_column("Score", style="magenta")
@@ -274,7 +279,7 @@ class TimeCopilot:
                 ["metric"],
                 as_index=False,
             ).mean(numeric_only=True)
-            return "\n".join(
+            return ", ".join(
                 [
                     f"{model.alias}: {eval_df[model.alias].iloc[0]}"
                     for model in callable_models
