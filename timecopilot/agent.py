@@ -82,7 +82,7 @@ class ForecastAgentOutput(BaseModel):
     tsfeatures_results: list[str] = Field(
         description=(
             "The time series features that were considered as a list of strings of "
-            "feature names and their values separated by commas."
+            "feature names and their values separated by colons."
         )
     )
     tsfeatures_analysis: str = Field(
@@ -103,7 +103,7 @@ class ForecastAgentOutput(BaseModel):
     cross_validation_results: list[str] = Field(
         description=(
             "The cross-validation results as a string of model names "
-            "and their scores separated by commas."
+            "and their scores separated by colons."
         )
     )
     model_comparison: str = Field(
