@@ -29,4 +29,5 @@ jobs:
       - name: Run tests 
         run: uv run pytest
 
-      - name: uv run -- python -c "from timecopilot import TimeCopilot" 
+      - name: Test import class
+        run: uv run -- python -c "from timecopilot import TimeCopilot" 
