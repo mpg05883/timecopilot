@@ -121,7 +121,7 @@ class ForecastAgentOutput(BaseModel):
     forecast: list[str] = Field(
         description=(
             "The forecasted values for the time series as a list of strings of "
-            "periods and their values separated by commas."
+            "periods and their values separated by colons."
         )
     )
     forecast_analysis: str = Field(
@@ -419,7 +419,10 @@ class TimeCopilot:
                 freq=ctx.deps.pandas_frequency,
             )
             output = ",".join(
-                [f"{row['ds']}: {row[model]}" for _, row in fcst_df.iterrows()]
+                [
+                    f"{row['ds'].strftime('%Y-%m-%d')}: {row[model]}"
+                    for _, row in fcst_df.iterrows()
+                ]
             )
             return output
 
