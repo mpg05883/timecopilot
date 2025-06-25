@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pandas as pd
 from gluonts.time_feature.seasonality import get_seasonality as _get_seasonality
 from tqdm import tqdm
@@ -39,7 +41,7 @@ class Forecaster:
         h: int,
         freq: str,
         n_windows: int = 1,
-        step_size: int | None = None,
+        step_size: Optional[int] = None,
     ) -> pd.DataFrame:
         df = maybe_convert_col_to_datetime(df, "ds")
         # mlforecast cv code
