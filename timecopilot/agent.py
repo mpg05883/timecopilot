@@ -437,7 +437,7 @@ class TimeCopilot:
                 )
             return output
 
-    async def forecast(self, df: pd.DataFrame | str | Path, prompt: str = ""):
+    def forecast(self, df: pd.DataFrame | str | Path, prompt: str = ""):
         if isinstance(df, str | Path):
             dataset = ExperimentDataset.from_csv(df)
         elif isinstance(df, pd.DataFrame):
@@ -445,7 +445,7 @@ class TimeCopilot:
         else:
             raise ValueError(f"Invalid input type: {type(df)}")
 
-        result = await self.forecasting_agent.run(
+        result = self.forecasting_agent.run_sync(
             user_prompt=prompt,
             deps=dataset,
         )

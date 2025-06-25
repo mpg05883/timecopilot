@@ -16,7 +16,7 @@ class TimeCopilot:
     def __init__(self):
         self.console = Console()
 
-    async def forecast(
+    def forecast(
         self,
         path: str | Path,
         model: str = "openai:gpt-4o-mini",
@@ -27,7 +27,7 @@ class TimeCopilot:
             "[bold blue]TimeCopilot is navigating through time...[/bold blue]"
         ):
             forecasting_agent = TimeCopilotAgent(model=model, retries=retries)
-            result = await forecasting_agent.forecast(
+            result = forecasting_agent.forecast(
                 df=path,
                 prompt=prompt,
             )
