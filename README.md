@@ -35,7 +35,7 @@ flowchart TB
     B --> C[Model Selection]
     C --> D[Forecast Generation]
 
-    subgraph Analysis["1. Feature Analysis"]
+    subgraph Analysis["Feature Analysis"]
         direction LR
         B1["Calculate Features"] --> B2["Analyze Patterns"] --> B3["Generate Insights"]
         B1 -.- |"Trend"| B2
@@ -43,7 +43,7 @@ flowchart TB
         B1 -.- |"Stationarity"| B2
     end
 
-    subgraph Selection["2. Model Selection"]
+    subgraph Selection["Model Selection"]
         direction LR
         C1["Evaluate Models"] --> C2["Cross Validation"] --> C3["Select Best Model"]
         C1 -.- |"ARIMA"| C2
@@ -51,7 +51,7 @@ flowchart TB
         C1 -.- |"Theta"| C2
     end
 
-    subgraph Generation["3. Forecast Generation"]
+    subgraph Generation["Forecast Generation"]
         direction LR
         D1["Generate Predictions"] --> D2["Analyze Results"] --> D3["Explain Insights"]
         D1 -.- |"Values"| D2
