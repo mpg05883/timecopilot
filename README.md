@@ -19,7 +19,7 @@
 
 ---
 
-Want to stay updated on TimeCopilot's latest developments? Have a feature request or interested in testing it for production loads? Fill out [our form]() or join our [Discord community](https://discord.gg/7GEdHR6Pfg) to be part of the conversation!
+Want to stay updated on TimeCopilot's latest developments? Have a feature request or interested in testing it for production loads? Fill out [our form](https://docs.google.com/forms/d/e/1FAIpQLSeQWKVHjYKe1ayEso-K2My9nQsoaSWxzht0S6D4yrCln7BECQ/viewform?usp=dialog) or join our [Discord community](https://discord.gg/7GEdHR6Pfg) to be part of the conversation!
 
 ---
 
