@@ -1,5 +1,5 @@
 <div align="center">
-  <a href="[https://ai.pydantic.dev/](https://github.com/AzulGarza/TimeCopilot)">
+  <a href="https://github.com/AzulGarza/TimeCopilot">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/27fdd7c8-483e-4339-bc54-23323582b39d">
       <img src="https://github.com/user-attachments/assets/7fdba4f2-e279-4fdf-b559-2829b5fe2143" alt="TimeCopilot">
