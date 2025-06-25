@@ -1,8 +1,9 @@
 import warnings
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import pandas as pd
 from utilsforecast.evaluation import evaluate
@@ -80,7 +81,11 @@ class DatasetParams:
             "seasonality",
         ]
         dataset_params_cols_dtypes = [str, str, int, int]
-        for col, dtype in zip(dataset_params_cols, dataset_params_cols_dtypes):
+        for col, dtype in zip(
+            dataset_params_cols,
+            dataset_params_cols_dtypes,
+            strict=False,
+        ):
             dataset_params[col] = cls._get_value_from_df_col(df, col, dtype=dtype)
         return cls(**dataset_params)
 
