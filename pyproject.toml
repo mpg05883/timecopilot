@@ -10,14 +10,14 @@ authors = [
     { name = "Azul Garza", email = "azul.garza.r@gmail.com" }
 ]
 dependencies = [
-  "pydantic-ai[logfire]",
-  "statsforecast",
-  "tsfeatures",
-  "gluonts",
-  "utilsforecast",
   "fire",
+  "gluonts",
+  "pydantic-ai[logfire]",
   "python-dotenv",
   "scipy<=1.15.3",
+  "statsforecast",
+  "tsfeatures",
+  "utilsforecast",
 ]
 
 [dependency-groups]
