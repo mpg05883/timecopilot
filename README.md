@@ -41,6 +41,22 @@ The agent leverages LLMs to:
 - Explain technical decisions in natural language
 - Answer domain-specific questions about forecasts
 
+## Installation
+
+TimeCopilot is available on PyPI as [`timecopilot`](https://pypi.org/project/timecopilot/) so installation is as simple as:
+
+```bash
+pip install timecopilot
+```
+
+or 
+
+```bash
+uv add timecopilot
+```
+
+(Requires Python 3.10+)
+
 ## Hello World Example
 
 ```python
