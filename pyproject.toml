@@ -17,6 +17,7 @@ dependencies = [
   "utilsforecast",
   "fire",
   "python-dotenv",
+  "scipy<=1.15.3",
 ]
 
 [dependency-groups]
