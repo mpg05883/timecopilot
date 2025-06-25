@@ -93,7 +93,10 @@ result = forecasting_agent.forecast(df=df)
 # - forecast_analysis: Interpretation of the forecast results
 # - user_prompt_response: Response to the user prompt, if any
 print(result.output)
+```
+<details> <summary>Click to expand full forecast output</summary>
 
+```python
 """
 tsfeatures_results=['hurst: 1.04', 'unitroot_pp: -6.57', 'unitroot_kpss: 2.74', 
 'nperiods: 1,seasonal_period: 12', 'trend: 1.00', 'entropy: 0.43', 'x_acf1: 0.95', 
@@ -138,6 +141,8 @@ accuracy and reliability surpassing basic seasonal models.'
 """
 ```
 
+</details>
+
 ## Ask about the future
 
 You can ask questions about the forecast in natural language. The agent will analyze the data, generate forecasts, and provide detailed answers to your queries.
@@ -167,9 +172,9 @@ You can ask various types of questions:
 - Comparative analysis: "How does passenger volume compare to last year?"
 - Business insights: "Should we increase aircraft capacity next quarter?"
 
-## Roadmap 🚀
+## Roadmap
 
-TimeCopilot is under active development with exciting features on the horizon!
+TimeCopilot is under active development with a clear roadmap ahead.
 
 ### Core Features in Progress
 - [ ] Multi-series support
@@ -225,8 +230,6 @@ TimeCopilot is under active development with exciting features on the horizon!
    - Star the repository
    - Join our Discord community
    - Watch for new releases
-
-We're excited to build the future of agentic forecasting together! 🚀
 
 
 
