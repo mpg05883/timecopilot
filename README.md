@@ -1,7 +1,7 @@
 <div align="center">
   <a href="https://github.com/AzulGarza/TimeCopilot">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/5b6fb92e-a460-48cb-a218-d8321e9b54f5">
+      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/4b269fb3-3edc-42ad-a08c-6f79d2fe6aca">
       <img src="https://github.com/user-attachments/assets/5b6fb92e-a460-48cb-a218-d8321e9b54f5" alt="TimeCopilot">
     </picture>
   </a>
