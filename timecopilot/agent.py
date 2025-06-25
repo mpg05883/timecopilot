@@ -23,10 +23,10 @@ from tsfeatures import (
     series_length,
     stability,
     stl_features,
-    tsfeatures,
     unitroot_kpss,
     unitroot_pp,
 )
+from tsfeatures.tsfeatures import _get_feats
 
 from .models.benchmarks import (
     ADIDA,
@@ -358,12 +358,12 @@ class TimeCopilot:
                         f"{', '.join(TSFEATURES.keys())}"
                     )
                 callable_features.append(TSFEATURES[feature])
-            features_df = tsfeatures(
-                ctx.deps.df,
+            features_df = _get_feats(
+                index=ctx.deps.df["unique_id"].iloc[0],
+                ts=ctx.deps.df,
                 features=callable_features,
                 freq=ctx.deps.seasonality,
             )
-            features_df = features_df.drop(columns=["unique_id"])
             return ",".join(
                 [f"{col}: {features_df[col].iloc[0]}" for col in features_df.columns]
             )
