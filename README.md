@@ -1,3 +1,5 @@
+# TimeCopilot
+
 <div align="center">
   <a href="https://github.com/AzulGarza/TimeCopilot">
     <picture>
@@ -19,15 +21,40 @@
 
 ---
 
-If you want to be up to date regarding the latest developments, you would like a particular feature request, or are you interested in testing TimeCopilot for production loads, fill out this form.
+Want to stay updated on TimeCopilot's latest developments? Have a feature request or interested in testing it for production loads? Fill out [our form]() or join our [Discord community](https://discord.gg/7GEdHR6Pfg) to be part of the conversation!
 
 ---
 
+TimeCopilot is an open-source forecasting agent that combines the power of large language models with state-of-the-art time series foundation models. It automates and explains complex forecasting workflows, making time series analysis more accessible while maintaining professional-grade accuracy.
 
-TimeCopilot is the GenAI Forecasting Agent — an open-source assistant that combines large language models, time series foundation models, and classical forecasting tools to automate and explain forecasting workflows. 
+## How It Works
 
+TimeCopilot operates as an intelligent agent that follows a systematic approach to forecasting:
 
-# Hello World Example
+1. **Feature Analysis**: 
+   - Calculates key time series characteristics (trend, seasonality, stationarity)
+   - Uses advanced metrics like Hurst exponent and unit root tests
+   - Provides natural language interpretation of statistical features
+
+2. **Model Selection**:
+   - Evaluates multiple foundation models (ARIMA, ETS, Theta, etc.)
+   - Performs cross-validation with MASE (Mean Absolute Scaled Error)
+   - Always benchmarks against seasonal naive forecasts
+   - Explains model selection rationale in plain language
+
+3. **Forecast Generation**:
+   - Produces detailed forecasts with confidence intervals
+   - Analyzes trends and patterns in predictions
+   - Responds to natural language queries about the forecast
+   - Provides business-oriented interpretations
+
+The agent uses LLMs to:
+- Interpret complex statistical features
+- Select appropriate models based on data characteristics
+- Explain technical decisions in accessible language
+- Answer domain-specific questions about forecasts
+
+## Hello World Example
 
 ```python
 # Import libraries
@@ -141,6 +168,67 @@ You can ask various types of questions:
 - Specific periods: "What's the passenger forecast for summer months?"
 - Comparative analysis: "How does passenger volume compare to last year?"
 - Business insights: "Should we increase aircraft capacity next quarter?"
+
+## Roadmap 🚀
+
+TimeCopilot is under active development with exciting features on the horizon!
+
+### Core Features in Progress
+- [ ] Multi-series support
+  - [ ] Processing for multiple time series
+  - [ ] Cross-series analysis and insights
+  - [ ] Hierarchical forecasting
+- [ ] Advanced Model Integration
+  - [ ] Neural network models (Transformers, N-BEATS)
+  - [ ] Machine learning models (XGBoost, LightGBM)
+  - [ ] Custom model registry
+
+### Exciting New Agents
+- [ ] Anomaly Detection Agent
+  - [ ] Real-time anomaly detection
+  - [ ] Root cause analysis
+  - [ ] Alert generation
+- [ ] Multi-Agent System
+  - [ ] Collaborative forecasting
+  - [ ] Ensemble predictions
+  - [ ] Agent specialization
+
+### Enhanced Capabilities
+- [ ] Exogenous Variables Support
+  - [ ] External feature integration
+  - [ ] Feature importance analysis
+  - [ ] Causal analysis
+- [ ] API Development
+  - [ ] RESTful API
+  - [ ] Streaming capabilities
+
+### Infrastructure & Documentation
+- [ ] Comprehensive Documentation
+  - [ ] API reference
+  - [ ] Best practices guide
+  - [ ] Example gallery
+- [ ] Developer Tools
+  - [ ] CLI improvements
+  - [ ] Jupyter integration
+
+## Next Steps
+
+1. **Try TimeCopilot**: 
+   - Check out the examples above
+   - Join our Discord for community support
+   - Share your use cases and feedback
+
+2. **Contribute**:
+   - Pick an item from the roadmap
+   - Submit feature requests and bug reports
+   - Help improve documentation
+
+3. **Stay Updated**:
+   - Star the repository
+   - Join our Discord community
+   - Watch for new releases
+
+We're excited to build the future of agentic forecasting together! 🚀
 
 
 
