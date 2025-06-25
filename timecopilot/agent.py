@@ -1,5 +1,5 @@
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 import pandas as pd
 from pydantic import BaseModel, Field
@@ -118,8 +118,11 @@ class ForecastAgentOutput(BaseModel):
     reason_for_selection: str = Field(
         description="Explanation for why the selected model was chosen"
     )
-    forecast: list[float] = Field(
-        description="The forecasted values for the time series"
+    forecast: list[str] = Field(
+        description=(
+            "The forecasted values for the time series as a list of strings of "
+            "periods and their values separated by commas."
+        )
     )
     forecast_analysis: str = Field(
         description=(
@@ -208,8 +211,9 @@ class ForecastAgentOutput(BaseModel):
         forecast_table.add_column("Value", style="cyan", justify="right")
 
         # Show all individual values with period indicators
-        for i, value in enumerate(self.forecast, 1):
-            forecast_table.add_row(f"t+{i}", f"{value:.2f}")
+        for fcst in self.forecast:
+            period, value = fcst.split(":")
+            forecast_table.add_row(f"{period}", f"{value}")
 
         # Add note about number of periods if many
         if len(self.forecast) > 12:
@@ -414,9 +418,8 @@ class TimeCopilot:
                 h=ctx.deps.horizon,
                 freq=ctx.deps.pandas_frequency,
             )
-            output = (
-                f"Forecasted values for the next {ctx.deps.horizon} "
-                f"periods: {fcst_df[model].tolist()}"
+            output = ",".join(
+                [f"{row['ds']}: {row[model]}" for _, row in fcst_df.iterrows()]
             )
             return output
 
@@ -435,7 +438,7 @@ class TimeCopilot:
             return output
 
     async def forecast(self, df: pd.DataFrame | str | Path, prompt: str = ""):
-        if isinstance(df, (str, Path)):
+        if isinstance(df, str | Path):
             dataset = ExperimentDataset.from_csv(df)
         elif isinstance(df, pd.DataFrame):
             dataset = ExperimentDataset.from_df(df=df)
