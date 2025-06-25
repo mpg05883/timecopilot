@@ -31,43 +31,9 @@ TimeCopilot is an open-source forecasting agent that combines the power of large
 
 TimeCopilot operates as a generative agent that follows a systematic approach to forecasting:
 
-```mermaid
-flowchart TB
-    A[Time Series Data] --> B[Feature Analysis]
-    B --> C[Model Selection]
-    C --> D[Forecast Generation]
-
-    subgraph Analysis["Feature Analysis"]
-        direction LR
-        B1["Calculate Features"] --> B2["Analyze Patterns"] --> B3["Generate Insights"]
-        B1 -.- |"Trend"| B2
-        B1 -.- |"Seasonality"| B2
-        B1 -.- |"Stationarity"| B2
-    end
-
-    subgraph Selection["Model Selection"]
-        direction LR
-        C1["Evaluate Models"] --> C2["Cross Validation"] --> C3["Select Best Model"]
-        C1 -.- |"ARIMA"| C2
-        C1 -.- |"ETS"| C2
-        C1 -.- |"Theta"| C2
-    end
-
-    subgraph Generation["Forecast Generation"]
-        direction LR
-        D1["Generate Predictions"] --> D2["Analyze Results"] --> D3["Explain Insights"]
-        D1 -.- |"Values"| D2
-        D1 -.- |"Confidence"| D2
-        D1 -.- |"Analysis"| D2
-    end
-
-    B --> B1
-    C --> C1
-    D --> D1
-    
-    B3 --> |"Feature Insights"| C1
-    C3 --> |"Best Model"| D1
-```
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/3ae3c8cb-bcc5-46cd-b80b-a606671ba553" alt="Diagram" width="500"/>
+</p>
 
 The agent leverages LLMs to:
 - Interpret statistical features and patterns
