@@ -25,13 +25,13 @@ jobs:
         run: uv build
 
       - name: Perform import test (wheel)
-        run: uv run --isolated --no-project -p 3.13 --with dist/*.whl -- python -c "import timecopilot"
+        run: uv run --isolated --no-project -p 3.13 --with dist/*.whl -- python -c "from timecopilot import TimeCopilot"
 
       - name: Perform import test (source distribution)
-        run: uv run --isolated --no-project -p 3.13 --with dist/*.tar.gz -- python -c "import timecopilot"
+        run: uv run --isolated --no-project -p 3.13 --with dist/*.tar.gz -- python -c "from timecopilot import TimeCopilot"
 
       - name: Publish package
         run: uv publish --trusted-publishing always
 
       - name: After publishing test
-        run: uv run --isolated --no-project -p 3.13 --with timecopilot -- python -c "import timecopilot"
+        run: uv run --isolated --no-project -p 3.13 --with timecopilot -- python -c "from timecopilot import TimeCopilot"
