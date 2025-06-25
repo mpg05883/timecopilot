@@ -29,7 +29,7 @@ TimeCopilot is an open-source forecasting agent that combines the power of large
 
 ## How It Works
 
-TimeCopilot operates as an intelligent agent that follows a systematic approach to forecasting:
+TimeCopilot operates as a generative agent that follows a systematic approach to forecasting:
 
 ```mermaid
 flowchart TB
