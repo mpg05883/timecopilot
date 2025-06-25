@@ -29,27 +29,50 @@ TimeCopilot is an open-source forecasting agent that combines the power of large
 
 TimeCopilot operates as an intelligent agent that follows a systematic approach to forecasting:
 
-1. **Feature Analysis**: 
-   - Calculates key time series characteristics (trend, seasonality, stationarity)
-   - Uses advanced metrics like Hurst exponent and unit root tests
-   - Provides natural language interpretation of statistical features
+```mermaid
+graph TD
+    A[Time Series Data] --> B[Feature Analysis]
+    B --> C[Model Selection]
+    C --> D[Forecast Generation]
 
-2. **Model Selection**:
-   - Evaluates multiple foundation models (ARIMA, ETS, Theta, etc.)
-   - Performs cross-validation with MASE (Mean Absolute Scaled Error)
-   - Always benchmarks against seasonal naive forecasts
-   - Explains model selection rationale in plain language
+    subgraph "1. Feature Analysis"
+        B --> B1["Calculate Features"]
+        B1 --> B2["Analyze Patterns"]
+        B2 --> B3["Generate Insights"]
+        
+        B1 --> |"Trend"| B2
+        B1 --> |"Seasonality"| B2
+        B1 --> |"Stationarity"| B2
+    end
 
-3. **Forecast Generation**:
-   - Produces detailed forecasts with confidence intervals
-   - Analyzes trends and patterns in predictions
-   - Responds to natural language queries about the forecast
-   - Provides business-oriented interpretations
+    subgraph "2. Model Selection"
+        C --> C1["Evaluate Models"]
+        C1 --> C2["Cross Validation"]
+        C2 --> C3["Select Best Model"]
+        
+        C1 --> |"ARIMA"| C2
+        C1 --> |"ETS"| C2
+        C1 --> |"Theta"| C2
+    end
 
-The agent uses LLMs to:
-- Interpret complex statistical features
-- Select appropriate models based on data characteristics
-- Explain technical decisions in accessible language
+    subgraph "3. Forecast Generation"
+        D --> D1["Generate Predictions"]
+        D1 --> D2["Analyze Results"]
+        D2 --> D3["Explain Insights"]
+        
+        D1 --> |"Values"| D2
+        D1 --> |"Confidence"| D2
+        D1 --> |"Analysis"| D2
+    end
+
+    B3 --> |"Feature Insights"| C1
+    C3 --> |"Best Model"| D1
+```
+
+The agent leverages LLMs to:
+- Interpret statistical features and patterns
+- Guide model selection based on data characteristics
+- Explain technical decisions in natural language
 - Answer domain-specific questions about forecasts
 
 ## Hello World Example
