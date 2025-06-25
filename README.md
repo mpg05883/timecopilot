@@ -1,11 +1,13 @@
 <div align="center">
   <a href="https://github.com/AzulGarza/TimeCopilot">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/53cd6860-eda4-45f1-aca3-0b769ad79fc1">
+      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/330c322f-1211-4f98-842d-f94dabded1d8">
       <img src="https://github.com/user-attachments/assets/5b6fb92e-a460-48cb-a218-d8321e9b54f5" alt="TimeCopilot">
     </picture>
   </a>
 </div>
+
+
 <div align="center">
   <em>The GenAI Forecasting Agent · LLMs × Foundation Time Series Models</em>
 </div>
