@@ -28,3 +28,5 @@ jobs:
 
       - name: Run tests 
         run: uv run pytest
+
+      - name: uv run -- python -c "from timecopilot import TimeCopilot" 
