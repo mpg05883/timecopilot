@@ -33,7 +33,6 @@ class TimeCopilot:
             )
 
         result.output.prettify(self.console)
-        return result
 
 
 def main():
