@@ -1,8 +1,8 @@
 <div align="center">
   <a href="https://github.com/AzulGarza/TimeCopilot">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/27fdd7c8-483e-4339-bc54-23323582b39d">
-      <img src="https://github.com/user-attachments/assets/7fdba4f2-e279-4fdf-b559-2829b5fe2143" alt="TimeCopilot">
+      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/53cd6860-eda4-45f1-aca3-0b769ad79fc1">
+      <img src="https://github.com/user-attachments/assets/5b6fb92e-a460-48cb-a218-d8321e9b54f5" alt="TimeCopilot">
     </picture>
   </a>
 </div>
