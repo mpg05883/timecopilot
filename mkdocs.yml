@@ -1,0 +1,43 @@
+site_name: TimeCopilot
+repo_url: https://github.com/AzulGarza/TimeCopilot
+
+
+theme:
+  name: "material"
+  palette:
+    - media: "(prefers-color-scheme)"
+      primary: custom
+      accent: light-blue
+      toggle:
+        icon: material/brightness-auto
+        name: "Switch to light mode"
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: light-blue
+      toggle:
+        icon: material/brightness-7
+        name: "Switch to dark mode"
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: light-blue
+      toggle:
+        icon: material/brightness-4
+        name: "Switch to system preference"
+  features:
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotate
+    - content.code.copy
+    - content.code.select
+    - navigation.path
+    - navigation.indexes
+    - navigation.sections
+    - navigation.tracking
+    - toc.follow
+nav:
+  - Home: index.md
+extra_css:
+  - stylesheets/extra.css
