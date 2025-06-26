@@ -1,4 +1,5 @@
 site_name: TimeCopilot
+site_description: The GenAI Forecasting Agent · LLMs x Foundation Time Series Models
 repo_url: https://github.com/AzulGarza/TimeCopilot
 repo_name: TimeCopilot
 edit_uri: edit/main/docs
