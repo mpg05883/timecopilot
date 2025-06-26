@@ -1,5 +1,10 @@
 import pandas as pd
-from gluonts.time_feature.seasonality import get_seasonality as _get_seasonality
+from gluonts.time_feature.seasonality import (
+    DEFAULT_SEASONALITIES,
+)
+from gluonts.time_feature.seasonality import (
+    get_seasonality as _get_seasonality,
+)
 from tqdm import tqdm
 from utilsforecast.processing import (
     backtest_splits,
@@ -12,7 +17,7 @@ from utilsforecast.processing import (
 
 
 def get_seasonality(freq: str) -> int:
-    return _get_seasonality(freq, seasonalities={"D": 7})
+    return _get_seasonality(freq, seasonalities=DEFAULT_SEASONALITIES | {"D": 7})
 
 
 def maybe_convert_col_to_datetime(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
