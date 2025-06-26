@@ -44,6 +44,7 @@ theme:
     - navigation.indexes
     - navigation.sections
     - navigation.tracking
+    - toc.integrate
     - toc.follow
 
 extra_css:
