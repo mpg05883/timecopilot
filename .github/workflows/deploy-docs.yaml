@@ -11,7 +11,7 @@ jobs:
     name: Deploy Docs
     runs-on: ubuntu-latest
     env:
-      MODAL_TOKEN: ${{ secrets.MODAL_TOKEN }}
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
       MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
       MODAL_ENVIRONMENT: ${{ secrets.MODAL_ENVIRONMENT }}
     steps:
