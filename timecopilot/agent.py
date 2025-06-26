@@ -443,7 +443,7 @@ class TimeCopilot:
     def forecast(self, df: pd.DataFrame | str | Path, prompt: str = ""):
         prompt = f"User prompt: {prompt}" if prompt else "User did not provide a prompt"
         if isinstance(df, str | Path):
-            dataset = ExperimentDataset.from_csv(df)
+            dataset = ExperimentDataset.from_path(df)
             prompt = f"The time series was read from {df}. {prompt}"
         elif isinstance(df, pd.DataFrame):
             dataset = ExperimentDataset.from_df(df=df)
