@@ -38,6 +38,7 @@ TimeCopilot operates as a generative agent that follows a systematic approach to
 </p>
 
 The agent leverages LLMs to:
+
 - Interpret statistical features and patterns
 - Guide model selection based on data characteristics
 - Explain technical decisions in natural language
@@ -48,7 +49,7 @@ The agent leverages LLMs to:
 TimeCopilot can pull a public time series dataset directly from the web and forecast it in one command.  No local files, no Python script, just run it with [uvx](https://docs.astral.sh/uv/):
 
 ```bash
-# Baseline run (uses default model)
+# Baseline run (uses default model: openai:gpt-4o-mini)
 uvx timecopilot forecast https://otexts.com/fpppy/data/AirPassengers.csv
 ```
 
@@ -200,6 +201,7 @@ The total expected air passengers for the next 12 months is approximately 5,919.
 ```
 
 You can ask various types of questions:
+
 - Trend analysis: "What's the expected passenger growth rate?"
 - Seasonal patterns: "Which months have peak passenger traffic?"
 - Specific periods: "What's the passenger forecast for summer months?"
@@ -211,59 +213,61 @@ You can ask various types of questions:
 TimeCopilot is under active development with a clear roadmap ahead.
 
 ### Core Features in Progress
+
 - [ ] Multi-series support
-  - [ ] Processing for multiple time series
-  - [ ] Cross-series analysis and insights
-  - [ ] Hierarchical forecasting
+    - [ ] Processing for multiple time series
+    - [ ] Cross-series analysis and insights
+    - [ ] Hierarchical forecasting
 - [ ] Advanced Model Integration
-  - [ ] Neural network models (Transformers, N-BEATS)
-  - [ ] Machine learning models (XGBoost, LightGBM)
-  - [ ] Custom model registry
+    - [ ] Neural network models (Transformers, N-BEATS)
+    - [ ] Machine learning models (XGBoost, LightGBM)
+    - [ ] Custom model registry
 
 ### Exciting New Agents
+
 - [ ] Anomaly Detection Agent
-  - [ ] Real-time anomaly detection
-  - [ ] Root cause analysis
-  - [ ] Alert generation
+    - [ ] Real-time anomaly detection
+    - [ ] Root cause analysis
+    - [ ] Alert generation
 - [ ] Multi-Agent System
-  - [ ] Collaborative forecasting
-  - [ ] Ensemble predictions
-  - [ ] Agent specialization
+    - [ ] Collaborative forecasting
+    - [ ] Ensemble predictions
+    - [ ] Agent specialization
 
 ### Enhanced Capabilities
+
 - [ ] Exogenous Variables Support
-  - [ ] External feature integration
-  - [ ] Feature importance analysis
-  - [ ] Causal analysis
+    - [ ] External feature integration
+    - [ ] Feature importance analysis
+    - [ ] Causal analysis
 - [ ] API Development
-  - [ ] RESTful API
-  - [ ] Streaming capabilities
+    - [ ] RESTful API
+    - [ ] Streaming capabilities
 
 ### Infrastructure & Documentation
+
 - [ ] Comprehensive Documentation
-  - [ ] API reference
-  - [ ] Best practices guide
-  - [ ] Example gallery
+    - [ ] API reference
+    - [ ] Best practices guide
+    - [ ] Example gallery
 - [ ] Developer Tools
-  - [ ] CLI improvements
-  - [ ] Jupyter integration
+    - [ ] CLI improvements
+    - [ ] Jupyter integration
 
 ## Next Steps
 
 1. **Try TimeCopilot**: 
-   - Check out the examples above
-   - Join our Discord for community support
-   - Share your use cases and feedback
-
+    - Check out the examples above
+    - Join our Discord for community support
+    - Share your use cases and feedback
 2. **Contribute**:
-   - Pick an item from the roadmap
-   - Submit feature requests and bug reports
-   - Help improve documentation
-
+    - Pick an item from the roadmap
+    - Submit feature requests and bug reports
+    - Help improve documentation
 3. **Stay Updated**:
-   - Star the repository
-   - Join our Discord community
-   - Watch for new releases
+    - Star the repository
+    - Join our Discord community
+    - Watch for new releases
 
 
 
