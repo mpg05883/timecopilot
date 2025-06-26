@@ -9,6 +9,8 @@ import pandas as pd
 from utilsforecast.evaluation import evaluate
 from utilsforecast.losses import _zero_to_nan, mae
 
+from ..models.utils.forecaster import get_seasonality
+
 warnings.simplefilter(
     action="ignore",
     category=FutureWarning,
@@ -52,7 +54,6 @@ def generate_train_cv_splits(
 
 @dataclass
 class DatasetParams:
-    frequency: str
     pandas_frequency: str
     horizon: int
     seasonality: int
@@ -73,20 +74,30 @@ class DatasetParams:
 
     @classmethod
     def from_df(cls, df: pd.DataFrame) -> "DatasetParams":
+        if "unique_id" not in df.columns:
+            df["unique_id"] = "uid_0"
         dataset_params = {}
         dataset_params_cols = [
-            "frequency",
             "pandas_frequency",
-            "horizon",
             "seasonality",
+            "horizon",
         ]
-        dataset_params_cols_dtypes = [str, str, int, int]
+        dataset_params_cols_dtypes = [str, int, int]
         for col, dtype in zip(
             dataset_params_cols,
             dataset_params_cols_dtypes,
             strict=False,
         ):
-            dataset_params[col] = cls._get_value_from_df_col(df, col, dtype=dtype)
+            if col == "pandas_frequency" and col not in df.columns:
+                dataset_params[col] = pd.infer_freq(df["ds"])
+            elif col == "seasonality" and col not in df.columns:
+                dataset_params[col] = get_seasonality(
+                    dataset_params["pandas_frequency"]
+                )
+            elif col == "horizon" and col not in df.columns:
+                dataset_params[col] = 2 * dataset_params["seasonality"]
+            else:
+                dataset_params[col] = cls._get_value_from_df_col(df, col, dtype=dtype)
         return cls(**dataset_params)
 
 
@@ -100,8 +111,19 @@ class ExperimentDataset(DatasetParams):
         Parameters
         ----------
         df : pd.DataFrame
-            df should have columns:
-            unique_id, ds, y, frequency, pandas_frequency, horizon, seasonality
+            The input DataFrame must contain the following columns:
+            - unique_id: A unique identifier for each time series (str).
+                If not present, it will be set to "uid_0".
+            - ds: The datetime column representing the time index (datetime).
+            - y: The target variable to forecast (float).
+            - pandas_frequency: The frequency of the data, e.g.,
+                'D' for daily, 'M' for monthly (str).
+                If not present, it will be inferred from the data.
+            - horizon: The number of periods to forecast (int).
+                If not present, it will be set to 2 * seasonality.
+            - seasonality: The seasonal period of the data,
+                typically inferred from the frequency (int).
+                If not present, it will be inferred from the frequency.
         """
         ds_params = DatasetParams.from_df(df=df)
         df = df[["unique_id", "ds", "y"]]  # type: ignore
@@ -111,19 +133,37 @@ class ExperimentDataset(DatasetParams):
         )
 
     @classmethod
-    def from_parquet(
+    def from_path(
         cls,
-        parquet_path: str | Path,
+        path: str | Path,
     ) -> "ExperimentDataset":
-        df = pd.read_parquet(parquet_path)
-        return cls.from_df(df=df)
+        path_str = str(path)
+        suffix = Path(path_str).suffix.lstrip(".")
+        read_fn_name = f"read_{suffix}"
+        if not hasattr(pd, read_fn_name):
+            raise ValueError(f"Unsupported file extension: .{suffix}")
+        read_fn: Callable = getattr(pd, read_fn_name)
+        read_kwargs: dict[str, Any] = {}
+        if path_str.startswith(("http://", "https://")):
+            import io
 
-    @classmethod
-    def from_csv(
-        cls,
-        csv_path: str | Path,
-    ) -> "ExperimentDataset":
-        df = pd.read_csv(csv_path)
+            import requests
+
+            headers = {"User-Agent": "Mozilla/5.0"}
+            resp = requests.get(path_str, headers=headers, timeout=30)
+            resp.raise_for_status()
+
+            if suffix in {"csv", "txt"}:
+                df = read_fn(io.StringIO(resp.text))  # type: ignore[arg-type]
+            elif suffix in {"parquet"}:
+                import pyarrow as pa  # noqa: WPS433
+
+                table = pa.ipc.open_file(pa.BufferReader(resp.content)).read_all()
+                df = table.to_pandas()
+            else:
+                df = read_fn(io.BytesIO(resp.content))  # type: ignore[arg-type]
+        else:
+            df = read_fn(path_str, **read_kwargs)
         return cls.from_df(df=df)
 
     def evaluate_forecast_df(
