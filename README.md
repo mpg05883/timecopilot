@@ -66,15 +66,18 @@ uv add timecopilot
 import pandas as pd
 from timecopilot import TimeCopilot
 
-# Read data
-# The DataFrame must contain the following columns:
-# - unique_id: identifier for the time series (str)
-# - ds: datetime column (datetime)
-# - y: target variable to forecast (float)
-# - frequency: data frequency (e.g., 'D' for daily, 'M' for monthly)
-# - pandas_frequency: pandas frequency string (e.g., 'D', 'M', 'Y')
-# - horizon: number of periods to forecast (int)
-# - seasonality: length of seasonal cycle (int, e.g., 7 for weekly, 12 for monthly)
+# Load the dataset
+# The DataFrame must include at least the following columns:
+# - ds: Date column (datetime format)
+# - y: Target variable for forecasting (float format)
+# The pandas frequency will be inferred from the ds column, if not provided.
+# If the seasonality is not provided, it will be inferred based on the frequency. 
+# If the horizon is not set, it will default to 2 times the inferred seasonality.
+# Optionally, you can provide additional metadata in the DataFrame:
+# - unique_id: Unique identifier for each time series (string)
+# - pandas_frequency: Frequency of the data in pandas format (e.g., 'D' for daily, 'M' for monthly, 'Y' for yearly)
+# - horizon: Number of future periods to forecast (integer)
+# - seasonality: Length of the seasonal cycle (integer, e.g., 7 for weekly, 12 for monthly)
 df = pd.read_csv("data/air_passengers.csv")
 
 # Initialize the forecasting agent
