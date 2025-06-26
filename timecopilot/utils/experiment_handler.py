@@ -137,8 +137,33 @@ class ExperimentDataset(DatasetParams):
         cls,
         path: str | Path,
     ) -> "ExperimentDataset":
-        read_fn = getattr(pd, f"read_{Path(path).suffix.lstrip('.')}")
-        df = read_fn(path)
+        path_str = str(path)
+        suffix = Path(path_str).suffix.lstrip(".")
+        read_fn_name = f"read_{suffix}"
+        if not hasattr(pd, read_fn_name):
+            raise ValueError(f"Unsupported file extension: .{suffix}")
+        read_fn: Callable = getattr(pd, read_fn_name)
+        read_kwargs: dict[str, Any] = {}
+        if path_str.startswith(("http://", "https://")):
+            import io
+
+            import requests
+
+            headers = {"User-Agent": "Mozilla/5.0"}
+            resp = requests.get(path_str, headers=headers, timeout=30)
+            resp.raise_for_status()
+
+            if suffix in {"csv", "txt"}:
+                df = read_fn(io.StringIO(resp.text))  # type: ignore[arg-type]
+            elif suffix in {"parquet"}:
+                import pyarrow as pa  # noqa: WPS433
+
+                table = pa.ipc.open_file(pa.BufferReader(resp.content)).read_all()
+                df = table.to_pandas()
+            else:
+                df = read_fn(io.BytesIO(resp.content))  # type: ignore[arg-type]
+        else:
+            df = read_fn(path_str, **read_kwargs)
         return cls.from_df(df=df)
 
     def evaluate_forecast_df(
