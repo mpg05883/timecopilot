@@ -9,6 +9,8 @@ import pandas as pd
 from utilsforecast.evaluation import evaluate
 from utilsforecast.losses import _zero_to_nan, mae
 
+from .models.utils import get_seasonality
+
 warnings.simplefilter(
     action="ignore",
     category=FutureWarning,
@@ -52,7 +54,6 @@ def generate_train_cv_splits(
 
 @dataclass
 class DatasetParams:
-    frequency: str
     pandas_frequency: str
     horizon: int
     seasonality: int
@@ -75,18 +76,26 @@ class DatasetParams:
     def from_df(cls, df: pd.DataFrame) -> "DatasetParams":
         dataset_params = {}
         dataset_params_cols = [
-            "frequency",
             "pandas_frequency",
-            "horizon",
             "seasonality",
+            "horizon",
         ]
-        dataset_params_cols_dtypes = [str, str, int, int]
+        dataset_params_cols_dtypes = [str, int, int]
         for col, dtype in zip(
             dataset_params_cols,
             dataset_params_cols_dtypes,
             strict=False,
         ):
-            dataset_params[col] = cls._get_value_from_df_col(df, col, dtype=dtype)
+            if col == "pandas_frequency" and col not in df.columns:
+                dataset_params[col] = pd.infer_freq(df["ds"])
+            elif col == "seasonality" and col not in df.columns:
+                dataset_params[col] = get_seasonality(
+                    dataset_params["pandas_frequency"]
+                )
+            elif col == "horizon" and col not in df.columns:
+                dataset_params[col] = 2 * dataset_params["seasonality"]
+            else:
+                dataset_params[col] = cls._get_value_from_df_col(df, col, dtype=dtype)
         return cls(**dataset_params)
 
 
@@ -101,7 +110,7 @@ class ExperimentDataset(DatasetParams):
         ----------
         df : pd.DataFrame
             df should have columns:
-            unique_id, ds, y, frequency, pandas_frequency, horizon, seasonality
+            unique_id, ds, y, pandas_frequency, horizon, seasonality
         """
         ds_params = DatasetParams.from_df(df=df)
         df = df[["unique_id", "ds", "y"]]  # type: ignore
