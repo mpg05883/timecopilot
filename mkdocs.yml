@@ -7,6 +7,9 @@ repo_name: AzulGarza/TimeCopilot
 repo_url: https://github.com/AzulGarza/TimeCopilot
 edit_uri: edit/main/docs
 
+watch:
+  - "README.md"
+
 nav:
   - Introduction: index.md
 
@@ -67,3 +70,6 @@ markdown_extensions:
     slugify: !!python/object/apply:pymdownx.slugs.slugify
       kwds:
         case: lower
+- def_list
+- pymdownx.tasklist:
+    custom_checkbox: true
