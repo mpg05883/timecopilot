@@ -9,7 +9,7 @@ import pandas as pd
 from utilsforecast.evaluation import evaluate
 from utilsforecast.losses import _zero_to_nan, mae
 
-from .models.utils import get_seasonality
+from ..models.utils.forecaster import get_seasonality
 
 warnings.simplefilter(
     action="ignore",
@@ -74,6 +74,8 @@ class DatasetParams:
 
     @classmethod
     def from_df(cls, df: pd.DataFrame) -> "DatasetParams":
+        if "unique_id" not in df.columns:
+            df["unique_id"] = "uid_0"
         dataset_params = {}
         dataset_params_cols = [
             "pandas_frequency",
@@ -109,8 +111,19 @@ class ExperimentDataset(DatasetParams):
         Parameters
         ----------
         df : pd.DataFrame
-            df should have columns:
-            unique_id, ds, y, pandas_frequency, horizon, seasonality
+            The input DataFrame must contain the following columns:
+            - unique_id: A unique identifier for each time series (str).
+                If not present, it will be set to "uid_0".
+            - ds: The datetime column representing the time index (datetime).
+            - y: The target variable to forecast (float).
+            - pandas_frequency: The frequency of the data, e.g.,
+                'D' for daily, 'M' for monthly (str).
+                If not present, it will be inferred from the data.
+            - horizon: The number of periods to forecast (int).
+                If not present, it will be set to 2 * seasonality.
+            - seasonality: The seasonal period of the data,
+                typically inferred from the frequency (int).
+                If not present, it will be inferred from the frequency.
         """
         ds_params = DatasetParams.from_df(df=df)
         df = df[["unique_id", "ds", "y"]]  # type: ignore
