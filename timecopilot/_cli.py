@@ -8,7 +8,7 @@ from rich.console import Console
 from timecopilot.agent import TimeCopilot as TimeCopilotAgent
 
 load_dotenv()
-logfire.configure()
+logfire.configure(send_to_logfire="if-token-present")
 logfire.instrument_pydantic_ai()
 
 
