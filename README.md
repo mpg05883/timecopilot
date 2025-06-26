@@ -23,6 +23,7 @@
 
 Want to stay updated on TimeCopilot's latest developments? Have a feature request or interested in testing it for production loads? Fill out [our form](https://docs.google.com/forms/d/e/1FAIpQLSeQWKVHjYKe1ayEso-K2My9nQsoaSWxzht0S6D4yrCln7BECQ/viewform?usp=dialog) or join our [Discord community](https://discord.gg/7GEdHR6Pfg) to be part of the conversation!
 
+**Documentation**: [timecopilot.dev](https://timecopilot.dev/)
 ---
 
 TimeCopilot is an open-source forecasting agent that combines the power of large language models with state-of-the-art time series foundation models. It automates and explains complex forecasting workflows, making time series analysis more accessible while maintaining professional-grade accuracy.
