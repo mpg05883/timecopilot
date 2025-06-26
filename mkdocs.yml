@@ -1,0 +1,68 @@
+site_name: TimeCopilot
+site_description: The GenAI Forecasting Agent · LLMs x Foundation Time Series Models
+strict: true
+site_url: https://timecopilot.dev
+
+repo_name: AzulGarza/TimeCopilot
+repo_url: https://github.com/AzulGarza/TimeCopilot
+edit_uri: edit/main/docs
+
+nav:
+  - Home: index.md
+
+theme:
+  name: "material"
+  palette:
+    - media: "(prefers-color-scheme)"
+      primary: custom
+      accent: light-blue
+      toggle:
+        icon: material/brightness-auto
+        name: "Switch to light mode"
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: light-blue
+      toggle:
+        icon: material/brightness-7
+        name: "Switch to dark mode"
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: light-blue
+      toggle:
+        icon: material/brightness-4
+        name: "Switch to system preference"
+  features:
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotate
+    - content.code.copy
+    - content.code.select
+    - navigation.path
+    - navigation.indexes
+    - navigation.sections
+    - navigation.tracking
+    - toc.follow
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+- attr_list
+- admonition
+- footnotes
+- pymdownx.emoji:
+    emoji_index: !!python/name:material.extensions.emoji.twemoji
+    emoji_generator: !!python/name:material.extensions.emoji.to_svg
+- pymdownx.magiclink
+- pymdownx.snippets:
+    base_path: [!relative $config_dir]
+    check_paths: true
+- pymdownx.superfences
+- pymdownx.tabbed:
+    alternate_style: true
+    slugify: !!python/object/apply:pymdownx.slugs.slugify
+      kwds:
+        case: lower

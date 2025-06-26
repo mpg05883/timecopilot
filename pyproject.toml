@@ -46,6 +46,11 @@ dev = [
     "pytest",
     "pytest-cov",
 ]
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.6.14",
+    "modal>=1.0.4",
+]
 
 [project.scripts]
 timecopilot = "timecopilot._cli:main"
