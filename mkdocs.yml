@@ -1,5 +1,8 @@
 site_name: TimeCopilot
 repo_url: https://github.com/AzulGarza/TimeCopilot
+repo_name: TimeCopilot
+edit_uri: edit/main/docs
+docs_dir: docs
 
 
 theme:
