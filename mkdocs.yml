@@ -1,5 +1,6 @@
 site_name: TimeCopilot
 site_description: The GenAI Forecasting Agent · LLMs x Foundation Time Series Models
+site_author: AzulGarza
 strict: true
 site_url: https://timecopilot.dev
 
