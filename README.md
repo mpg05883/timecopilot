@@ -43,9 +43,33 @@ The agent leverages LLMs to:
 - Explain technical decisions in natural language
 - Answer domain-specific questions about forecasts
 
+## Quick-start (30 sec)
+
+TimeCopilot can pull a public time series dataset directly from the web and forecast it in one command.  No local files, no Python script, just run it with [uvx](https://docs.astral.sh/uv/):
+
+```bash
+# Baseline run (uses default model)
+uvx timecopilot forecast https://otexts.com/fpppy/data/AirPassengers.csv
+```
+
+Want to try a different LL​M?
+
+```bash
+uvx timecopilot forecast https://otexts.com/fpppy/data/AirPassengers.csv \
+  --model openai:gpt-4o
+```
+
+Have a specific question?
+
+```bash
+uvx timecopilot forecast https://otexts.com/fpppy/data/AirPassengers.csv \
+  --model openai:gpt-4o \
+  --prompt "How many air passengers are expected in total in the next 12 months?"
+```
+
 ## Installation
 
-TimeCopilot is available on PyPI as [`timecopilot`](https://pypi.org/project/timecopilot/) so installation is as simple as:
+TimeCopilot is available on PyPI as [`timecopilot`](https://pypi.org/project/timecopilot/) for python development so installation is as simple as:
 
 ```bash
 pip install timecopilot
