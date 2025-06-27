@@ -17,7 +17,7 @@ app = modal.App(name=app_name)
     .add_local_dir("site", remote_path="/root/site", copy=True)
     .workdir("/root/site")
 )
-@modal.web_server(8000, custom_domains=["timecopilot.dev"] if not preview else None)
+@modal.web_server(8000, custom_domains=[app_name])
 def run():
     cmd = "python -m http.server 8000"
     subprocess.Popen(cmd, shell=True)
