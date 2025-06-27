@@ -70,7 +70,7 @@ uvx timecopilot forecast https://otexts.com/fpppy/data/AirPassengers.csv \
 
 ## Installation
 
-TimeCopilot is available on PyPI as [`timecopilot`](https://pypi.org/project/timecopilot/) for python development so installation is as simple as:
+TimeCopilot is available on PyPI as [`timecopilot`](https://pypi.org/project/timecopilot/) for Python development so installation is as simple as:
 
 ```bash
 pip install timecopilot
