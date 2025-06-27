@@ -1,8 +1,15 @@
+import os
 import subprocess
 
 import modal
 
-app = modal.App(name="timecopilot.dev")
+app_name = "timecopilot.dev"
+preview = os.environ.get("PREVIEW_DEPLOY", "false").lower() == "true"
+if preview:
+    app_name = f"preview.{app_name}"
+
+
+app = modal.App(name=app_name)
 
 
 @app.function(
@@ -10,7 +17,7 @@ app = modal.App(name="timecopilot.dev")
     .add_local_dir("site", remote_path="/root/site", copy=True)
     .workdir("/root/site")
 )
-@modal.web_server(8000, custom_domains=["timecopilot.dev"])
+@modal.web_server(8000, custom_domains=["timecopilot.dev"] if not preview else None)
 def run():
     cmd = "python -m http.server 8000"
-    subprocess.Popen(cmd, shell=True)
+    subprocess.run(cmd, shell=True)
