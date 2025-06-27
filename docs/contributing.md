@@ -29,7 +29,7 @@ uv sync --frozen --all-extras --all-packages --group docs
 
 Install `pre-commit` hooks
 
-```
+```bash
 pre-commit install --install-hooks
 ```
 
