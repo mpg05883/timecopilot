@@ -13,6 +13,7 @@ watch:
 
 nav:
   - Introduction: index.md
+  - Installation: installation.md
 
 theme:
   name: "material"
