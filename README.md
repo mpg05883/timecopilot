@@ -210,7 +210,6 @@ You can ask various types of questions:
 
 ## Next Steps
 
-
 1. **Try TimeCopilot**: 
     - Check out the examples above
     - Join our [Discord server](https://discord.gg/7GEdHR6Pfg) for community support
