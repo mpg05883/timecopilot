@@ -20,4 +20,4 @@ app = modal.App(name=app_name)
 @modal.web_server(8000, custom_domains=["timecopilot.dev"] if not preview else None)
 def run():
     cmd = "python -m http.server 8000"
-    subprocess.run(cmd, shell=True)
+    subprocess.Popen(cmd, shell=True)
