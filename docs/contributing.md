@@ -27,7 +27,7 @@ Install the required libraries for local development
 uv sync --frozen --all-extras --all-packages --group docs
 ```
 
-Install pre-commit hooks
+Install `pre-commit` hooks
 
 ```
 pre-commit install --install-hooks

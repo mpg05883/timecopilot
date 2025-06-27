@@ -10,7 +10,7 @@ If you encounter any bugs or have feature requests, please report them on our [i
 
 ### Discussions
 
-For general questions, ideas, and community discussions, join our [discussion](https://github.com/AzulGarza/TimeCopilot/discussions) forum.
+For general questions, ideas, and community discussions, join our [discussions](https://github.com/AzulGarza/TimeCopilot/discussions) forum.
 
 ## Discord Server
 
