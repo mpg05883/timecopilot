@@ -1,7 +1,3 @@
----
-icon: material/format-list-bulleted
----
-
 <style>
   .md-typeset h1,
   .md-content__button {
