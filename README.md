@@ -208,66 +208,20 @@ You can ask various types of questions:
 - Comparative analysis: "How does passenger volume compare to last year?"
 - Business insights: "Should we increase aircraft capacity next quarter?"
 
-## Roadmap
-
-TimeCopilot is under active development with a clear roadmap ahead.
-
-### Core Features in Progress
-
-- [ ] Multi-series support
-    - [ ] Processing for multiple time series
-    - [ ] Cross-series analysis and insights
-    - [ ] Hierarchical forecasting
-- [ ] Advanced Model Integration
-    - [ ] Neural network models (Transformers, N-BEATS)
-    - [ ] Machine learning models (XGBoost, LightGBM)
-    - [ ] Custom model registry
-
-### Exciting New Agents
-
-- [ ] Anomaly Detection Agent
-    - [ ] Real-time anomaly detection
-    - [ ] Root cause analysis
-    - [ ] Alert generation
-- [ ] Multi-Agent System
-    - [ ] Collaborative forecasting
-    - [ ] Ensemble predictions
-    - [ ] Agent specialization
-
-### Enhanced Capabilities
-
-- [ ] Exogenous Variables Support
-    - [ ] External feature integration
-    - [ ] Feature importance analysis
-    - [ ] Causal analysis
-- [ ] API Development
-    - [ ] RESTful API
-    - [ ] Streaming capabilities
-
-### Infrastructure & Documentation
-
-- [ ] Comprehensive Documentation
-    - [ ] API reference
-    - [ ] Best practices guide
-    - [ ] Example gallery
-- [ ] Developer Tools
-    - [ ] CLI improvements
-    - [ ] Jupyter integration
-
 ## Next Steps
 
 1. **Try TimeCopilot**: 
     - Check out the examples above
-    - Join our Discord for community support
+    - Join our [Discord server](https://discord.gg/7GEdHR6Pfg) for community support
     - Share your use cases and feedback
 2. **Contribute**:
-    - Pick an item from the roadmap
-    - Submit feature requests and bug reports
-    - Help improve documentation
+    - We are passionate about contributions!
+    - Submit [feature requests and bug reports](https://timecopilot.dev/help/)
+    - Pick an item from the [roadmap](https://timecopilot.dev/roadmap/)
+    - Follow our [contributing](https://timecopilot.dev/contributing/) guide
 3. **Stay Updated**:
-    - Star the repository
-    - Join our Discord community
-    - Watch for new releases
+    - Star the repository 
+    - Watch for new releases!
 
 
 
