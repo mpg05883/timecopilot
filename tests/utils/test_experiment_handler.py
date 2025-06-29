@@ -13,7 +13,7 @@ from utilsforecast.processing import (
     vertical_concat,
 )
 
-from .utils import models
+from ..conftest import models
 from timecopilot.models.utils.forecaster import maybe_convert_col_to_datetime
 from timecopilot.utils.experiment_handler import (
     ExperimentDataset,
