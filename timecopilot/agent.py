@@ -130,8 +130,11 @@ class ForecastAgentOutput(BaseModel):
             "and potential problems."
         )
     )
-    user_query_response: str = Field(
-        description="The response to the user's query, if any"
+    user_query_response: str | None = Field(
+        description=(
+            "The response to the user's query, if any. "
+            "If the user did not provide a query, this field will be None."
+        )
     )
 
     def prettify(self, console: Console | None = None) -> None:
