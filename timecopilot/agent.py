@@ -41,7 +41,7 @@ from .models.benchmarks import (
     Theta,
     ZeroModel,
 )
-from .utils.experiment_handler import ExperimentDataset
+from .utils.experiment_handler import ExperimentDataset, ExperimentDatasetParser
 
 MODELS = {
     "ADIDA": ADIDA(),
@@ -443,16 +443,25 @@ class TimeCopilot:
                 )
             return output
 
-    def forecast(self, df: pd.DataFrame | str | Path, query: str | None = None):
+    def forecast(
+        self,
+        df: pd.DataFrame | str | Path,
+        h: int | None = None,
+        freq: str | None = None,
+        seasonality: int | None = None,
+        query: str | None = None,
+    ):
         query = f"User query: {query}" if query else "User did not provide a query"
-        if isinstance(df, str | Path):
-            dataset = ExperimentDataset.from_path(df)
-            query = f"The time series was read from {df}. {query}"
-        elif isinstance(df, pd.DataFrame):
-            dataset = ExperimentDataset.from_df(df=df)
-        else:
-            raise ValueError(f"Invalid input type: {type(df)}")
-
+        experiment_dataset_parser = ExperimentDatasetParser(
+            model=self.forecasting_agent.model,
+        )
+        dataset = experiment_dataset_parser.parse(
+            df,
+            freq,
+            h,
+            seasonality,
+            query,
+        )
         result = self.forecasting_agent.run_sync(
             user_prompt=query,
             deps=dataset,
