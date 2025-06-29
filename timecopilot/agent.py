@@ -130,8 +130,11 @@ class ForecastAgentOutput(BaseModel):
             "and potential problems."
         )
     )
-    user_prompt_response: str = Field(
-        description="The response to the user's prompt, if any"
+    user_query_response: str | None = Field(
+        description=(
+            "The response to the user's query, if any. "
+            "If the user did not provide a query, this field will be None."
+        )
     )
 
     def prettify(self, console: Console | None = None) -> None:
@@ -230,9 +233,9 @@ class ForecastAgentOutput(BaseModel):
 
         # Optional user response section
         user_response = None
-        if self.user_prompt_response:
+        if self.user_query_response:
             user_response = Panel(
-                self.user_prompt_response,
+                self.user_query_response,
                 title="[bold]Response to Query[/bold]",
                 style="cyan",
             )
@@ -440,18 +443,18 @@ class TimeCopilot:
                 )
             return output
 
-    def forecast(self, df: pd.DataFrame | str | Path, prompt: str = ""):
-        prompt = f"User prompt: {prompt}" if prompt else "User did not provide a prompt"
+    def forecast(self, df: pd.DataFrame | str | Path, query: str | None = None):
+        query = f"User query: {query}" if query else "User did not provide a query"
         if isinstance(df, str | Path):
             dataset = ExperimentDataset.from_path(df)
-            prompt = f"The time series was read from {df}. {prompt}"
+            query = f"The time series was read from {df}. {query}"
         elif isinstance(df, pd.DataFrame):
             dataset = ExperimentDataset.from_df(df=df)
         else:
             raise ValueError(f"Invalid input type: {type(df)}")
 
         result = self.forecasting_agent.run_sync(
-            user_prompt=prompt,
+            user_prompt=query,
             deps=dataset,
         )
 

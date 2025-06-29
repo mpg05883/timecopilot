@@ -20,7 +20,7 @@ class TimeCopilot:
         self,
         path: str | Path,
         model: str = "openai:gpt-4o-mini",
-        prompt: str = "",
+        query: str | None = None,
         retries: int = 3,
     ):
         with self.console.status(
@@ -29,7 +29,7 @@ class TimeCopilot:
             forecasting_agent = TimeCopilotAgent(model=model, retries=retries)
             result = forecasting_agent.forecast(
                 df=path,
-                prompt=prompt,
+                query=query,
             )
 
         result.output.prettify(self.console)

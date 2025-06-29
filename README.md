@@ -59,7 +59,7 @@ Have a specific question?
 ```bash
 uvx timecopilot forecast https://otexts.com/fpppy/data/AirPassengers.csv \
   --model openai:gpt-4o \
-  --prompt "How many air passengers are expected in total in the next 12 months?"
+  --query "How many air passengers are expected in total in the next 12 months?"
 ```
 
 ## Installation
@@ -120,7 +120,7 @@ result = forecasting_agent.forecast(df=df)
 # - reason_for_selection: Explanation for model choice
 # - forecast: List of future predictions with dates
 # - forecast_analysis: Interpretation of the forecast results
-# - user_prompt_response: Response to the user prompt, if any
+# - user_query_response: Response to the user prompt, if any
 print(result.output)
 ```
 <details> <summary>Click to expand full forecast output</summary>
@@ -164,7 +164,7 @@ with historical patterns. The strong seasonality is evident in the periodic peak
 slight smoothing over time due to parameter adjustment for stability. The forecasts are 
 reliable given the past performance metrics and the model's rigorous tuning. However, 
 potential uncertainties could arise from structural breaks or changes in pattern, not 
-reflected in historical data." user_prompt_response='The analysis determined the best 
+reflected in historical data." user_query_response='The analysis determined the best 
 performing model and generated forecasts considering seasonality and trend, aiming for 
 accuracy and reliability surpassing basic seasonal models.'
 """
@@ -180,14 +180,14 @@ You can ask questions about the forecast in natural language. The agent will ana
 # Ask specific questions about the forecast
 result = forecasting_agent.forecast(
     df=df,
-    prompt="how many air passengers are expected in the next 12 months?",
+    query="how many air passengers are expected in the next 12 months?",
 )
 
 # The output will include:
 # - All the standard forecast information
-# - user_prompt_response: Detailed answer to your specific question
+# - user_query_response: Detailed answer to your specific question
 #   analyzing the forecast in the context of your query
-print(result.output.user_prompt_response)
+print(result.output.user_query_response)
 
 """
 The total expected air passengers for the next 12 months is approximately 5,919.
