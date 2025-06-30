@@ -2,6 +2,8 @@ from functools import partial
 
 import pandas as pd
 import pytest
+from pydantic_ai.messages import ModelMessage, ModelResponse, ToolCallPart
+from pydantic_ai.models.function import AgentInfo, FunctionModel
 from utilsforecast.data import generate_series
 from utilsforecast.evaluation import evaluate
 from utilsforecast.processing import (
@@ -17,6 +19,7 @@ from ..conftest import models
 from timecopilot.models.utils.forecaster import maybe_convert_col_to_datetime
 from timecopilot.utils.experiment_handler import (
     ExperimentDataset,
+    ExperimentDatasetParser,
     generate_train_cv_splits,
     mase,
 )
@@ -95,6 +98,49 @@ def evaluate_cv_from_scratch(
 
 def sort_df(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
     return df.sort_values(cols).reset_index(drop=True)
+
+
+@pytest.mark.parametrize(
+    "freq,h,seasonality",
+    [
+        ("H", 2, 7),
+        ("MS", 2, 12),
+        ("D", 2, 7),
+        ("W-MON", 2, 7),
+    ],
+)
+def test_parse_params_from_complete_query(freq, h, seasonality):
+    df = generate_series(n_series=5, freq=freq)
+    query = f"""
+        I have a time series with frequency {freq}, 
+        seasonality {seasonality}, and horizon {h}.
+    """
+
+    # In this test we don't pass any parameters to the parser
+    # so it should infer them from the query and df
+    def _response_fn(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
+        import json
+
+        json_payload = json.dumps({"freq": freq, "h": h, "seasonality": seasonality})
+        return ModelResponse(
+            parts=[ToolCallPart(tool_name="final_result", args=json_payload)]
+        )
+
+    test_model = FunctionModel(_response_fn)
+
+    exp_dataset = ExperimentDatasetParser(model=test_model).parse(
+        df,
+        freq=None,
+        h=None,
+        seasonality=None,
+        query=query,
+    )
+    assert exp_dataset == ExperimentDataset(
+        df=df,
+        freq=freq,
+        h=h,
+        seasonality=seasonality,
+    )
 
 
 @pytest.mark.parametrize(
