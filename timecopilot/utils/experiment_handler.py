@@ -55,9 +55,10 @@ def generate_train_cv_splits(
 
 
 class DatasetParams(BaseModel):
-    freq: str = Field(description="The frequency of the data", default=None)
-    h: int = Field(description="The number of periods to forecast", default=None)
-    seasonality: int = Field(
+    # TODO: make these required
+    freq: str | None = Field(description="The frequency of the data", default=None)
+    h: int | None = Field(description="The number of periods to forecast", default=None)
+    seasonality: int | None = Field(
         description="The seasonal period of the data", default=None
     )
 
