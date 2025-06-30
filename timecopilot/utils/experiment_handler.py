@@ -1,6 +1,6 @@
 import warnings
 from collections.abc import Callable
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from typing import Any
@@ -158,7 +158,7 @@ class ExperimentDatasetParser:
             dataset_params.freq
         )
         dataset_params.h = dataset_params.h or 2 * dataset_params.seasonality
-        return ExperimentDataset(df=df, **asdict(dataset_params))
+        return ExperimentDataset(df=df, **dataset_params.dict())
 
 
 @dataclass
