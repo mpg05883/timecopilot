@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 from utilsforecast.data import generate_series
 
-from .utils import models
+from ..conftest import models
 
 
 @pytest.mark.parametrize("model", models)
