@@ -1,3 +1,4 @@
+import json
 from functools import partial
 
 import pandas as pd
@@ -16,7 +17,10 @@ from utilsforecast.processing import (
 )
 
 from ..conftest import models
-from timecopilot.models.utils.forecaster import maybe_convert_col_to_datetime
+from timecopilot.models.utils.forecaster import (
+    get_seasonality,
+    maybe_convert_col_to_datetime,
+)
 from timecopilot.utils.experiment_handler import (
     ExperimentDataset,
     ExperimentDatasetParser,
@@ -100,6 +104,16 @@ def sort_df(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
     return df.sort_values(cols).reset_index(drop=True)
 
 
+def response_agent_fn(payload: dict) -> ModelResponse:
+    def _response_fn(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
+        json_payload = json.dumps(payload)
+        return ModelResponse(
+            parts=[ToolCallPart(tool_name="final_result", args=json_payload)]
+        )
+
+    return _response_fn
+
+
 @pytest.mark.parametrize(
     "freq,h,seasonality",
     [
@@ -115,19 +129,17 @@ def test_parse_params_from_complete_query(freq, h, seasonality):
         I have a time series with frequency {freq}, 
         seasonality {seasonality}, and horizon {h}.
     """
-
     # In this test we don't pass any parameters to the parser
     # so it should infer them from the query and df
-    def _response_fn(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
-        import json
-
-        json_payload = json.dumps({"freq": freq, "h": h, "seasonality": seasonality})
-        return ModelResponse(
-            parts=[ToolCallPart(tool_name="final_result", args=json_payload)]
+    test_model = FunctionModel(
+        response_agent_fn(
+            payload={
+                "freq": freq,
+                "h": h,
+                "seasonality": seasonality,
+            }
         )
-
-    test_model = FunctionModel(_response_fn)
-
+    )
     exp_dataset = ExperimentDatasetParser(model=test_model).parse(
         df,
         freq=None,
@@ -140,6 +152,63 @@ def test_parse_params_from_complete_query(freq, h, seasonality):
         freq=freq,
         h=h,
         seasonality=seasonality,
+    )
+
+
+@pytest.mark.parametrize(
+    "freq,h",
+    [
+        ("D", 14),
+        ("H", 6),
+    ],
+)
+def test_parse_params_from_partial_query(freq, h):
+    """If the query omits `seasonality`, the parser should infer it from `freq`."""
+    df = generate_series(n_series=3, freq=freq, min_length=12)
+    query = (
+        f"Please forecast the series with a horizon of {h} and frequency {freq}.\n"
+        "No other details."
+    )
+    test_model = FunctionModel(response_agent_fn(payload={"freq": freq, "h": h}))
+    exp_dataset = ExperimentDatasetParser(model=test_model).parse(
+        df=df,
+        freq=None,
+        h=None,
+        seasonality=None,
+        query=query,
+    )
+    expected_seasonality = get_seasonality(freq)
+    assert exp_dataset == ExperimentDataset(
+        df=df,
+        freq=freq,
+        h=h,
+        seasonality=expected_seasonality,
+    )
+
+
+def test_parse_params_no_query_infers_all():
+    """With no query and no explicit params, parser infers everything from `df`."""
+    freq = "MS"
+    df = generate_series(
+        n_series=1,  # TimeCopilot only works with one series, at this time
+        freq=freq,
+        min_length=24,
+    )
+    test_model = FunctionModel(response_agent_fn(payload={}))
+    exp_dataset = ExperimentDatasetParser(model=test_model).parse(
+        df=df,
+        freq=None,
+        h=None,
+        seasonality=None,
+        query=None,
+    )
+    expected_seasonality = get_seasonality(freq)
+    expected_h = 2 * expected_seasonality
+    assert exp_dataset == ExperimentDataset(
+        df=df,
+        freq=freq,
+        h=expected_h,
+        seasonality=expected_seasonality,
     )
 
 
