@@ -59,13 +59,9 @@ def generate_exp_dataset(
 ) -> ExperimentDataset | pd.DataFrame:
     df = generate_series(n_series, freq=freq, min_length=12)
     df["unique_id"] = df["unique_id"].astype(str)
-    df["frequency"] = "frequency"
-    df["pandas_frequency"] = freq
-    df["seasonality"] = 7
-    df["horizon"] = 2
     if return_df:
         return df
-    return ExperimentDataset.from_df(df)
+    return ExperimentDataset(df=df, freq=freq, h=2, seasonality=7)
 
 
 def evaluate_cv_from_scratch(
@@ -137,8 +133,8 @@ def test_eval(model):
     exp_dataset = generate_exp_dataset(n_series=5, freq=freq)
     fcst_df = model.cross_validation(
         exp_dataset.df,
-        h=exp_dataset.horizon,
-        freq=exp_dataset.pandas_frequency,
+        h=exp_dataset.h,
+        freq=exp_dataset.freq,
     )
     eval_df = exp_dataset.evaluate_forecast_df(
         forecast_df=fcst_df,
