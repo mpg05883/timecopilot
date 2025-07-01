@@ -114,6 +114,18 @@ def response_agent_fn(payload: dict) -> ModelResponse:
     return _response_fn
 
 
+def assert_experiment_dataset_equal(
+    exp_dataset: ExperimentDataset,
+    expected_exp_dataset: ExperimentDataset,
+):
+    # Using this because problem with python 3.13
+    # see https://github.com/AzulGarza/TimeCopilot/actions/runs/15988311135/job/45096742719?pr=25
+    assert exp_dataset.df.equals(expected_exp_dataset.df)
+    assert exp_dataset.freq == expected_exp_dataset.freq
+    assert exp_dataset.h == expected_exp_dataset.h
+    assert exp_dataset.seasonality == expected_exp_dataset.seasonality
+
+
 @pytest.mark.parametrize(
     "freq,h,seasonality",
     [
@@ -147,11 +159,14 @@ def test_parse_params_from_complete_query(freq, h, seasonality):
         seasonality=None,
         query=query,
     )
-    assert exp_dataset == ExperimentDataset(
-        df=df,
-        freq=freq,
-        h=h,
-        seasonality=seasonality,
+    assert_experiment_dataset_equal(
+        exp_dataset,
+        ExperimentDataset(
+            df=df,
+            freq=freq,
+            h=h,
+            seasonality=seasonality,
+        ),
     )
 
 
@@ -178,11 +193,14 @@ def test_parse_params_from_partial_query(freq, h):
         query=query,
     )
     expected_seasonality = get_seasonality(freq)
-    assert exp_dataset == ExperimentDataset(
-        df=df,
-        freq=freq,
-        h=h,
-        seasonality=expected_seasonality,
+    assert_experiment_dataset_equal(
+        exp_dataset,
+        ExperimentDataset(
+            df=df,
+            freq=freq,
+            h=h,
+            seasonality=expected_seasonality,
+        ),
     )
 
 
@@ -204,11 +222,14 @@ def test_parse_params_no_query_infers_all():
     )
     expected_seasonality = get_seasonality(freq)
     expected_h = 2 * expected_seasonality
-    assert exp_dataset == ExperimentDataset(
-        df=df,
-        freq=freq,
-        h=expected_h,
-        seasonality=expected_seasonality,
+    assert_experiment_dataset_equal(
+        exp_dataset,
+        ExperimentDataset(
+            df=df,
+            freq=freq,
+            h=expected_h,
+            seasonality=expected_seasonality,
+        ),
     )
 
 
