@@ -20,6 +20,9 @@ class TimeCopilot:
         self,
         path: str | Path,
         model: str = "openai:gpt-4o-mini",
+        freq: str | None = None,
+        h: int | None = None,
+        seasonality: int | None = None,
         query: str | None = None,
         retries: int = 3,
     ):
@@ -29,6 +32,9 @@ class TimeCopilot:
             forecasting_agent = TimeCopilotAgent(model=model, retries=retries)
             result = forecasting_agent.forecast(
                 df=path,
+                freq=freq,
+                h=h,
+                seasonality=seasonality,
                 query=query,
             )
 

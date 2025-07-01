@@ -1,11 +1,13 @@
 import warnings
 from collections.abc import Callable
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
+from pydantic import BaseModel, Field
+from pydantic_ai import Agent
 from utilsforecast.evaluation import evaluate
 from utilsforecast.losses import _zero_to_nan, mae
 
@@ -52,91 +54,52 @@ def generate_train_cv_splits(
     return df
 
 
-@dataclass
-class DatasetParams:
-    pandas_frequency: str
-    horizon: int
-    seasonality: int
-
-    @staticmethod
-    def _get_value_from_df_col(
-        df: pd.DataFrame,
-        col: str,
-        dtype: Callable | None = None,
-    ) -> Any:
-        col_values = df[col].unique()
-        if len(col_values) > 1:
-            raise ValueError(f"{col} is not unique: {col_values}")
-        value = col_values[0]
-        if dtype is not None:
-            value = dtype(value)
-        return value
-
-    @classmethod
-    def from_df(cls, df: pd.DataFrame) -> "DatasetParams":
-        if "unique_id" not in df.columns:
-            df["unique_id"] = "uid_0"
-        dataset_params = {}
-        dataset_params_cols = [
-            "pandas_frequency",
-            "seasonality",
-            "horizon",
-        ]
-        dataset_params_cols_dtypes = [str, int, int]
-        for col, dtype in zip(
-            dataset_params_cols,
-            dataset_params_cols_dtypes,
-            strict=False,
-        ):
-            if col == "pandas_frequency" and col not in df.columns:
-                dataset_params[col] = pd.infer_freq(df["ds"])
-            elif col == "seasonality" and col not in df.columns:
-                dataset_params[col] = get_seasonality(
-                    dataset_params["pandas_frequency"]
-                )
-            elif col == "horizon" and col not in df.columns:
-                dataset_params[col] = 2 * dataset_params["seasonality"]
-            else:
-                dataset_params[col] = cls._get_value_from_df_col(df, col, dtype=dtype)
-        return cls(**dataset_params)
+class DatasetParams(BaseModel):
+    # TODO: make these required
+    freq: str | None = Field(description="The frequency of the data", default=None)
+    h: int | None = Field(description="The number of periods to forecast", default=None)
+    seasonality: int | None = Field(
+        description="The seasonal period of the data", default=None
+    )
 
 
-@dataclass
-class ExperimentDataset(DatasetParams):
-    df: pd.DataFrame
+class ExperimentDatasetParser:
+    """
+    Agent that parses the dataset parameters from the user's query and df.
+    """
 
-    @classmethod
-    def from_df(cls, df: pd.DataFrame) -> "ExperimentDataset":
+    parser_agent: Agent
+
+    def __init__(self, **kwargs):
+        self.system_prompt = """
+        You are an expert forecasting assistant.
+
+        Your task is to analyze a user's natural language question 
+        and extract all relevant
+        forecasting parameters into a JSON object.
+
+        Always produce only JSON, with no extra explanations.
+
+        Extract the following fields if they appear in the user's text:
+
+        - h: number of periods to forecast (integer). E.g. “12 months,” “next 30 days.”
+        - freq: frequency of the data (string). It's usually a pandas frequency string.
+        - seasonality: seasonal period (integer), e.g. 7, 12, 52.
+
+        If any parameter is not mentioned, use None.
+
+        The user can provide a head of the time series, use it to infer the frequency
+        if it's not provided, or to assign the correct frequency.
         """
-        Parameters
-        ----------
-        df : pd.DataFrame
-            The input DataFrame must contain the following columns:
-            - unique_id: A unique identifier for each time series (str).
-                If not present, it will be set to "uid_0".
-            - ds: The datetime column representing the time index (datetime).
-            - y: The target variable to forecast (float).
-            - pandas_frequency: The frequency of the data, e.g.,
-                'D' for daily, 'M' for monthly (str).
-                If not present, it will be inferred from the data.
-            - horizon: The number of periods to forecast (int).
-                If not present, it will be set to 2 * seasonality.
-            - seasonality: The seasonal period of the data,
-                typically inferred from the frequency (int).
-                If not present, it will be inferred from the frequency.
-        """
-        ds_params = DatasetParams.from_df(df=df)
-        df = df[["unique_id", "ds", "y"]]  # type: ignore
-        return cls(
-            df=df,
-            **asdict(ds_params),
+
+        self.parser_agent = Agent(
+            output_type=DatasetParams,
+            system_prompt=self.system_prompt,
+            **kwargs,
         )
 
-    @classmethod
-    def from_path(
-        cls,
-        path: str | Path,
-    ) -> "ExperimentDataset":
+    @staticmethod
+    def read_df(path: str | Path) -> pd.DataFrame:
         path_str = str(path)
         suffix = Path(path_str).suffix.lstrip(".")
         read_fn_name = f"read_{suffix}"
@@ -164,7 +127,49 @@ class ExperimentDataset(DatasetParams):
                 df = read_fn(io.BytesIO(resp.content))  # type: ignore[arg-type]
         else:
             df = read_fn(path_str, **read_kwargs)
-        return cls.from_df(df=df)
+        return df
+
+    def parse(
+        self,
+        df: pd.DataFrame,
+        freq: str | None,
+        h: int | None,
+        seasonality: int | None,
+        query: str | None,
+    ) -> "ExperimentDataset":
+        if isinstance(df, str | Path):
+            df = self.read_df(df)
+        if "unique_id" not in df.columns:
+            df["unique_id"] = "series_0"
+        if query:
+            query = f"User query: {query}"
+            dataset_params = self.parser_agent.run_sync(user_prompt=query).output
+            # Use provided non-None parameters if any are None
+            # in the inferred dataset_params
+            dataset_params.freq = dataset_params.freq or freq
+            dataset_params.seasonality = dataset_params.seasonality or seasonality
+            dataset_params.h = dataset_params.h or h
+        else:
+            dataset_params = DatasetParams(
+                freq=freq,
+                h=h,
+                seasonality=seasonality,
+            )
+        # Infer from df if any parameters are still None
+        dataset_params.freq = dataset_params.freq or pd.infer_freq(df["ds"])
+        dataset_params.seasonality = dataset_params.seasonality or get_seasonality(
+            dataset_params.freq
+        )
+        dataset_params.h = dataset_params.h or 2 * dataset_params.seasonality
+        return ExperimentDataset(df=df, **dataset_params.dict())
+
+
+@dataclass
+class ExperimentDataset:
+    df: pd.DataFrame
+    freq: str
+    h: int
+    seasonality: int
 
     def evaluate_forecast_df(
         self,

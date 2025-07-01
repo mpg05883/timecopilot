@@ -1,7 +1,10 @@
+import json
 from functools import partial
 
 import pandas as pd
 import pytest
+from pydantic_ai.messages import ModelMessage, ModelResponse, ToolCallPart
+from pydantic_ai.models.function import AgentInfo, FunctionModel
 from utilsforecast.data import generate_series
 from utilsforecast.evaluation import evaluate
 from utilsforecast.processing import (
@@ -14,9 +17,13 @@ from utilsforecast.processing import (
 )
 
 from ..conftest import models
-from timecopilot.models.utils.forecaster import maybe_convert_col_to_datetime
+from timecopilot.models.utils.forecaster import (
+    get_seasonality,
+    maybe_convert_col_to_datetime,
+)
 from timecopilot.utils.experiment_handler import (
     ExperimentDataset,
+    ExperimentDatasetParser,
     generate_train_cv_splits,
     mase,
 )
@@ -59,13 +66,9 @@ def generate_exp_dataset(
 ) -> ExperimentDataset | pd.DataFrame:
     df = generate_series(n_series, freq=freq, min_length=12)
     df["unique_id"] = df["unique_id"].astype(str)
-    df["frequency"] = "frequency"
-    df["pandas_frequency"] = freq
-    df["seasonality"] = 7
-    df["horizon"] = 2
     if return_df:
         return df
-    return ExperimentDataset.from_df(df)
+    return ExperimentDataset(df=df, freq=freq, h=2, seasonality=7)
 
 
 def evaluate_cv_from_scratch(
@@ -99,6 +102,135 @@ def evaluate_cv_from_scratch(
 
 def sort_df(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
     return df.sort_values(cols).reset_index(drop=True)
+
+
+def response_agent_fn(payload: dict) -> ModelResponse:
+    def _response_fn(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
+        json_payload = json.dumps(payload)
+        return ModelResponse(
+            parts=[ToolCallPart(tool_name="final_result", args=json_payload)]
+        )
+
+    return _response_fn
+
+
+def assert_experiment_dataset_equal(
+    exp_dataset: ExperimentDataset,
+    expected_exp_dataset: ExperimentDataset,
+):
+    # Using this because problem with python 3.13
+    # see https://github.com/AzulGarza/TimeCopilot/actions/runs/15988311135/job/45096742719?pr=25
+    assert exp_dataset.df.equals(expected_exp_dataset.df)
+    assert exp_dataset.freq == expected_exp_dataset.freq
+    assert exp_dataset.h == expected_exp_dataset.h
+    assert exp_dataset.seasonality == expected_exp_dataset.seasonality
+
+
+@pytest.mark.parametrize(
+    "freq,h,seasonality",
+    [
+        ("H", 2, 7),
+        ("MS", 2, 12),
+        ("D", 2, 7),
+        ("W-MON", 2, 7),
+    ],
+)
+def test_parse_params_from_complete_query(freq, h, seasonality):
+    df = generate_series(n_series=5, freq=freq)
+    query = f"""
+        I have a time series with frequency {freq}, 
+        seasonality {seasonality}, and horizon {h}.
+    """
+    # In this test we don't pass any parameters to the parser
+    # so it should infer them from the query and df
+    test_model = FunctionModel(
+        response_agent_fn(
+            payload={
+                "freq": freq,
+                "h": h,
+                "seasonality": seasonality,
+            }
+        )
+    )
+    exp_dataset = ExperimentDatasetParser(model=test_model).parse(
+        df,
+        freq=None,
+        h=None,
+        seasonality=None,
+        query=query,
+    )
+    assert_experiment_dataset_equal(
+        exp_dataset,
+        ExperimentDataset(
+            df=df,
+            freq=freq,
+            h=h,
+            seasonality=seasonality,
+        ),
+    )
+
+
+@pytest.mark.parametrize(
+    "freq,h",
+    [
+        ("D", 14),
+        ("H", 6),
+    ],
+)
+def test_parse_params_from_partial_query(freq, h):
+    """If the query omits `seasonality`, the parser should infer it from `freq`."""
+    df = generate_series(n_series=3, freq=freq, min_length=12)
+    query = (
+        f"Please forecast the series with a horizon of {h} and frequency {freq}.\n"
+        "No other details."
+    )
+    test_model = FunctionModel(response_agent_fn(payload={"freq": freq, "h": h}))
+    exp_dataset = ExperimentDatasetParser(model=test_model).parse(
+        df=df,
+        freq=None,
+        h=None,
+        seasonality=None,
+        query=query,
+    )
+    expected_seasonality = get_seasonality(freq)
+    assert_experiment_dataset_equal(
+        exp_dataset,
+        ExperimentDataset(
+            df=df,
+            freq=freq,
+            h=h,
+            seasonality=expected_seasonality,
+        ),
+    )
+
+
+def test_parse_params_no_query_infers_all():
+    """With no query and no explicit params, parser infers everything from `df`."""
+    freq = "MS"
+    df = generate_series(
+        n_series=1,  # TimeCopilot only works with one series, at this time
+        freq=freq,
+        min_length=24,
+    )
+    test_model = FunctionModel(response_agent_fn(payload={}))
+    exp_dataset = ExperimentDatasetParser(model=test_model).parse(
+        df=df,
+        freq=None,
+        h=None,
+        seasonality=None,
+        query=None,
+    )
+    expected_seasonality = get_seasonality(freq)
+    expected_h = 2 * expected_seasonality
+    assert_experiment_dataset_equal(
+        exp_dataset,
+        ExperimentDataset(
+            df=df,
+            freq=freq,
+            h=expected_h,
+            seasonality=expected_seasonality,
+        ),
+    )
 
 
 @pytest.mark.parametrize(
@@ -137,8 +269,8 @@ def test_eval(model):
     exp_dataset = generate_exp_dataset(n_series=5, freq=freq)
     fcst_df = model.cross_validation(
         exp_dataset.df,
-        h=exp_dataset.horizon,
-        freq=exp_dataset.pandas_frequency,
+        h=exp_dataset.h,
+        freq=exp_dataset.freq,
     )
     eval_df = exp_dataset.evaluate_forecast_df(
         forecast_df=fcst_df,
