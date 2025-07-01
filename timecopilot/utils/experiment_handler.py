@@ -139,6 +139,8 @@ class ExperimentDatasetParser:
     ) -> "ExperimentDataset":
         if isinstance(df, str | Path):
             df = self.read_df(df)
+        if "unique_id" not in df.columns:
+            df["unique_id"] = "series_0"
         if query:
             query = f"User query: {query}"
             dataset_params = self.parser_agent.run_sync(user_prompt=query).output
