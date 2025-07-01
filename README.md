@@ -101,13 +101,13 @@ df = pd.read_csv("data/air_passengers.csv")
 
 # Initialize the forecasting agent
 # You can use any LLM by specifying the model parameter
-forecasting_agent = TimeCopilot(
+tc = TimeCopilot(
     model="openai:gpt-4o",
     retries=3,
 )
 
 # Generate forecast
-result = forecasting_agent.forecast(df=df)
+result = tc.forecast(df=df)
 
 # The output contains:
 # - tsfeatures_results: List of calculated time series features
@@ -178,7 +178,7 @@ You can ask questions about the forecast in natural language. The agent will ana
 
 ```python
 # Ask specific questions about the forecast
-result = forecasting_agent.forecast(
+result = tc.forecast(
     df=df,
     query="how many air passengers are expected in the next 12 months?",
 )
