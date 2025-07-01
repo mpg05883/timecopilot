@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 from pydantic import BaseModel, Field
-from pydantic_ai import Agent, ModelRetry, RunContext
+from pydantic_ai import Agent, AgentRunResult, ModelRetry, RunContext
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -450,7 +450,38 @@ class TimeCopilot:
         freq: str | None = None,
         seasonality: int | None = None,
         query: str | None = None,
-    ):
+    ) -> AgentRunResult[ForecastAgentOutput]:
+        """Generate forecast and analysis.
+
+        Args:
+            df: The time-series data. Can be one of:
+
+                - a *pandas* `DataFrame` with at least the columns
+                  `["unique_id", "ds", "y"]`.
+                - a file path or URL pointing to a CSV / Parquet file with the
+                  same columns (it will be read automatically).
+            h: Forecast horizon. Number of future periods to predict. If
+                `None` (default), TimeCopilot will try to infer it from
+                `query` or, as a last resort, default to `2 * seasonality`.
+            freq: Pandas frequency string (e.g. `"H"`, `"D"`, `"MS"`).
+                `None` (default), lets TimeCopilot infer it from the data or
+                the query. See [pandas frequency documentation](https://pandas.pydata.org/docs/user_guide/timeseries.html#offset-aliases).
+            seasonality: Length of the dominant seasonal cycle (expressed in
+                `freq` periods). `None` (default), asks TimeCopilot to infer
+                it via :pyfunc:`~timecopilot.models.utils.forecaster.get_seasonality`.
+            query: Optional natural-language prompt that will be shown to the
+                agent. You can embed `freq`, `h` or `seasonality` here in
+                plain English, they take precedence over the keyword
+                arguments.
+
+        Returns:
+            pydantic_ai.AgentRunResult[~timecopilot.agent.ForecastAgentOutput]:
+                A rich result object whose ``output`` attribute is a fully
+                populated :class:`~timecopilot.agent.ForecastAgentOutput`
+                instance. Use `result.output` to access typed fields or
+                `result.output.prettify()` to print a nicely formatted
+                report.
+        """
         query = f"User query: {query}" if query else "User did not provide a query"
         experiment_dataset_parser = ExperimentDatasetParser(
             model=self.forecasting_agent.model,
