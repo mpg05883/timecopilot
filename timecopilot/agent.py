@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 from pydantic import BaseModel, Field
@@ -268,8 +269,15 @@ class ForecastAgentOutput(BaseModel):
 class TimeCopilot:
     def __init__(
         self,
-        **kwargs,
+        llm: str,
+        **kwargs: Any,
     ):
+        """
+        Args:
+            llm: The LLM to use.
+            **kwargs: Additional keyword arguments to pass to the agent.
+        """
+
         self.system_prompt = f"""
         You're a forecasting expert. You will be given a time series 
         as a list of numbers
@@ -334,10 +342,18 @@ class TimeCopilot:
         - Practical implications of the forecast
         - Thorough responses to user concerns
         """
+
+        if "model" in kwargs:
+            raise ValueError(
+                "model is not allowed to be passed as a keyword argument"
+                "use `llm` instead"
+            )
+
         self.forecasting_agent = Agent(
             deps_type=ExperimentDataset,
             output_type=ForecastAgentOutput,
             system_prompt=self.system_prompt,
+            model=llm,
             **kwargs,
         )
 

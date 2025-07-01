@@ -19,7 +19,7 @@ class TimeCopilot:
     def forecast(
         self,
         path: str | Path,
-        model: str = "openai:gpt-4o-mini",
+        llm: str = "openai:gpt-4o-mini",
         freq: str | None = None,
         h: int | None = None,
         seasonality: int | None = None,
@@ -29,7 +29,7 @@ class TimeCopilot:
         with self.console.status(
             "[bold blue]TimeCopilot is navigating through time...[/bold blue]"
         ):
-            forecasting_agent = TimeCopilotAgent(model=model, retries=retries)
+            forecasting_agent = TimeCopilotAgent(llm=llm, retries=retries)
             result = forecasting_agent.forecast(
                 df=path,
                 freq=freq,
