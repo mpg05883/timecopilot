@@ -17,6 +17,8 @@ nav:
   - Getting Help: help.md
   - Contributing: contributing.md
   - Roadmap: roadmap.md
+  - Documentation:
+      - Forecasting Parameters: forecasting_parameters.md
 
 theme:
   name: "material"
@@ -60,6 +62,7 @@ extra_css:
 markdown_extensions:
 - attr_list
 - admonition
+- pymdownx.details
 - footnotes
 - pymdownx.emoji:
     emoji_index: !!python/name:material.extensions.emoji.twemoji
