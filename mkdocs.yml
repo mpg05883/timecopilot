@@ -10,6 +10,7 @@ edit_uri: edit/main/docs
 
 watch:
   - "README.md"
+  - timecopilot
 
 nav:
   - Introduction: index.md
@@ -19,6 +20,8 @@ nav:
   - Roadmap: roadmap.md
   - Documentation:
       - Forecasting Parameters: forecasting_parameters.md
+  - API Reference:
+      - api/agent.md
 
 theme:
   name: "material"
@@ -80,3 +83,19 @@ markdown_extensions:
 - def_list
 - pymdownx.tasklist:
     custom_checkbox: true
+
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [timecopilot]
+          options:
+            relative_crossrefs: true
+            members_order: source
+            separate_signature: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+            group_by_category: false
+            heading_level: 3
