@@ -388,8 +388,8 @@ class TimeCopilot:
             for model in callable_models:
                 fcst_cv = model.cross_validation(
                     df=ctx.deps.df,
-                    h=ctx.deps.horizon,
-                    freq=ctx.deps.pandas_frequency,
+                    h=ctx.deps.h,
+                    freq=ctx.deps.freq,
                 )
                 if models_fcst_cv is None:
                     models_fcst_cv = fcst_cv
@@ -418,8 +418,8 @@ class TimeCopilot:
             callable_model = MODELS[model]
             fcst_df = callable_model.forecast(
                 df=ctx.deps.df,
-                h=ctx.deps.horizon,
-                freq=ctx.deps.pandas_frequency,
+                h=ctx.deps.h,
+                freq=ctx.deps.freq,
             )
             output = ",".join(
                 [
