@@ -51,14 +51,14 @@ Want to try a different LL​M?
 
 ```bash
 uvx timecopilot forecast https://otexts.com/fpppy/data/AirPassengers.csv \
-  --model openai:gpt-4o
+  --llm openai:gpt-4o
 ```
 
 Have a specific question?
 
 ```bash
 uvx timecopilot forecast https://otexts.com/fpppy/data/AirPassengers.csv \
-  --model openai:gpt-4o \
+  --llm openai:gpt-4o \
   --query "How many air passengers are expected in total in the next 12 months?"
 ```
 
@@ -102,7 +102,7 @@ df = pd.read_csv("data/air_passengers.csv")
 # Initialize the forecasting agent
 # You can use any LLM by specifying the model parameter
 tc = TimeCopilot(
-    model="openai:gpt-4o",
+    llm="openai:gpt-4o",
     retries=3,
 )
 

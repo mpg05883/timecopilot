@@ -58,7 +58,7 @@ query = """
   use 12 as seasonality
 """ 
 
-tc = TimeCopilot(model="gpt-4o")
+tc = TimeCopilot(llm="gpt-4o")
 
 # Passing `None` simply uses the defaults; they are shown
 # here for clarity but can be omitted.
