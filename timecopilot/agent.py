@@ -3,7 +3,8 @@ from pathlib import Path
 
 import pandas as pd
 from pydantic import BaseModel, Field
-from pydantic_ai import Agent, AgentRunResult, ModelRetry, RunContext
+from pydantic_ai import Agent, ModelRetry, RunContext
+from pydantic_ai.agent import AgentRunResult
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
