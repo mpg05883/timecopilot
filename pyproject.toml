@@ -75,6 +75,7 @@ disable_error_code = ["no-redef"]  # for fasthtml
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-m 'not live'"
 
 [tool.ruff]
 fix = true
