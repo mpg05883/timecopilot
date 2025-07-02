@@ -22,6 +22,7 @@ nav:
       - Forecasting Parameters: forecasting_parameters.md
   - API Reference:
       - api/agent.md
+      - models/utils/forecaster.md
 
 theme:
   name: "material"

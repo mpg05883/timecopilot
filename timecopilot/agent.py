@@ -81,6 +81,8 @@ TSFEATURES: dict[str, Callable] = {
 
 
 class ForecastAgentOutput(BaseModel):
+    """The output of the forecasting agent."""
+
     tsfeatures_results: list[str] = Field(
         description=(
             "The time series features that were considered as a list of strings of "
@@ -484,17 +486,16 @@ class TimeCopilot:
                 `None` (default), lets TimeCopilot infer it from the data or
                 the query. See [pandas frequency documentation](https://pandas.pydata.org/docs/user_guide/timeseries.html#offset-aliases).
             seasonality: Length of the dominant seasonal cycle (expressed in
-                `freq` periods). `None` (default), asks TimeCopilot to infer
-                it via :pyfunc:`~timecopilot.models.utils.forecaster.get_seasonality`.
+                `freq` periods). `None` (default), asks TimeCopilot to infer it via
+                [`get_seasonality`][timecopilot.models.utils.forecaster.get_seasonality].
             query: Optional natural-language prompt that will be shown to the
                 agent. You can embed `freq`, `h` or `seasonality` here in
                 plain English, they take precedence over the keyword
                 arguments.
 
         Returns:
-            pydantic_ai.AgentRunResult[~timecopilot.agent.ForecastAgentOutput]:
-                A rich result object whose ``output`` attribute is a fully
-                populated :class:`~timecopilot.agent.ForecastAgentOutput`
+            A result object whose `output` attribute is a fully
+                populated [`ForecastAgentOutput`][timecopilot.agent.ForecastAgentOutput]
                 instance. Use `result.output` to access typed fields or
                 `result.output.prettify()` to print a nicely formatted
                 report.
