@@ -32,6 +32,26 @@ jobs:
       - name: Test import class
         run: uv run -- python -c "from timecopilot import TimeCopilot" 
 
+  test-live:
+    name: test live
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6 
+        with:
+          enable-cache: true
+
+      - name: Run tests 
+        run: uv run pytest -m live
+        env: 
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} 
+
   build-docs:
     name: Build Docs
     runs-on: ubuntu-latest
