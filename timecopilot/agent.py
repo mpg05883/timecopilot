@@ -81,6 +81,8 @@ TSFEATURES: dict[str, Callable] = {
 
 
 class ForecastAgentOutput(BaseModel):
+    """The output of the forecasting agent."""
+
     tsfeatures_results: list[str] = Field(
         description=(
             "The time series features that were considered as a list of strings of "
@@ -492,9 +494,8 @@ class TimeCopilot:
                 arguments.
 
         Returns:
-            pydantic_ai.AgentRunResult[~timecopilot.agent.ForecastAgentOutput]:
-                A rich result object whose ``output`` attribute is a fully
-                populated :class:`~timecopilot.agent.ForecastAgentOutput`
+            A result object whose `output` attribute is a fully
+                populated [`ForecastAgentOutput`][timecopilot.agent.ForecastAgentOutput]
                 instance. Use `result.output` to access typed fields or
                 `result.output.prettify()` to print a nicely formatted
                 report.
