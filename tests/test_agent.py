@@ -9,8 +9,6 @@ from timecopilot.agent import ForecastAgentOutput, TimeCopilot
 
 
 def build_stub_llm(output: dict) -> FunctionModel:  # noqa: D401
-    """Return a stub LLM that always produces *output* via the `final_result` tool."""
-
     def _response_fn(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:  # noqa: D401
         payload = json.dumps(output)
         return ModelResponse(
@@ -20,11 +18,9 @@ def build_stub_llm(output: dict) -> FunctionModel:  # noqa: D401
     return FunctionModel(_response_fn)
 
 
-def test_forecast_returns_expected_output():
-    """`TimeCopilot.forecast` should return the typed agent output."""
-
+@pytest.mark.parametrize("query", [None, "dummy"])
+def test_forecast_returns_expected_output(query):
     df = generate_series(n_series=1, freq="D", min_length=30)
-
     expected_output = {
         "tsfeatures_results": ["mean: 0.5"],
         "tsfeatures_analysis": "ok",
@@ -36,18 +32,14 @@ def test_forecast_returns_expected_output():
         "reason_for_selection": "reason",
         "forecast": ["2025-01-01: 1.0"],
         "forecast_analysis": "analysis",
-        "user_query_response": None,
+        "user_query_response": query,
     }
-
     tc = TimeCopilot(llm=build_stub_llm(expected_output))
-
-    result = tc.forecast(df=df, h=2, freq="D", seasonality=7, query=None)
+    result = tc.forecast(df=df, h=2, freq="D", seasonality=7, query=query)
 
     assert result.output == ForecastAgentOutput(**expected_output)
 
 
 def test_constructor_rejects_model_kwarg():
-    """`TimeCopilot` forbids the deprecated `model=` parameter."""
-
     with pytest.raises(ValueError):
         TimeCopilot(llm="test", model="something")
