@@ -1,5 +1,5 @@
-This section describes how `TimeCopilot` determines the three core forecasting parameters: `freq`, `h`, and `seasonality` when you call
-`TimeCopilot.forecast(...)`.  
+This section describes how [`TimeCopilot`][timecopilot.agent.TimeCopilot] determines the three core forecasting parameters: `freq`, `h`, and `seasonality` when you call
+[`TimeCopilot.forecast(...)`][timecopilot.agent.TimeCopilot.forecast].  
 
 You can:
 
@@ -17,13 +17,13 @@ You can:
 * **`seasonality`**: the length of the dominant seasonal cycle expressed in
   number of `freq` periods (24 for hourly data with a daily cycle, 12 for
   monthly‐start data with a yearly cycle, …).  See
-  [`get_seasonality`](https://github.com/AzulGarza/TimeCopilot/blob/main/timecopilot/models/utils/forecaster.py#L1) for the default mapping.
+  [`get_seasonality`][timecopilot.models.utils.forecaster.get_seasonality] for the default mapping.
 * **`h` (horizon)**: how many future periods you want to forecast.
 
 !!! tip "Pandas available frequencies"
     You can see [here](http://pandas.pydata.org/docs/user_guide/timeseries.html#dateoffset-objects) the complete list of available frequencies.  
 
-With these concepts in mind, let's see how `TimeCopilot` chooses their values.
+With these concepts in mind, let's see how [`TimeCopilot`][timecopilot.agent.TimeCopilot] chooses their values.
 
 ## Where do the parameters come from?
 
@@ -37,8 +37,8 @@ With these concepts in mind, let's see how `TimeCopilot` chooses their values.
    `seasonality=` ) fills the gaps left by the query.
 3. **Automatic inference is the fallback.**
    If a value is still unknown it is inferred from the data frame:
-    * `freq`: [`pandas.infer_freq(df["ds"])`](https://pandas.pydata.org/docs/reference/api/pandas.infer_freq.html)
-    * `seasonality`: [`get_seasonality(freq)`](https://github.com/AzulGarza/TimeCopilot/blob/main/timecopilot/models/utils/forecaster.py#L1)
+    * `freq`: [`pd.infer_freq(df["ds"])`](https://pandas.pydata.org/docs/reference/api/pandas.infer_freq.html)
+    * `seasonality`: [`get_seasonality(freq)`][timecopilot.models.utils.forecaster.get_seasonality]
     * `h`: `2 * seasonality`
 
 !!! tip "Summary"
@@ -119,7 +119,7 @@ result = tc.forecast(
 
 ## Choosing sensible defaults
 
-When you let `TimeCopilot` infer the parameters:
+When you let [`TimeCopilot`][timecopilot.agent.TimeCopilot] infer the parameters:
 
 * `freq` should be either present in the query **or** directly deducible from
 your `ds` column (regular timestamps with no gaps).
