@@ -82,6 +82,7 @@ TSFEATURES: dict[str, Callable] = {
 
 class ForecastAgentOutput(BaseModel):
     """The output of the forecasting agent."""
+
     tsfeatures_results: list[str] = Field(
         description=(
             "The time series features that were considered as a list of strings of "
