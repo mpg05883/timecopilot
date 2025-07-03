@@ -13,7 +13,7 @@ def test_prepare_level_and_quantiles_with_levels():
 def test_prepare_level_and_quantiles_with_quantiles():
     quantiles = [0.1, 0.5, 0.9]
     qc = QuantileConverter(level=None, quantiles=quantiles)
-    expected_level = [80, 0, 80]
+    expected_level = [0, 80]
     assert qc.quantiles == quantiles
     assert qc.level == expected_level
 
