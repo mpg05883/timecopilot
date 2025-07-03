@@ -126,7 +126,7 @@ class QuantileConverter:
         if not all(0 < q < 1 for q in quantiles):
             raise ValueError("`quantiles` should be floats between 0 and 1.")
         level = [abs(int(100 - 200 * q)) for q in quantiles]
-        return level, quantiles
+        return sorted(set(level)), quantiles
 
     def maybe_convert_level_to_quantiles(
         self,
