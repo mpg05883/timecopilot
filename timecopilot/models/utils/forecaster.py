@@ -106,7 +106,7 @@ class QuantileConverter:
     def __init__(
         self,
         level: list[int | float] | None = None,
-        quantiles: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ):
         level, quantiles = self._prepare_level_and_quantiles(level, quantiles)
         self.level = level
