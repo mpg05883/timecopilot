@@ -119,7 +119,7 @@ class QuantileConverter:
     ) -> tuple[list[int | float] | None, list[float] | None]:
         # based on https://github.com/Nixtla/nixtla/blob/e74d98d9346a055153f84801cac94715c2342946/nixtla/nixtla_client.py#L444
         if level is not None and quantiles is not None:
-            raise ValueError("You should provide `level` or `quantiles`, but not both.")
+            raise ValueError("You must not provide both `level` and `quantiles` simultaneously.")
         if quantiles is None:
             return level, quantiles
         # we recover level from quantiles
