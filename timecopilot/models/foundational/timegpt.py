@@ -40,6 +40,8 @@ class TimeGPT(Forecaster):
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         client = self._get_client()
         fcst_df = client.forecast(
@@ -47,6 +49,8 @@ class TimeGPT(Forecaster):
             h=h,
             freq=freq,
             model=self.model,
+            level=level,
+            quantiles=quantiles,
         )
         fcst_df["ds"] = pd.to_datetime(fcst_df["ds"])
         fcst_df = fcst_df.rename(columns={"TimeGPT": self.alias})

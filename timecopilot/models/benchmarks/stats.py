@@ -39,7 +39,7 @@ from statsforecast.models import (
     ZeroModel as _ZeroModel,
 )
 
-from ..utils.forecaster import Forecaster, get_seasonality
+from ..utils.forecaster import Forecaster, QuantileConverter, get_seasonality
 
 os.environ["NIXTLA_ID_AS_COL"] = "true"
 
@@ -49,6 +49,8 @@ def run_statsforecast_model(
     df: pd.DataFrame,
     h: int,
     freq: str,
+    level: list[int | float] | None,
+    quantiles: list[float] | None,
 ) -> pd.DataFrame:
     sf = StatsForecast(
         models=[model],
@@ -58,7 +60,12 @@ def run_statsforecast_model(
             season_length=get_seasonality(freq),
         ),
     )
-    fcst_df = sf.forecast(df=df, h=h)
+    qc = QuantileConverter(level=level, quantiles=quantiles)
+    fcst_df = sf.forecast(df=df, h=h, level=qc.level)
+    fcst_df = qc.maybe_convert_level_to_quantiles(
+        df=fcst_df,
+        models=[model.alias],
+    )
     return fcst_df
 
 
@@ -74,12 +81,16 @@ class ADIDA(Forecaster):
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         fcst_df = run_statsforecast_model(
             model=_ADIDA(alias=self.alias),
             df=df,
             h=h,
             freq=freq,
+            level=level,
+            quantiles=quantiles,
         )
         return fcst_df
 
@@ -96,6 +107,8 @@ class AutoARIMA(Forecaster):
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         seasonality = get_seasonality(freq)
         fcst_df = run_statsforecast_model(
@@ -103,6 +116,8 @@ class AutoARIMA(Forecaster):
             df=df,
             h=h,
             freq=freq,
+            level=level,
+            quantiles=quantiles,
         )
         return fcst_df
 
@@ -119,6 +134,8 @@ class AutoCES(Forecaster):
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         seasonality = get_seasonality(freq)
         fcst_df = run_statsforecast_model(
@@ -126,6 +143,8 @@ class AutoCES(Forecaster):
             df=df,
             h=h,
             freq=freq,
+            level=level,
+            quantiles=quantiles,
         )
         return fcst_df
 
@@ -142,6 +161,8 @@ class AutoETS(Forecaster):
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         seasonality = get_seasonality(freq)
         fcst_df = run_statsforecast_model(
@@ -149,6 +170,8 @@ class AutoETS(Forecaster):
             df=df,
             h=h,
             freq=freq,
+            level=level,
+            quantiles=quantiles,
         )
         return fcst_df
 
@@ -165,12 +188,16 @@ class CrostonClassic(Forecaster):
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         fcst_df = run_statsforecast_model(
             model=_CrostonClassic(alias=self.alias),
             df=df,
             h=h,
             freq=freq,
+            level=level,
+            quantiles=quantiles,
         )
         return fcst_df
 
@@ -187,6 +214,8 @@ class DOTheta(Forecaster):
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         seasonality = get_seasonality(freq)
         fcst_df = run_statsforecast_model(
@@ -194,6 +223,8 @@ class DOTheta(Forecaster):
             df=df,
             h=h,
             freq=freq,
+            level=level,
+            quantiles=quantiles,
         )
         return fcst_df
 
@@ -210,12 +241,16 @@ class HistoricAverage(Forecaster):
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         fcst_df = run_statsforecast_model(
             model=_HistoricAverage(alias=self.alias),
             df=df,
             h=h,
             freq=freq,
+            level=level,
+            quantiles=quantiles,
         )
         return fcst_df
 
@@ -232,12 +267,16 @@ class IMAPA(Forecaster):
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         fcst_df = run_statsforecast_model(
             model=_IMAPA(alias=self.alias),
             df=df,
             h=h,
             freq=freq,
+            level=level,
+            quantiles=quantiles,
         )
         return fcst_df
 
@@ -254,6 +293,8 @@ class SeasonalNaive(Forecaster):
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         seasonality = get_seasonality(freq)
         fcst_df = run_statsforecast_model(
@@ -261,6 +302,8 @@ class SeasonalNaive(Forecaster):
             df=df,
             h=h,
             freq=freq,
+            level=level,
+            quantiles=quantiles,
         )
         return fcst_df
 
@@ -277,6 +320,8 @@ class Theta(Forecaster):
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         seasonality = get_seasonality(freq)
         fcst_df = run_statsforecast_model(
@@ -284,6 +329,8 @@ class Theta(Forecaster):
             df=df,
             h=h,
             freq=freq,
+            level=level,
+            quantiles=quantiles,
         )
         return fcst_df
 
@@ -300,11 +347,15 @@ class ZeroModel(Forecaster):
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         fcst_df = run_statsforecast_model(
             model=_ZeroModel(alias=self.alias),
             df=df,
             h=h,
             freq=freq,
+            level=level,
+            quantiles=quantiles,
         )
         return fcst_df

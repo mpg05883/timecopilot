@@ -69,3 +69,70 @@ def test_cross_validation(model, freq, n_windows):
             cv_df.sort_values(["unique_id", "ds"]).reset_index(drop=True)[exp_cols],
             fcst_df.sort_values(["unique_id", "ds"]).reset_index(drop=True)[exp_cols],
         )
+
+
+@pytest.mark.parametrize("model", models)
+def test_passing_both_level_and_quantiles(model):
+    df = generate_series(n_series=1, freq="D")
+    with pytest.raises(ValueError):
+        model.forecast(
+            df=df,
+            h=1,
+            freq="D",
+            level=[80, 95],
+            quantiles=[0.1, 0.5, 0.9],
+        )
+    with pytest.raises(ValueError):
+        model.cross_validation(
+            df=df,
+            h=1,
+            freq="D",
+            level=[80, 95],
+            quantiles=[0.1, 0.5, 0.9],
+        )
+
+
+@pytest.mark.parametrize("model", models)
+def test_using_quantiles(model):
+    qs = [i * 0.1 for i in range(1, 10)]
+    df = generate_series(n_series=1, freq="D")
+    fcst_df = model.forecast(
+        df=df,
+        h=1,
+        freq="D",
+        quantiles=qs,
+    )
+    exp_qs_cols = [f"{model.alias}-q-{int(100 * q)}" for q in qs]
+    assert all(col in fcst_df.columns for col in exp_qs_cols)
+    assert not any(("-lo-" in col or "-hi-" in col) for col in fcst_df.columns)
+    # test monotonicity of quantiles
+    for c1, c2 in zip(exp_qs_cols[:-1], exp_qs_cols[1:], strict=False):
+        if model.alias == "ZeroModel":
+            # ZeroModel is a constant model, so all quantiles should be the same
+            assert fcst_df[c1].eq(fcst_df[c2]).all()
+        else:
+            assert fcst_df[c1].lt(fcst_df[c2]).all()
+
+
+@pytest.mark.parametrize("model", models)
+def test_using_level(model):
+    levels = [80, 95]
+    df = generate_series(n_series=1, freq="D")
+    fcst_df = model.forecast(
+        df=df,
+        h=1,
+        freq="D",
+        level=levels,
+    )
+    exp_lv_cols = []
+    for lv in levels:
+        exp_lv_cols.extend([f"{model.alias}-lo-{lv}", f"{model.alias}-hi-{lv}"])
+    assert all(col in fcst_df.columns for col in exp_lv_cols)
+    assert not any(("-q-" in col) for col in fcst_df.columns)
+    # test monotonicity of levels
+    for c1, c2 in zip(exp_lv_cols[:-1:2], exp_lv_cols[1::2], strict=False):
+        if model.alias == "ZeroModel":
+            # ZeroModel is a constant model, so all levels should be the same
+            assert fcst_df[c1].eq(fcst_df[c2]).all()
+        else:
+            assert fcst_df[c1].lt(fcst_df[c2]).all()
