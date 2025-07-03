@@ -96,7 +96,13 @@ class GluonTSForecaster(Forecaster):
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        if level is not None and quantiles is not None:
+            raise NotImplementedError(
+                "Level and quantiles are not supported for GluonTSForecaster yet"
+            )
         df = maybe_convert_col_to_float32(df, "y")
         gluonts_dataset = PandasDataset.from_long_dataframe(
             df,
