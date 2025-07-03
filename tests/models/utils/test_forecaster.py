@@ -34,6 +34,7 @@ def test_prepare_level_and_quantiles_error_both():
     [
         (1, [0.1]),
         (2, [0.1, 0.5, 0.9]),
+        (2, [0.1, 0.5, 0.2, 0.9]),
     ],
 )
 def test_maybe_convert_level_to_quantiles(n_models, quantiles):
