@@ -69,3 +69,24 @@ def test_cross_validation(model, freq, n_windows):
             cv_df.sort_values(["unique_id", "ds"]).reset_index(drop=True)[exp_cols],
             fcst_df.sort_values(["unique_id", "ds"]).reset_index(drop=True)[exp_cols],
         )
+
+
+@pytest.mark.parametrize("model", models)
+def test_passing_both_level_and_quantiles(model):
+    df = generate_series(n_series=1, freq="D")
+    with pytest.raises(ValueError):
+        model.forecast(
+            df=df,
+            h=1,
+            freq="D",
+            level=[80, 95],
+            quantiles=[0.1, 0.5, 0.9],
+        )
+    with pytest.raises(ValueError):
+        model.cross_validation(
+            df=df,
+            h=1,
+            freq="D",
+            level=[80, 95],
+            quantiles=[0.1, 0.5, 0.9],
+        )
