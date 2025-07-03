@@ -93,7 +93,13 @@ class Chronos(Forecaster):
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        if level is not None and quantiles is not None:
+            raise NotImplementedError(
+                "Level and quantiles are not supported for Chronos yet"
+            )
         dataset = TimeSeriesDataset.from_df(df, batch_size=self.batch_size)
         fcsts = [
             self.model.predict(batch, prediction_length=h) for batch in tqdm(dataset)

@@ -41,7 +41,13 @@ class TimesFM(Forecaster):
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        if level is not None and quantiles is not None:
+            raise NotImplementedError(
+                "Level and quantiles are not supported for TimesFM yet"
+            )
         predictor = self.get_predictor(prediction_length=h)
         fcst_df = predictor.forecast_on_df(
             inputs=df,
