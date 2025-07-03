@@ -10,10 +10,16 @@ def test_prepare_level_and_quantiles_with_levels():
     assert qc.quantiles is None
 
 
-def test_prepare_level_and_quantiles_with_quantiles():
-    quantiles = [0.1, 0.5, 0.9]
+@pytest.mark.parametrize(
+    "quantiles,expected_level",
+    [
+        ([0.1, 0.5, 0.9], [0, 80]),
+        ([0.1, 0.5, 0.2, 0.9], [0, 60, 80]),
+        ([0.5], [0]),
+    ],
+)
+def test_prepare_level_and_quantiles_with_quantiles(quantiles, expected_level):
     qc = QuantileConverter(level=None, quantiles=quantiles)
-    expected_level = [0, 80]
     assert qc.quantiles == quantiles
     assert qc.level == expected_level
 
