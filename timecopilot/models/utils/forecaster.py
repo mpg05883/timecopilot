@@ -94,7 +94,7 @@ class Forecaster:
         return fcst_cv_df
 
 
-class ProbabilisticHandler:
+class QuantileConverter:
     """Handles inputs and outputs for probabilistic forecasts."""
 
     def __init__(
