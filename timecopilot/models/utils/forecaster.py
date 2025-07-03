@@ -1,4 +1,5 @@
 import pandas as pd
+import utilsforecast.processing as ufp
 from gluonts.time_feature.seasonality import (
     DEFAULT_SEASONALITIES,
 )
@@ -91,3 +92,55 @@ class Forecaster:
         remaining_cols = [c for c in out.columns if c not in first_out_cols]
         fcst_cv_df = out[first_out_cols + remaining_cols]
         return fcst_cv_df
+
+
+class ProbabilisticHandler:
+    """Handles inputs and outputs for probabilistic forecasts."""
+
+    def __init__(
+        self,
+        level: list[int | float] | None = None,
+        quantiles: list[int | float] | None = None,
+    ):
+        level, quantiles = self._prepare_level_and_quantiles(level, quantiles)
+        self.level = level
+        self.quantiles = quantiles
+
+    @staticmethod
+    def _prepare_level_and_quantiles(
+        level: list[int | float] | None,
+        quantiles: list[float] | None,
+    ) -> tuple[list[int | float] | None, list[float] | None]:
+        # based on https://github.com/Nixtla/nixtla/blob/e74d98d9346a055153f84801cac94715c2342946/nixtla/nixtla_client.py#L444
+        if level is not None and quantiles is not None:
+            raise ValueError("You should provide `level` or `quantiles`, but not both.")
+        if quantiles is None:
+            return level, quantiles
+        # we recover level from quantiles
+        if not all(0 < q < 1 for q in quantiles):
+            raise ValueError("`quantiles` should be floats between 0 and 1.")
+        level = [abs(int(100 - 200 * q)) for q in quantiles]
+        return level, quantiles
+
+    def maybe_convert_level_to_quantiles(
+        self,
+        df: pd.DataFrame,
+        models: list[str],
+    ) -> pd.DataFrame:
+        if self.quantiles is None:
+            return df
+        out_cols = [c for c in df.columns if "-lo-" not in c and "-hi-" not in c]
+        df = ufp.copy_if_pandas(df, deep=False)
+        for model in models:
+            for q in sorted(self.quantiles):
+                if q == 0.5:
+                    col = model
+                else:
+                    lv = int(100 - 200 * q)
+                    hi_or_lo = "lo" if lv > 0 else "hi"
+                    lv = abs(lv)
+                    col = f"{model}-{hi_or_lo}-{lv}"
+                q_col = f"{model}-q-{int(q * 100)}"
+                df = ufp.assign_columns(df, q_col, df[col])
+                out_cols.append(q_col)
+        return df[out_cols]
