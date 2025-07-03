@@ -112,3 +112,27 @@ def test_using_quantiles(model):
             assert fcst_df[c1].eq(fcst_df[c2]).all()
         else:
             assert fcst_df[c1].lt(fcst_df[c2]).all()
+
+
+@pytest.mark.parametrize("model", models)
+def test_using_level(model):
+    levels = [80, 95]
+    df = generate_series(n_series=1, freq="D")
+    fcst_df = model.forecast(
+        df=df,
+        h=1,
+        freq="D",
+        level=levels,
+    )
+    exp_lv_cols = []
+    for lv in levels:
+        exp_lv_cols.extend([f"{model.alias}-lo-{lv}", f"{model.alias}-hi-{lv}"])
+    assert all(col in fcst_df.columns for col in exp_lv_cols)
+    assert not any(("-q-" in col) for col in fcst_df.columns)
+    # test monotonicity of levels
+    for c1, c2 in zip(exp_lv_cols[:-1:2], exp_lv_cols[1::2], strict=False):
+        if model.alias == "ZeroModel":
+            # ZeroModel is a constant model, so all levels should be the same
+            assert fcst_df[c1].eq(fcst_df[c2]).all()
+        else:
+            assert fcst_df[c1].lt(fcst_df[c2]).all()
