@@ -36,6 +36,8 @@ class Forecaster:
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         raise NotImplementedError
 
@@ -46,6 +48,8 @@ class Forecaster:
         freq: str,
         n_windows: int = 1,
         step_size: int | None = None,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         df = maybe_convert_col_to_datetime(df, "ds")
         # mlforecast cv code
@@ -71,6 +75,8 @@ class Forecaster:
                 df=train,
                 h=h,
                 freq=freq,
+                level=level,
+                quantiles=quantiles,
             )
             y_pred = join(y_pred, cutoffs, on="unique_id", how="left")
             result = join(
