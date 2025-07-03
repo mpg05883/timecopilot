@@ -90,3 +90,25 @@ def test_passing_both_level_and_quantiles(model):
             level=[80, 95],
             quantiles=[0.1, 0.5, 0.9],
         )
+
+
+@pytest.mark.parametrize("model", models)
+def test_using_quantiles(model):
+    qs = [i * 0.1 for i in range(1, 10)]
+    df = generate_series(n_series=1, freq="D")
+    fcst_df = model.forecast(
+        df=df,
+        h=1,
+        freq="D",
+        quantiles=qs,
+    )
+    exp_qs_cols = [f"{model.alias}-q-{int(100 * q)}" for q in qs]
+    assert all(col in fcst_df.columns for col in exp_qs_cols)
+    assert not any(("-lo-" in col or "-hi-" in col) for col in fcst_df.columns)
+    # test monotonicity of quantiles
+    for c1, c2 in zip(exp_qs_cols[:-1], exp_qs_cols[1:], strict=False):
+        if model.alias == "ZeroModel":
+            # ZeroModel is a constant model, so all quantiles should be the same
+            assert fcst_df[c1].eq(fcst_df[c2]).all()
+        else:
+            assert fcst_df[c1].lt(fcst_df[c2]).all()
