@@ -30,6 +30,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
+  "chronos-forecasting>=1.5.2",
   "fire",
   "gluonts",
   "pydantic-ai[logfire]",
