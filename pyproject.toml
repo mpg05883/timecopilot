@@ -32,7 +32,7 @@ classifiers = [
 dependencies = [
   "chronos-forecasting>=1.5.2",
   "fire",
-  "gluonts",
+  "gluonts[torch]",
   "pydantic-ai[logfire]",
   "python-dotenv",
   "scipy<=1.15.3",
