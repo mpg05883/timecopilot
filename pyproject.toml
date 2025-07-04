@@ -36,6 +36,7 @@ dependencies = [
   "python-dotenv",
   "scipy<=1.15.3",
   "statsforecast",
+  "timesfm>=1.2.9",
   "tsfeatures",
   "utilsforecast",
 ]
