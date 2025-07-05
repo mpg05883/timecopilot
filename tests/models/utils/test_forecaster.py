@@ -8,7 +8,7 @@ from timecopilot.models.utils.forecaster import QuantileConverter
 def test_prepare_level_and_quantiles_with_levels():
     qc = QuantileConverter(level=[80, 95])
     assert qc.level == [80, 95]
-    assert qc.quantiles is None
+    assert qc.level_was_provided
 
 
 @pytest.mark.parametrize(
@@ -23,6 +23,7 @@ def test_prepare_level_and_quantiles_with_quantiles(quantiles, expected_level):
     qc = QuantileConverter(level=None, quantiles=quantiles)
     assert qc.quantiles == quantiles
     assert qc.level == expected_level
+    assert not qc.level_was_provided
 
 
 def test_prepare_level_and_quantiles_error_both():
