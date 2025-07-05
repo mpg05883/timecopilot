@@ -116,7 +116,7 @@ class Chronos(Forecaster):
                 # see https://github.com/amazon-science/chronos-forecasting/blob/6a9c8dadac04eb85befc935043e3e2cce914267f/src/chronos/chronos.py#L554
                 fcsts_mean = fcsts.mean(dim=1)  # type: ignore
             elif "bolt" in self.repo_id:
-                # for t5 models, `predict` returns a tensor of shape
+                # for bolt models, `predict` returns a tensor of shape
                 # (batch_size, num_quantiles, prediction_length)
                 # notice that in this case, the method returns the default quantiles
                 # instead of samples
