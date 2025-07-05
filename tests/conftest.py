@@ -5,5 +5,6 @@ benchmark_models = [
     "SeasonalNaive",
     "ZeroModel",
     "ADIDA",
+    "TimesFM",
 ]
 models = [MODELS[str_model] for str_model in benchmark_models]
