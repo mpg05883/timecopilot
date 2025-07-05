@@ -98,7 +98,7 @@ def test_using_quantiles(model):
     df = generate_series(n_series=2, freq="D")
     fcst_df = model.forecast(
         df=df,
-        h=3,
+        h=2,
         freq="D",
         quantiles=qs,
     )
@@ -123,7 +123,7 @@ def test_using_level(model):
     df = generate_series(n_series=2, freq="D")
     fcst_df = model.forecast(
         df=df,
-        h=3,
+        h=2,
         freq="D",
         level=level,
     )
