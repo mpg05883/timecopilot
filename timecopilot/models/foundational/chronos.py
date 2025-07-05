@@ -124,7 +124,7 @@ class Chronos(Forecaster):
                 # for these models, the median is prefered as mean forecasts
                 # as it can be seen in
                 # https://github.com/amazon-science/chronos-forecasting/blob/6a9c8dadac04eb85befc935043e3e2cce914267f/src/chronos/chronos_bolt.py#L615-L616
-                fcsts_mean = fcsts[:, :, self.model.training_quantile_levels.index(0.5)]  # type: ignore
+                fcsts_mean = fcsts[:, self.model.quantiles.index(0.5), :]  # type: ignore
             fcsts_mean_np = fcsts_mean.numpy()  # type: ignore
             fcsts_quantiles_np = None
         return fcsts_mean_np, fcsts_quantiles_np
