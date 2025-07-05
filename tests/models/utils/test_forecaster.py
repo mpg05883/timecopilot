@@ -65,6 +65,11 @@ def test_maybe_convert_level_to_quantiles(n_models, quantiles):
                 result_df[f"{model}"],
                 check_names=False,
             )
+    # check that maybe convert quantiles to level returns the same result
+    pd.testing.assert_frame_equal(
+        df,
+        qc.maybe_convert_quantiles_to_level(df, models=models),
+    )
 
 
 @pytest.mark.parametrize(
@@ -118,3 +123,8 @@ def test_maybe_convert_quantiles_to_level(n_models, level):
                     df[f"{model}-q-{q_hi}"],
                     check_names=False,
                 )
+    # check that maybe convert level to quantiles returns the same result
+    pd.testing.assert_frame_equal(
+        df,
+        qc.maybe_convert_level_to_quantiles(df, models=models),
+    )
