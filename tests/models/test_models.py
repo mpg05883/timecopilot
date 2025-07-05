@@ -95,7 +95,7 @@ def test_passing_both_level_and_quantiles(model):
 @pytest.mark.parametrize("model", models)
 def test_using_quantiles(model):
     qs = [i * 0.1 for i in range(1, 10)]
-    df = generate_series(n_series=1, freq="D")
+    df = generate_series(n_series=2, freq="D")
     fcst_df = model.forecast(
         df=df,
         h=1,
@@ -116,16 +116,18 @@ def test_using_quantiles(model):
 
 @pytest.mark.parametrize("model", models)
 def test_using_level(model):
-    levels = [80, 95]
-    df = generate_series(n_series=1, freq="D")
+    level = [0, 20, 40, 60, 80]  # corresponds to qs [0.1, 0.2, ..., 0.9]
+    df = generate_series(n_series=2, freq="D")
     fcst_df = model.forecast(
         df=df,
         h=1,
         freq="D",
-        level=levels,
+        level=level,
     )
     exp_lv_cols = []
-    for lv in levels:
+    for lv in level:
+        if lv == 0:
+            continue
         exp_lv_cols.extend([f"{model.alias}-lo-{lv}", f"{model.alias}-hi-{lv}"])
     assert all(col in fcst_df.columns for col in exp_lv_cols)
     assert not any(("-q-" in col) for col in fcst_df.columns)
