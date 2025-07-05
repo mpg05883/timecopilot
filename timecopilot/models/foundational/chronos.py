@@ -1,13 +1,12 @@
 from collections.abc import Iterable
 
-import numpy as np
 import pandas as pd
 import torch
 from chronos import BaseChronosPipeline
 from tqdm import tqdm
 from utilsforecast.processing import make_future_dataframe
 
-from ..utils.forecaster import Forecaster
+from ..utils.forecaster import Forecaster, QuantileConverter
 
 
 class TimeSeriesDataset:
@@ -86,16 +85,28 @@ class Chronos(Forecaster):
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
-        if level is not None and quantiles is not None:
-            raise NotImplementedError(
-                "Level and quantiles are not supported for Chronos yet"
-            )
+        qc = QuantileConverter(level=level, quantiles=quantiles)
         dataset = TimeSeriesDataset.from_df(df, batch_size=self.batch_size)
         fcsts = [
-            self.model.predict(batch, prediction_length=h) for batch in tqdm(dataset)
-        ]
-        fcst = torch.cat(fcsts)
-        fcst = fcst.numpy()
+            self.model.predict_quantiles(
+                batch,
+                prediction_length=h,
+                quantile_levels=qc.quantiles,
+            )
+            for batch in tqdm(dataset)
+        ]  # list of tuples
+        fcsts_quantiles, fcsts_mean = zip(*fcsts, strict=False)
+        fcsts_quantiles_np = torch.cat(fcsts_quantiles).numpy()
+        fcsts_mean_np = torch.cat(fcsts_mean).numpy()
         fcst_df = dataset.make_future_dataframe(h=h, freq=freq)
-        fcst_df[self.alias] = np.mean(fcst, axis=1).reshape(-1, 1)
+        fcst_df[self.alias] = fcsts_mean_np.reshape(-1, 1)
+        if qc.quantiles is not None:
+            for i, q in enumerate(qc.quantiles):
+                fcst_df[f"{self.alias}-q-{int(q * 100)}"] = fcsts_quantiles_np[
+                    ..., i
+                ].reshape(-1, 1)
+            fcst_df = qc.maybe_convert_quantiles_to_level(
+                fcst_df,
+                models=[self.alias],
+            )
         return fcst_df
