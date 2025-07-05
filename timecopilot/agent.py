@@ -43,6 +43,7 @@ from .models.benchmarks import (
     Theta,
     ZeroModel,
 )
+from .models.foundational.timesfm import TimesFM
 from .utils.experiment_handler import ExperimentDataset, ExperimentDatasetParser
 
 MODELS = {
@@ -57,6 +58,7 @@ MODELS = {
     "SeasonalNaive": SeasonalNaive(),
     "Theta": Theta(),
     "ZeroModel": ZeroModel(),
+    "TimesFM": TimesFM(),
 }
 
 TSFEATURES: dict[str, Callable] = {
