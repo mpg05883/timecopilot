@@ -110,7 +110,7 @@ def test_using_quantiles(model):
         if model.alias == "ZeroModel":
             # ZeroModel is a constant model, so all quantiles should be the same
             assert fcst_df[c1].eq(fcst_df[c2]).all()
-        if "chronos-t5" in model.alias.lower():
+        elif "chronos-t5" in model.alias.lower():
             # sometimes it gives this condition
             assert fcst_df[c1].le(fcst_df[c2]).all()
         else:
