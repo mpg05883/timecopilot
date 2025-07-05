@@ -3,7 +3,7 @@ from collections.abc import Iterable
 import numpy as np
 import pandas as pd
 import torch
-from chronos import ChronosPipeline
+from chronos import BaseChronosPipeline
 from tqdm import tqdm
 from utilsforecast.processing import make_future_dataframe
 
@@ -82,7 +82,7 @@ class Chronos(Forecaster):
         self.repo_id = repo_id
         self.batch_size = batch_size
         self.alias = alias
-        self.model = ChronosPipeline.from_pretrained(
+        self.model = BaseChronosPipeline.from_pretrained(
             repo_id,
             device_map="auto",
             torch_dtype=torch.bfloat16,
