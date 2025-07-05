@@ -1,5 +1,6 @@
 from collections.abc import Iterable
 
+import numpy as np
 import pandas as pd
 import torch
 from chronos import BaseChronosPipeline
@@ -77,6 +78,57 @@ class Chronos(Forecaster):
             torch_dtype=torch.bfloat16,
         )
 
+    def predict(
+        self,
+        dataset: TimeSeriesDataset,
+        h: int,
+        quantiles: list[float] | None,
+    ) -> tuple[np.ndarray, np.ndarray | None]:
+        """handles distinction between predict and predict_quantiles"""
+        if quantiles is not None:
+            fcsts = [
+                self.model.predict_quantiles(
+                    batch,
+                    prediction_length=h,
+                    quantile_levels=quantiles,
+                )
+                for batch in tqdm(dataset)
+            ]  # list of tuples
+            fcsts_quantiles, fcsts_mean = zip(*fcsts, strict=False)
+            fcsts_mean_np = torch.cat(fcsts_mean).numpy()
+            fcsts_quantiles_np = torch.cat(fcsts_quantiles).numpy()
+        else:
+            fcsts = [
+                self.model.predict(
+                    batch,
+                    prediction_length=h,
+                )
+                for batch in tqdm(dataset)
+            ]
+            fcsts = torch.cat(fcsts)
+            if "t5" in self.repo_id:
+                # for t5 models, `predict` returns a tensor of shape
+                # (batch_size, num_samples, prediction_length).
+                # notice that the method return samples.
+                # see https://github.com/amazon-science/chronos-forecasting/blob/6a9c8dadac04eb85befc935043e3e2cce914267f/src/chronos/chronos.py#L450-L537
+                # also for these models, the following is how the mean is computed
+                # in the `predict_quantiles` method
+                # see https://github.com/amazon-science/chronos-forecasting/blob/6a9c8dadac04eb85befc935043e3e2cce914267f/src/chronos/chronos.py#L554
+                fcsts_mean = fcsts.mean(dim=1)  # type: ignore
+            elif "bolt" in self.repo_id:
+                # for t5 models, `predict` returns a tensor of shape
+                # (batch_size, num_quantiles, prediction_length)
+                # notice that in this case, the method returns the default quantiles
+                # instead of samples
+                # see https://github.com/amazon-science/chronos-forecasting/blob/6a9c8dadac04eb85befc935043e3e2cce914267f/src/chronos/chronos_bolt.py#L479-L563
+                # for these models, the median is prefered as mean forecasts
+                # as it can be seen in
+                # https://github.com/amazon-science/chronos-forecasting/blob/6a9c8dadac04eb85befc935043e3e2cce914267f/src/chronos/chronos_bolt.py#L615-L616
+                fcsts_mean = fcsts[:, :, self.model.training_quantile_levels.index(0.5)]  # type: ignore
+            fcsts_mean_np = fcsts_mean.numpy()  # type: ignore
+            fcsts_quantiles_np = None
+        return fcsts_mean_np, fcsts_quantiles_np
+
     def forecast(
         self,
         df: pd.DataFrame,
@@ -87,20 +139,14 @@ class Chronos(Forecaster):
     ) -> pd.DataFrame:
         qc = QuantileConverter(level=level, quantiles=quantiles)
         dataset = TimeSeriesDataset.from_df(df, batch_size=self.batch_size)
-        fcsts = [
-            self.model.predict_quantiles(
-                batch,
-                prediction_length=h,
-                quantile_levels=qc.quantiles,
-            )
-            for batch in tqdm(dataset)
-        ]  # list of tuples
-        fcsts_quantiles, fcsts_mean = zip(*fcsts, strict=False)
-        fcsts_quantiles_np = torch.cat(fcsts_quantiles).numpy()
-        fcsts_mean_np = torch.cat(fcsts_mean).numpy()
         fcst_df = dataset.make_future_dataframe(h=h, freq=freq)
+        fcsts_mean_np, fcsts_quantiles_np = self.predict(
+            dataset,
+            h,
+            quantiles=qc.quantiles,
+        )
         fcst_df[self.alias] = fcsts_mean_np.reshape(-1, 1)
-        if qc.quantiles is not None:
+        if qc.quantiles is not None and fcsts_quantiles_np is not None:
             for i, q in enumerate(qc.quantiles):
                 fcst_df[f"{self.alias}-q-{int(q * 100)}"] = fcsts_quantiles_np[
                     ..., i
