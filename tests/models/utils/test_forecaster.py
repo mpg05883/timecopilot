@@ -41,6 +41,7 @@ def test_prepare_level_and_quantiles_error_both():
 def test_maybe_convert_level_to_quantiles(n_models, quantiles):
     models = [f"model{i}" for i in range(n_models)]
     qc = QuantileConverter(quantiles=quantiles)
+    assert not qc.level_was_provided
     df = generate_series(
         n_series=2,
         freq="D",
@@ -52,6 +53,8 @@ def test_maybe_convert_level_to_quantiles(n_models, quantiles):
         df,
         models=models,
     )
+    exp_n_cols = 3 + (1 + len(quantiles)) * n_models
+    assert result_df.shape[1] == exp_n_cols
     for model in models:
         assert qc.quantiles is not None
         for q in qc.quantiles:
@@ -75,6 +78,7 @@ def test_maybe_convert_level_to_quantiles(n_models, quantiles):
 def test_maybe_convert_quantiles_to_level(n_models, level):
     models = [f"model{i}" for i in range(n_models)]
     qc = QuantileConverter(level=level)
+    assert qc.level_was_provided
     df = generate_series(
         n_series=2,
         freq="D",
@@ -88,6 +92,10 @@ def test_maybe_convert_quantiles_to_level(n_models, level):
         df,
         models=models,
     )
+    exp_n_cols = 3 + (1 + len(level) * 2) * n_models
+    if 0 in level:
+        exp_n_cols -= n_models * 2
+    assert result_df.shape[1] == exp_n_cols
     for model in models:
         for lv in level:
             if lv == 0:
