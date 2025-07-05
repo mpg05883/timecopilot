@@ -143,7 +143,7 @@ class QuantileConverter:
             level_was_provided = False
             return sorted(set(level)), quantiles, level_was_provided
         else:
-            raise ValueError("You must provide either `level` or `quantiles`.")
+            return None, None, False
 
     @staticmethod
     def _level_to_quantiles(level: int | float) -> tuple[float, float]:
@@ -165,12 +165,14 @@ class QuantileConverter:
         Receives a DataFrame with levels and returns
         a DataFrame with quantiles if level was provided
         """
-        if self.level_was_provided:
+        if self.level_was_provided or self.level is None:
             return df
+        if self.quantiles is None:
+            raise ValueError("No quantiles were provided.")
         out_cols = [c for c in df.columns if "-lo-" not in c and "-hi-" not in c]
         df = ufp.copy_if_pandas(df, deep=False)
         for model in models:
-            for q in sorted(self.quantiles):  # type: ignore
+            for q in sorted(self.quantiles):
                 if q == 0.5:
                     col = model
                 else:
@@ -192,18 +194,20 @@ class QuantileConverter:
         Receives a DataFrame with quantiles and returns
         a DataFrame with levels if quantiles were provided
         """
-        if not self.level_was_provided:
+        if not self.level_was_provided or self.quantiles is None:
             return df
+        if self.level is None:
+            raise ValueError("No levels were provided.")
         out_cols = [c for c in df.columns if "-q-" not in c]
         df = ufp.copy_if_pandas(df, deep=False)
         for model in models:
-            if 0 in self.level:  # type: ignore
+            if 0 in self.level:
                 mid_col = f"{model}-q-50"
                 if mid_col in df:
                     df = ufp.assign_columns(df, model, df[mid_col])
                     if model not in out_cols:
                         out_cols.append(model)
-            for lv in self.level:  # type: ignore
+            for lv in self.level:
                 if lv == 0:
                     continue
                 q_lo, q_hi = self._level_to_quantiles(lv)
