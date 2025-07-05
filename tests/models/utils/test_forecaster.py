@@ -42,7 +42,7 @@ def test_maybe_convert_level_to_quantiles(n_models, quantiles):
     models = [f"model{i}" for i in range(n_models)]
     qc = QuantileConverter(quantiles=quantiles)
     df = generate_series(
-        n_series=1,
+        n_series=2,
         freq="D",
         min_length=10,
         n_models=n_models,
@@ -57,7 +57,11 @@ def test_maybe_convert_level_to_quantiles(n_models, quantiles):
         for q in qc.quantiles:
             assert f"{model}-q-{int(q * 100)}" in result_df.columns
         if 0.5 in qc.quantiles:
-            assert result_df.loc[0, f"{model}-q-50"] == result_df.loc[0, f"{model}"]
+            pd.testing.assert_series_equal(
+                result_df[f"{model}-q-50"],
+                result_df[f"{model}"],
+                check_names=False,
+            )
 
 
 @pytest.mark.parametrize(
