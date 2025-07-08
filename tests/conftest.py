@@ -7,6 +7,7 @@ benchmark_models = [
     "ZeroModel",
     "ADIDA",
     "TimesFM",
+    "Prophet",
 ]
 models = [MODELS[str_model] for str_model in benchmark_models]
 models.extend(
