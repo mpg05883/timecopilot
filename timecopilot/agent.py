@@ -43,6 +43,7 @@ from .models.benchmarks import (
     Theta,
     ZeroModel,
 )
+from .models.benchmarks.prophet import Prophet
 from .models.foundational.timesfm import TimesFM
 from .utils.experiment_handler import ExperimentDataset, ExperimentDatasetParser
 
@@ -59,6 +60,7 @@ MODELS = {
     "Theta": Theta(),
     "ZeroModel": ZeroModel(),
     "TimesFM": TimesFM(),
+    "Prophet": Prophet(),
 }
 
 TSFEATURES: dict[str, Callable] = {
