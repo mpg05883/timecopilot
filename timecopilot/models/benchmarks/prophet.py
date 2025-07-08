@@ -77,7 +77,7 @@ class Prophet(ProphetBase, ParallelForecaster, Forecaster):
         cols = [col for col in df2.columns if self.alias in col or "ds" in col]
         return df2[cols]
 
-    def __local_forecast(
+    def _local_forecast_impl(
         self,
         df: pd.DataFrame,
         h: int,
@@ -106,7 +106,7 @@ class Prophet(ProphetBase, ParallelForecaster, Forecaster):
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         with threadpool_limits(limits=1):
-            return self.__local_forecast(
+            return self._local_forecast_impl(
                 df=df,
                 h=h,
                 freq=freq,
