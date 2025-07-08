@@ -24,7 +24,7 @@ class ParallelForecaster:
         func: Callable,
         **kwargs,
     ) -> pd.DataFrame:
-        with Pool(max(1, (os.cpu_count() or 1) - 1)) as executor:  # type: ignore
+        with Pool(max(1, (os.cpu_count() or 1) - 1)) as executor:
             futures = [
                 executor.apply_async(
                     self._process_group,
