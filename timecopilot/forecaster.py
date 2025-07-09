@@ -31,6 +31,12 @@ class TimeCopilotForecaster:
             if res_df is None:
                 res_df = res_df_model
             else:
+                if "y" in res_df_model:
+                    # drop y to avoid duplicate columns
+                    # y was added by the previous condition
+                    # to cross validation
+                    # (the initial model)
+                    res_df_model = res_df_model.drop(columns=["y"])
                 res_df = res_df.merge(
                     res_df_model,
                     on=merge_on,
