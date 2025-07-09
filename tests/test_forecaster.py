@@ -67,3 +67,17 @@ def test_forecaster_forecast_with_level(models):
         for lv in level:
             assert f"{model.alias}-lo-{lv}" in fcst_df.columns
             assert f"{model.alias}-hi-{lv}" in fcst_df.columns
+
+
+def test_forecaster_forecast_with_quantiles(models):
+    n_uids = 3
+    quantiles = [0.1, 0.9]
+    df = generate_series(n_series=n_uids, freq="D", min_length=30)
+    forecaster = TimeCopilotForecaster(models=models)
+    fcst_df = forecaster.forecast(df=df, h=2, freq="D", quantiles=quantiles)
+    assert len(fcst_df) == 2 * n_uids
+    assert len(fcst_df.columns) == 2 + len(models) * (1 + len(quantiles))
+    for model in models:
+        assert model.alias in fcst_df.columns
+        for q in quantiles:
+            assert f"{model.alias}-q-{int(100 * q)}" in fcst_df.columns
