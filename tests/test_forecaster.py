@@ -52,3 +52,18 @@ def test_forecaster_cross_validation(models, freq, h, n_windows, step_size):
         assert len(fcst_df_uid) == n_windows * h
     for model in models:
         assert model.alias in fcst_df.columns
+
+
+def test_forecaster_forecast_with_level(models):
+    n_uids = 3
+    level = [80, 90]
+    df = generate_series(n_series=n_uids, freq="D", min_length=30)
+    forecaster = TimeCopilotForecaster(models=models)
+    fcst_df = forecaster.forecast(df=df, h=2, freq="D", level=level)
+    assert len(fcst_df) == 2 * n_uids
+    assert len(fcst_df.columns) == 2 + len(models) * (1 + 2 * len(level))
+    for model in models:
+        assert model.alias in fcst_df.columns
+        for lv in level:
+            assert f"{model.alias}-lo-{lv}" in fcst_df.columns
+            assert f"{model.alias}-hi-{lv}" in fcst_df.columns
