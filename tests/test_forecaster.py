@@ -22,6 +22,7 @@ def test_forecaster_forecast(models, freq, h):
     df = generate_series(n_series=n_uids, freq=freq, min_length=30)
     forecaster = TimeCopilotForecaster(models=models)
     fcst_df = forecaster.forecast(df=df, h=h, freq=freq)
+    assert len(fcst_df.columns) == 2 + len(models)
     assert len(fcst_df) == h * n_uids
     for model in models:
         assert model.alias in fcst_df.columns
@@ -45,6 +46,7 @@ def test_forecaster_cross_validation(models, freq, h, n_windows, step_size):
         n_windows=n_windows,
         step_size=step_size,
     )
+    assert len(fcst_df.columns) == 3 + len(models)
     uids = df["unique_id"].unique()
     for uid in uids:  # noqa: B007
         fcst_df_uid = fcst_df.query("unique_id == @uid")
