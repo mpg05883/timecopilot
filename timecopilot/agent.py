@@ -449,8 +449,6 @@ class TimeCopilot:
                 h=ctx.deps.h,
                 freq=ctx.deps.freq,
             )
-            if pd.api.types.is_datetime64_any_dtype(fcst_df["ds"]):
-                fcst_df["ds"] = fcst_df["ds"].astype(str)
             df_agg = fcst_df.groupby("unique_id").agg(list)
             output = (
                 "these are the forecasted values in json format where the key is the "
