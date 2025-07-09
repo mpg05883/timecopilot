@@ -21,9 +21,9 @@ __all__ = [
     "CrostonClassic",
     "DOTheta",
     "HistoricAverage",
+    "Prophet",
     "IMAPA",
     "SeasonalNaive",
-    "Prophet",
     "Theta",
     "ZeroModel",
 ]
