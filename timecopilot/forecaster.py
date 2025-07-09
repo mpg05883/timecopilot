@@ -14,14 +14,29 @@ class TimeCopilotForecaster:
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int] | None = None,
+        quantiles: list[float] | None = None,
         **kwargs,
     ) -> pd.DataFrame:
         res_df: pd.DataFrame | None = None
         for model in self.models:
-            res_df_model = getattr(model, attr)(df=df, h=h, freq=freq, **kwargs)
+            res_df_model = getattr(model, attr)(
+                df=df,
+                h=h,
+                freq=freq,
+                level=level,
+                quantiles=quantiles,
+                **kwargs,
+            )
             if res_df is None:
                 res_df = res_df_model
             else:
+                if "y" in res_df_model:
+                    # drop y to avoid duplicate columns
+                    # y was added by the previous condition
+                    # to cross validation
+                    # (the initial model)
+                    res_df_model = res_df_model.drop(columns=["y"])
                 res_df = res_df.merge(
                     res_df_model,
                     on=merge_on,
@@ -33,6 +48,8 @@ class TimeCopilotForecaster:
         df: pd.DataFrame,
         h: int,
         freq: str,
+        level: list[int] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         return self._call_models(
             "forecast",
@@ -40,6 +57,8 @@ class TimeCopilotForecaster:
             df=df,
             h=h,
             freq=freq,
+            level=level,
+            quantiles=quantiles,
         )
 
     def cross_validation(
@@ -49,6 +68,8 @@ class TimeCopilotForecaster:
         freq: str,
         n_windows: int = 1,
         step_size: int | None = None,
+        level: list[int] | None = None,
+        quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
         return self._call_models(
             "cross_validation",
@@ -58,4 +79,6 @@ class TimeCopilotForecaster:
             freq=freq,
             n_windows=n_windows,
             step_size=step_size,
+            level=level,
+            quantiles=quantiles,
         )

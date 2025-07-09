@@ -30,6 +30,7 @@ from tsfeatures import (
 )
 from tsfeatures.tsfeatures import _get_feats
 
+from .forecaster import TimeCopilotForecaster
 from .models.benchmarks import (
     ADIDA,
     IMAPA,
@@ -400,7 +401,6 @@ class TimeCopilot:
             ctx: RunContext[ExperimentDataset],
             models: list[str],
         ) -> str:
-            models_fcst_cv = None
             callable_models = []
             for str_model in models:
                 if str_model not in MODELS:
@@ -409,21 +409,14 @@ class TimeCopilot:
                         f"{', '.join(MODELS.keys())}"
                     )
                 callable_models.append(MODELS[str_model])
-            for model in callable_models:
-                fcst_cv = model.cross_validation(
-                    df=ctx.deps.df,
-                    h=ctx.deps.h,
-                    freq=ctx.deps.freq,
-                )
-                if models_fcst_cv is None:
-                    models_fcst_cv = fcst_cv
-                else:
-                    models_fcst_cv = models_fcst_cv.merge(
-                        fcst_cv.drop(columns=["y"]),
-                        on=["unique_id", "cutoff", "ds"],
-                    )
+            forecaster = TimeCopilotForecaster(models=callable_models)
+            fcst_cv = forecaster.cross_validation(
+                df=ctx.deps.df,
+                h=ctx.deps.h,
+                freq=ctx.deps.freq,
+            )
             eval_df = ctx.deps.evaluate_forecast_df(
-                forecast_df=models_fcst_cv,
+                forecast_df=fcst_cv,
                 models=[model.alias for model in callable_models],
             )
             eval_df = eval_df.groupby(
@@ -444,7 +437,8 @@ class TimeCopilot:
             model: str,
         ) -> str:
             callable_model = MODELS[model]
-            fcst_df = callable_model.forecast(
+            forecaster = TimeCopilotForecaster(models=[callable_model])
+            fcst_df = forecaster.forecast(
                 df=ctx.deps.df,
                 h=ctx.deps.h,
                 freq=ctx.deps.freq,
