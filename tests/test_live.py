@@ -25,11 +25,11 @@ def test_forecast_returns_expected_output(n_series):
         min_length=30,
         static_as_categorical=False,
     )
-    forecasting_agent = TimeCopilot(
+    tc = TimeCopilot(
         llm="openai:gpt-4o-mini",
         retries=3,
     )
-    result = forecasting_agent.forecast(
+    result = tc.forecast(
         df=df,
         query=f"Please forecast the series with a horizon of {h} and frequency D.",
     )
