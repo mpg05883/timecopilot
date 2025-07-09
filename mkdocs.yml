@@ -23,6 +23,9 @@ nav:
   - API Reference:
       - api/agent.md
       - models/utils/forecaster.md
+  - Changelogs:
+      - changelogs/index.md
+      - changelogs/v0.0.10.md
 
 theme:
   name: "material"
