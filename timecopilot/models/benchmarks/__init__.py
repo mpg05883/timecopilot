@@ -1,3 +1,4 @@
+from .prophet import Prophet
 from .stats import (
     ADIDA,
     IMAPA,
@@ -20,6 +21,7 @@ __all__ = [
     "CrostonClassic",
     "DOTheta",
     "HistoricAverage",
+    "Prophet",
     "IMAPA",
     "SeasonalNaive",
     "Theta",
