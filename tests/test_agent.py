@@ -22,19 +22,19 @@ def build_stub_llm(output: dict) -> FunctionModel:  # noqa: D401
 def test_forecast_returns_expected_output(query):
     df = generate_series(n_series=1, freq="D", min_length=30)
     expected_output = {
-        "tsfeatures_results": ["mean: 0.5"],
         "tsfeatures_analysis": "ok",
         "selected_model": "ZeroModel",
         "model_details": "details",
-        "cross_validation_results": ["ZeroModel: 0.1"],
         "model_comparison": "cmp",
         "is_better_than_seasonal_naive": True,
         "reason_for_selection": "reason",
-        "forecast": ["2025-01-01: 1.0"],
         "forecast_analysis": "analysis",
         "user_query_response": query,
     }
     tc = TimeCopilot(llm=build_stub_llm(expected_output))
+    tc.fcst_df = None
+    tc.eval_df = None
+    tc.features_df = None
     result = tc.forecast(df=df, h=2, freq="D", seasonality=7, query=query)
 
     assert result.output == ForecastAgentOutput(**expected_output)

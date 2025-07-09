@@ -87,12 +87,6 @@ TSFEATURES: dict[str, Callable] = {
 class ForecastAgentOutput(BaseModel):
     """The output of the forecasting agent."""
 
-    tsfeatures_results: list[str] = Field(
-        description=(
-            "The time series features that were considered as a list of strings of "
-            "feature names and their values separated by colons."
-        )
-    )
     tsfeatures_analysis: str = Field(
         description=(
             "Analysis of what the time series features reveal about the data "
@@ -108,12 +102,6 @@ class ForecastAgentOutput(BaseModel):
             "strengths, and typical use cases."
         )
     )
-    cross_validation_results: list[str] = Field(
-        description=(
-            "The cross-validation results as a string of model names "
-            "and their scores separated by colons."
-        )
-    )
     model_comparison: str = Field(
         description=(
             "Detailed comparison of model performances, explaining why certain "
@@ -125,12 +113,6 @@ class ForecastAgentOutput(BaseModel):
     )
     reason_for_selection: str = Field(
         description="Explanation for why the selected model was chosen"
-    )
-    forecast: list[str] = Field(
-        description=(
-            "The forecasted values for the time series as a list of strings of "
-            "periods and their values separated by colons."
-        )
     )
     forecast_analysis: str = Field(
         description=(
@@ -324,7 +306,7 @@ class TimeCopilot:
 
         3. Final Model Selection and Forecasting:
            - Choose the best performing model with clear justification
-           - Generate and analyze the forecast
+           - Generate the forecast using just the selected model
            - Interpret trends and patterns in the forecast
            - Discuss reliability and potential uncertainties
            - Address any specific aspects from the user's prompt
@@ -364,10 +346,17 @@ class TimeCopilot:
         )
 
         @self.forecasting_agent.system_prompt
-        async def add_time_series(ctx: RunContext[ExperimentDataset]) -> str:
+        async def add_time_series(
+            ctx: RunContext[ExperimentDataset],
+        ) -> str:
+            df_agg = ctx.deps.df.groupby("unique_id").agg(list)
             output = (
-                f"The time series is: {ctx.deps.df['y'].tolist()}, "
-                f"the date column is: {ctx.deps.df['ds'].tolist()}"
+                "these are the time series in json format where the key is the "
+                "identifier of the time series and the values is also a json "
+                "of two elements: "
+                "the first element is the date column and the second element is the "
+                "value column."
+                f"{df_agg.to_json(orient='index')}"
             )
             return output
 
@@ -384,15 +373,27 @@ class TimeCopilot:
                         f"{', '.join(TSFEATURES.keys())}"
                     )
                 callable_features.append(TSFEATURES[feature])
-            features_df = _get_feats(
-                index=ctx.deps.df["unique_id"].iloc[0],
-                ts=ctx.deps.df,
-                features=callable_features,
-                freq=ctx.deps.seasonality,
+            features_df: pd.DataFrame | None = None
+            for uid in ctx.deps.df["unique_id"].unique():
+                features_df_uid = _get_feats(
+                    index=uid,
+                    ts=ctx.deps.df,
+                    features=callable_features,
+                    freq=ctx.deps.seasonality,
+                )
+                if features_df is None:
+                    features_df = features_df_uid
+                else:
+                    features_df = pd.concat([features_df, features_df_uid])
+            features_df = features_df.rename_axis("unique_id")  # type: ignore
+            self.features_df = features_df
+            output = (
+                "these are the time series features in json format where the key is "
+                "the identifier of the time series and the values is also a json of "
+                "feature names and their values."
+                f"{features_df.to_json(orient='index')}"
             )
-            return ",".join(
-                [f"{col}: {features_df[col].iloc[0]}" for col in features_df.columns]
-            )
+            return output
 
         @self.forecasting_agent.tool
         async def cross_validation_tool(
@@ -429,6 +430,7 @@ class TimeCopilot:
                 ["metric"],
                 as_index=False,
             ).mean(numeric_only=True)
+            self.eval_df = eval_df
             return ", ".join(
                 [
                     f"{model.alias}: {eval_df[model.alias].iloc[0]}"
@@ -437,19 +439,25 @@ class TimeCopilot:
             )
 
         @self.forecasting_agent.tool
-        async def forecast_tool(ctx: RunContext[ExperimentDataset], model: str) -> str:
+        async def forecast_tool(
+            ctx: RunContext[ExperimentDataset],
+            model: str,
+        ) -> str:
             callable_model = MODELS[model]
             fcst_df = callable_model.forecast(
                 df=ctx.deps.df,
                 h=ctx.deps.h,
                 freq=ctx.deps.freq,
             )
-            output = ",".join(
-                [
-                    f"{row['ds'].strftime('%Y-%m-%d')}: {row[model]}"
-                    for _, row in fcst_df.iterrows()
-                ]
+            df_agg = fcst_df.groupby("unique_id").agg(list)
+            output = (
+                "these are the forecasted values in json format where the key is the "
+                "identifier of the time series and the values is also a json of two "
+                "elements: the first element is the date column and the second "
+                "element is the value column."
+                f"{df_agg.to_json(orient='index')}"
             )
+            self.fcst_df = fcst_df
             return output
 
         @self.forecasting_agent.output_validator
@@ -519,5 +527,7 @@ class TimeCopilot:
             user_prompt=query,
             deps=dataset,
         )
-
+        result.fcst_df = self.fcst_df
+        result.eval_df = self.eval_df
+        result.features_df = self.features_df
         return result
