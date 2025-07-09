@@ -34,7 +34,7 @@ jobs:
         run: uv run pytest
 
       - name: Test import class
-        run: uv run -- python -c "from timecopilot import TimeCopilot" 
+        run: uv run -- python -c "from timecopilot import TimeCopilot, TimeCopilotForecaster" 
 
   test-live:
     name: test live
