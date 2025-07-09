@@ -46,7 +46,7 @@ def test_forecaster_cross_validation(models, freq, h, n_windows, step_size):
         n_windows=n_windows,
         step_size=step_size,
     )
-    assert len(fcst_df.columns) == 3 + len(models)
+    assert len(fcst_df.columns) == 4 + len(models)
     uids = df["unique_id"].unique()
     for uid in uids:  # noqa: B007
         fcst_df_uid = fcst_df.query("unique_id == @uid")
