@@ -8,7 +8,7 @@ from ..conftest import models
 
 
 @pytest.mark.skipif(
-    sys.version_info < (3, 11),
+    sys.version_info >= (3, 11),
     reason="TiRex requires Python >= 3.11",
 )
 def test_tirex_import_fails():
