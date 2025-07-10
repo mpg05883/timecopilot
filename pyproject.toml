@@ -48,6 +48,7 @@ dev = [
     "pre-commit",
     "pytest",
     "pytest-cov",
+    "pytest-xdist>=3.8.0",
 ]
 docs = [
     "mkdocs>=1.6.1",
@@ -78,7 +79,7 @@ disable_error_code = ["no-redef"]  # for fasthtml
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-m 'not live'"
+addopts = "-m 'not live' -n auto"
 markers = [
     "live: marks tests that require calls to llm providers"
 ]
