@@ -39,6 +39,7 @@ dependencies = [
   "scipy<=1.15.3",
   "statsforecast",
   "timesfm>=1.2.9",
+  "tirex ; python_full_version >= '3.11'",
   "tsfeatures",
   "utilsforecast",
 ]
@@ -105,3 +106,4 @@ no-lines-before = ["local-folder"]
 
 [tool.uv.sources]
 timesfm = { git = "https://github.com/AzulGarza/timesfm", branch = "feat/allow-more-freqs" }
+tirex = { git = "https://github.com/NX-AI/tirex.git" }
