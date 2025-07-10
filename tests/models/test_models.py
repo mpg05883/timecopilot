@@ -1,8 +1,20 @@
+import sys
+
 import pandas as pd
 import pytest
 from utilsforecast.data import generate_series
 
 from ..conftest import models
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 11),
+    reason="TiRex requires Python >= 3.11",
+)
+def test_tirex_import_fails():
+    with pytest.raises(ImportError) as excinfo:
+        pass
+    assert "requires Python >= 3.11" in str(excinfo.value)
 
 
 @pytest.mark.parametrize("model", models)

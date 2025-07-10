@@ -1,4 +1,8 @@
 import os
+import sys
+
+if sys.version_info < (3, 11):
+    raise ImportError("TiRex requires Python >= 3.11")
 
 import numpy as np
 import pandas as pd
