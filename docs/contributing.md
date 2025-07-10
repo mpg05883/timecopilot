@@ -50,3 +50,7 @@ To run the documentation page locally, run:
 ```bash
 uv run mkdocs serve
 ```
+
+## Adding New Datasets
+
+The datasets utilized in our documentation are hosted on AWS at `https://timecopilot.s3.amazonaws.com/public/data/`. If you wish to contribute additional datasets for your changes, please contact [@AzulGarza](http://github.com/AzulGarza) for guidance.
