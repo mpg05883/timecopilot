@@ -87,17 +87,13 @@ from timecopilot import TimeCopilot
 
 # Load the dataset
 # The DataFrame must include at least the following columns:
+# - unique_id: Unique identifier for each time series (string)
 # - ds: Date column (datetime format)
 # - y: Target variable for forecasting (float format)
 # The pandas frequency will be inferred from the ds column, if not provided.
 # If the seasonality is not provided, it will be inferred based on the frequency. 
 # If the horizon is not set, it will default to 2 times the inferred seasonality.
-# Optionally, you can provide additional metadata in the DataFrame:
-# - unique_id: Unique identifier for each time series (string)
-# - pandas_frequency: Frequency of the data in pandas format (e.g., 'D' for daily, 'M' for monthly, 'Y' for yearly)
-# - horizon: Number of future periods to forecast (integer)
-# - seasonality: Length of the seasonal cycle (integer, e.g., 7 for weekly, 12 for monthly)
-df = pd.read_csv("data/air_passengers.csv")
+df = pd.read_csv("https://timecopilot.s3.amazonaws.com/public/data/air_passengers.csv")
 
 # Initialize the forecasting agent
 # You can use any LLM by specifying the model parameter
@@ -107,6 +103,10 @@ tc = TimeCopilot(
 )
 
 # Generate forecast
+# You can optionally specify the following parameters:
+# - freq: The frequency of your data (e.g., 'D' for daily, 'M' for monthly)
+# - h: The forecast horizon, which is the number of periods to predict
+# - seasonality: The seasonal period of your data, which can be inferred if not provided
 result = tc.forecast(df=df)
 
 # The output contains:
