@@ -13,7 +13,7 @@ from ..conftest import models
 )
 def test_tirex_import_fails():
     with pytest.raises(ImportError) as excinfo:
-        pass
+        from timecopilot.models.foundational.tirex import TiRex  # noqa: F401
     assert "requires Python >= 3.11" in str(excinfo.value)
 
 
