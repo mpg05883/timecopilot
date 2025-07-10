@@ -52,7 +52,7 @@ Sometimes it's easier to embed the settings directly in your query:
 import pandas as pd
 from timecopilot.agent import TimeCopilot
 
-df = pd.read_csv("data/air_passengers.csv")
+df = pd.read_csv("https://timecopilot.s3.amazonaws.com/public/data/air_passengers.csv")
 query = """
   Which months will have peak passenger traffic in the next 24 months? 
   use 12 as seasonality

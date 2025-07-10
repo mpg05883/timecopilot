@@ -97,7 +97,7 @@ from timecopilot import TimeCopilot
 # - pandas_frequency: Frequency of the data in pandas format (e.g., 'D' for daily, 'M' for monthly, 'Y' for yearly)
 # - horizon: Number of future periods to forecast (integer)
 # - seasonality: Length of the seasonal cycle (integer, e.g., 7 for weekly, 12 for monthly)
-df = pd.read_csv("data/air_passengers.csv")
+df = pd.read_csv("https://timecopilot.s3.amazonaws.com/public/data/air_passengers.csv")
 
 # Initialize the forecasting agent
 # You can use any LLM by specifying the model parameter
