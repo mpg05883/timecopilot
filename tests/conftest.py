@@ -2,7 +2,6 @@ import sys
 
 from timecopilot.agent import MODELS
 from timecopilot.models.foundational.chronos import Chronos
-from timecopilot.models.foundational.tirex import TiRex
 
 benchmark_models = [
     "AutoARIMA",
