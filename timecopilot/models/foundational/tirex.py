@@ -59,7 +59,7 @@ class TiRex(Forecaster):
                 )
                 for batch in tqdm(dataset)
             ]
-            _, fcsts_mean = zip(*fcsts, strict=False)
+            fcsts_quantiles, fcsts_mean = zip(*fcsts, strict=False)
             fcsts_mean_np = np.concatenate(fcsts_mean)
             fcsts_quantiles_np = None
         return fcsts_mean_np, fcsts_quantiles_np
