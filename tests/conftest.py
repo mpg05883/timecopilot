@@ -1,3 +1,5 @@
+import sys
+
 from timecopilot.agent import MODELS
 from timecopilot.models.foundational.chronos import Chronos
 
@@ -10,6 +12,10 @@ benchmark_models = [
     "Prophet",
 ]
 models = [MODELS[str_model] for str_model in benchmark_models]
+if sys.version_info >= (3, 11):
+    from timecopilot.models.foundational.tirex import TiRex
+
+    models.append(TiRex())
 models.extend(
     [
         Chronos(repo_id="amazon/chronos-t5-tiny", alias="Chronos-T5"),
