@@ -108,4 +108,4 @@ no-lines-before = ["local-folder"]
 [tool.uv.sources]
 timesfm = { git = "https://github.com/AzulGarza/timesfm", branch = "feat/allow-more-freqs" }
 tirex = { git = "https://github.com/NX-AI/tirex.git" }
-toto = { git = "https://github.com/DataDog/toto.git" }
+toto = { git = "https://github.com/abdulfatir/toto.git", branch = "package-structure" }

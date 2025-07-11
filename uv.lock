@@ -5183,7 +5183,7 @@ requires-dist = [
     { name = "statsforecast" },
     { name = "timesfm", git = "https://github.com/AzulGarza/timesfm?branch=feat%2Fallow-more-freqs" },
     { name = "tirex", marker = "python_full_version >= '3.11'", git = "https://github.com/NX-AI/tirex.git" },
-    { name = "toto", git = "https://github.com/DataDog/toto.git" },
+    { name = "toto", git = "https://github.com/abdulfatir/toto.git?branch=package-structure" },
     { name = "tsfeatures" },
     { name = "utilsforecast" },
 ]
@@ -5452,7 +5452,7 @@ wheels = [
 [[package]]
 name = "toto"
 version = "0.1.0"
-source = { git = "https://github.com/DataDog/toto.git#e2d2510ae973faa4907a425a11b224346b8db323" }
+source = { git = "https://github.com/abdulfatir/toto.git?branch=package-structure#216293d5e2570cac528e70cad1241555f2e9ffb4" }
 dependencies = [
     { name = "aioboto3" },
     { name = "beartype" },
