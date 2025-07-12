@@ -114,7 +114,7 @@ class Chronos(Forecaster):
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
@@ -135,11 +135,12 @@ class Chronos(Forecaster):
 
             h (int):
                 Forecast horizon specifying how many future steps to predict.
-            freq (str):
+            freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
                 pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values.
+                valid values. If not provided, the frequency will be inferred
+                from the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned

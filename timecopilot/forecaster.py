@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .models.utils.forecaster import Forecaster
+from .models.utils.forecaster import Forecaster, maybe_infer_freq
 
 
 class TimeCopilotForecaster:
@@ -47,10 +47,12 @@ class TimeCopilotForecaster:
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         level: list[int] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        # infer just once to avoid multiple calls to _maybe_infer_freq
+        freq = maybe_infer_freq(df, freq)
         return self._call_models(
             "forecast",
             merge_on=["unique_id", "ds"],
@@ -65,12 +67,14 @@ class TimeCopilotForecaster:
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         n_windows: int = 1,
         step_size: int | None = None,
         level: list[int] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        # infer just once to avoid multiple calls to _maybe_infer_freq
+        freq = maybe_infer_freq(df, freq)
         return self._call_models(
             "cross_validation",
             merge_on=["unique_id", "ds", "cutoff"],

@@ -21,6 +21,35 @@ def get_seasonality(freq: str) -> int:
     return _get_seasonality(freq, seasonalities=DEFAULT_SEASONALITIES | {"D": 7})
 
 
+def maybe_infer_freq(df: pd.DataFrame, freq: str | None) -> str:
+    """
+    Infer the frequency of the time series data.
+
+    Args:
+        df (pd.DataFrame): The time series data.
+        freq (str | None): The frequency of the time series data. If None,
+            the frequency will be inferred from the data.
+
+    Returns:
+        str: The inferred frequency of the time series data.
+    """
+    # based on https://github.com/Nixtla/nixtla/blob/bf67c76fd473a61c72b1f54725ffbcb51a3048c5/nixtla/nixtla_client.py#L208C1-L235C25
+    if freq is not None:
+        return freq
+    sizes = df["unique_id"].value_counts(sort=True)
+    times = df.loc[df["unique_id"] == sizes.index[0], "ds"].sort_values()
+    if times.dt.tz is not None:
+        times = times.dt.tz_convert("UTC").dt.tz_localize(None)
+    inferred_freq = pd.infer_freq(times.values)
+    if inferred_freq is None:
+        raise RuntimeError(
+            "Could not infer the frequency of the time column. This could be due "
+            "to inconsistent intervals. Please check your data for missing, "
+            "duplicated or irregular timestamps"
+        )
+    return inferred_freq
+
+
 def maybe_convert_col_to_datetime(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
     if not pd.api.types.is_datetime64_any_dtype(df[col_name]):
         df = df.copy()
@@ -30,6 +59,13 @@ def maybe_convert_col_to_datetime(df: pd.DataFrame, col_name: str) -> pd.DataFra
 
 class Forecaster:
     alias: str
+
+    @staticmethod
+    def _maybe_infer_freq(
+        df: pd.DataFrame,
+        freq: str | None,
+    ) -> str:
+        return maybe_infer_freq(df, freq)
 
     def _maybe_get_seasonality(self, freq: str) -> int:
         if hasattr(self, "season_length"):
@@ -44,7 +80,7 @@ class Forecaster:
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
@@ -65,11 +101,12 @@ class Forecaster:
 
             h (int):
                 Forecast horizon specifying how many future steps to predict.
-            freq (str):
+            freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
                 pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values.
+                valid values. If not provided, the frequency will be inferred
+                from the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned
@@ -99,7 +136,7 @@ class Forecaster:
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         n_windows: int = 1,
         step_size: int | None = None,
         level: list[int | float] | None = None,
@@ -125,11 +162,12 @@ class Forecaster:
             h (int):
                 Forecast horizon specifying how many future steps to predict in
                 each window.
-            freq (str):
+            freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.
                 org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases)
-                for valid values.
+                for valid values. If not provided, the frequency will be inferred
+                from the data.
             n_windows (int, optional):
                 Number of cross-validation windows to generate. Defaults to 1.
             step_size (int, optional):
@@ -160,6 +198,7 @@ class Forecaster:
                     - prediction intervals if `level` is specified.
                     - quantile forecasts if `quantiles` is specified.
         """
+        freq = self._maybe_infer_freq(df, freq)
         df = maybe_convert_col_to_datetime(df, "ds")
         # mlforecast cv code
         results = []
