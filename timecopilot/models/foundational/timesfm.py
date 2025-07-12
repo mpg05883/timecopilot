@@ -8,6 +8,12 @@ from ..utils.forecaster import Forecaster, QuantileConverter
 
 
 class TimesFM(Forecaster):
+    """
+    TimesFM is a large time series model for time series forecasting, supporting both
+    probabilistic and point forecasts. See the [official repo](https://github.com/
+    google-research/timesfm) for more details.
+    """
+
     def __init__(
         self,
         repo_id: str = "google/timesfm-1.0-200m-pytorch",
@@ -17,13 +23,7 @@ class TimesFM(Forecaster):
         model_dims: int = 1280,
         alias: str = "TimesFM",
     ):
-        """Initialize a TimesFM time series forecasting model.
-
-        Loads a pretrained TimesFM model from the Hugging Face Hub or a local directory.
-        TimesFM is a large language model for time series forecasting, supporting both
-        probabilistic and point forecasts. See the [official repo](https://github.com/
-        google-research/timesfm) for more details.
-
+        """
         Args:
             repo_id (str, optional): The Hugging Face Hub model ID or local path to
                 load the TimesFM model from. Examples include

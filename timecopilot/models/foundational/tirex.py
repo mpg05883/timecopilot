@@ -15,19 +15,19 @@ from .utils import TimeSeriesDataset
 
 
 class TiRex(Forecaster):
+    """
+    TiRex is a zero-shot time series forecasting model based on xLSTM,
+    supporting both point and quantile predictions for long and short horizons.
+    See the [official repo](https://github.com/NX-AI/tirex) for more details.
+    """
+
     def __init__(
         self,
         repo_id: str = "NX-AI/TiRex",
         batch_size: int = 16,
         alias: str = "TiRex",
     ):
-        """Initialize a TiRex time series forecasting model.
-
-        Loads a pretrained TiRex model from the Hugging Face Hub or a local directory.
-        TiRex is a zero-shot time series forecasting model based on xLSTM,
-        supporting both point and quantile predictions for long and short horizons.
-        See the [official repo](https://github.com/NX-AI/tirex) for more details.
-
+        """
         Args:
             repo_id (str, optional): The Hugging Face Hub model ID or local path to load
                 the TiRex model from. Examples include "NX-AI/TiRex". Defaults to
