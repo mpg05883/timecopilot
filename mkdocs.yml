@@ -19,10 +19,14 @@ nav:
   - Contributing: contributing.md
   - Roadmap: roadmap.md
   - Documentation:
+      - Time Series Model Hub: model_hub.md
       - Forecasting Parameters: forecasting_parameters.md
   - API Reference:
       - api/agent.md
-      - models/utils/forecaster.md
+      - api/models/foundational/models.md
+      - api/models/benchmarks/stats.md
+      - api/models/benchmarks/prophet.md
+      - api/models/utils/forecaster.md
   - Changelogs:
       - changelogs/index.md
       - changelogs/v0.0.10.md
@@ -103,3 +107,8 @@ plugins:
             signature_crossrefs: true
             group_by_category: false
             heading_level: 3
+            inherited_members: true
+            members: true
+          extensions:
+            - griffe_inherited_docstrings:
+                merge: true

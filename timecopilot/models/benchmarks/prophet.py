@@ -45,7 +45,7 @@ class Prophet(ProphetBase, ParallelForecaster, Forecaster):
         vectorized: bool = True,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
-        """Predict using the prophet model."""
+        # Predict using the prophet model.
         # adapted from https://github.com/facebook/prophet/blob/e64606036325bfb225333ef0991e41bdfb66f7c1/python/prophet/forecaster.py#L1249C2-L1295C1
         # to allow for quantiles
         if self.history is None:
