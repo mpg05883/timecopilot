@@ -45,7 +45,7 @@ class Prophet(ProphetBase, ParallelForecaster, Forecaster):
         vectorized: bool = True,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
-        """Predict using the prophet model."""
+        # Predict using the prophet model.
         # adapted from https://github.com/facebook/prophet/blob/e64606036325bfb225333ef0991e41bdfb66f7c1/python/prophet/forecaster.py#L1249C2-L1295C1
         # to allow for quantiles
         if self.history is None:
@@ -76,6 +76,67 @@ class Prophet(ProphetBase, ParallelForecaster, Forecaster):
         df2.columns = [col.replace("yhat", self.alias) for col in df2.columns]
         cols = [col for col in df2.columns if self.alias in col or "ds" in col]
         return df2[cols]
+
+    def forecast(
+        self,
+        df: pd.DataFrame,
+        h: int,
+        freq: str,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
+    ) -> pd.DataFrame:
+        """Generate forecasts for time series data using the model.
+
+        This method produces point forecasts and, optionally, prediction
+        intervals or quantile forecasts. The input DataFrame can contain one
+        or multiple time series in stacked (long) format.
+
+        Args:
+            df (pd.DataFrame):
+                DataFrame containing the time series to forecast. It must
+                include as columns:
+
+                    - "unique_id": an ID column to distinguish multiple series.
+                    - "ds": a time column indicating timestamps or periods.
+                    - "y": a target column with the observed values.
+
+            h (int):
+                Forecast horizon specifying how many future steps to predict.
+            freq (str):
+                Frequency of the time series (e.g. "D" for daily, "M" for
+                monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
+                valid values.
+            level (list[int | float], optional):
+                Confidence levels for prediction intervals, expressed as
+                percentages (e.g. [80, 95]). If provided, the returned
+                DataFrame will include lower and upper interval columns for
+                each specified level.
+            quantiles (list[float], optional):
+                List of quantiles to forecast, expressed as floats between 0
+                and 1. Should not be used simultaneously with `level`. When
+                provided, the output DataFrame will contain additional columns
+                named in the format "model-q-{percentile}", where {percentile}
+                = 100 × quantile value.
+
+        Returns:
+            pd.DataFrame:
+                DataFrame containing forecast results. Includes:
+
+                    - point forecasts for each timestamp and series.
+                    - prediction intervals if `level` is specified.
+                    - quantile forecasts if `quantiles` is specified.
+
+                For multi-series data, the output retains the same unique
+                identifiers as the input DataFrame.
+        """
+        return self._local_forecast(
+            df=df,
+            h=h,
+            freq=freq,
+            level=level,
+            quantiles=quantiles,
+        )
 
     def _local_forecast_impl(
         self,

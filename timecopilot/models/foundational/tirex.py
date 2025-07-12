@@ -72,6 +72,51 @@ class TiRex(Forecaster):
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        """Generate forecasts for time series data using the model.
+
+        This method produces point forecasts and, optionally, prediction
+        intervals or quantile forecasts. The input DataFrame can contain one
+        or multiple time series in stacked (long) format.
+
+        Args:
+            df (pd.DataFrame):
+                DataFrame containing the time series to forecast. It must
+                include as columns:
+
+                    - "unique_id": an ID column to distinguish multiple series.
+                    - "ds": a time column indicating timestamps or periods.
+                    - "y": a target column with the observed values.
+
+            h (int):
+                Forecast horizon specifying how many future steps to predict.
+            freq (str):
+                Frequency of the time series (e.g. "D" for daily, "M" for
+                monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
+                valid values.
+            level (list[int | float], optional):
+                Confidence levels for prediction intervals, expressed as
+                percentages (e.g. [80, 95]). If provided, the returned
+                DataFrame will include lower and upper interval columns for
+                each specified level.
+            quantiles (list[float], optional):
+                List of quantiles to forecast, expressed as floats between 0
+                and 1. Should not be used simultaneously with `level`. When
+                provided, the output DataFrame will contain additional columns
+                named in the format "model-q-{percentile}", where {percentile}
+                = 100 × quantile value.
+
+        Returns:
+            pd.DataFrame:
+                DataFrame containing forecast results. Includes:
+
+                    - point forecasts for each timestamp and series.
+                    - prediction intervals if `level` is specified.
+                    - quantile forecasts if `quantiles` is specified.
+
+                For multi-series data, the output retains the same unique
+                identifiers as the input DataFrame.
+        """
         qc = QuantileConverter(level=level, quantiles=quantiles)
         dataset = TimeSeriesDataset.from_df(df, batch_size=self.batch_size)
         fcst_df = dataset.make_future_dataframe(h=h, freq=freq)

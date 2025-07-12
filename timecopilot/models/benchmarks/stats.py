@@ -84,6 +84,51 @@ class ADIDA(Forecaster):
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        """Generate forecasts for time series data using the model.
+
+        This method produces point forecasts and, optionally, prediction
+        intervals or quantile forecasts. The input DataFrame can contain one
+        or multiple time series in stacked (long) format.
+
+        Args:
+            df (pd.DataFrame):
+                DataFrame containing the time series to forecast. It must
+                include as columns:
+
+                    - "unique_id": an ID column to distinguish multiple series.
+                    - "ds": a time column indicating timestamps or periods.
+                    - "y": a target column with the observed values.
+
+            h (int):
+                Forecast horizon specifying how many future steps to predict.
+            freq (str):
+                Frequency of the time series (e.g. "D" for daily, "M" for
+                monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
+                valid values.
+            level (list[int | float], optional):
+                Confidence levels for prediction intervals, expressed as
+                percentages (e.g. [80, 95]). If provided, the returned
+                DataFrame will include lower and upper interval columns for
+                each specified level.
+            quantiles (list[float], optional):
+                List of quantiles to forecast, expressed as floats between 0
+                and 1. Should not be used simultaneously with `level`. When
+                provided, the output DataFrame will contain additional columns
+                named in the format "model-q-{percentile}", where {percentile}
+                = 100 × quantile value.
+
+        Returns:
+            pd.DataFrame:
+                DataFrame containing forecast results. Includes:
+
+                    - point forecasts for each timestamp and series.
+                    - prediction intervals if `level` is specified.
+                    - quantile forecasts if `quantiles` is specified.
+
+                For multi-series data, the output retains the same unique
+                identifiers as the input DataFrame.
+        """
         fcst_df = run_statsforecast_model(
             model=_ADIDA(alias=self.alias),
             df=df,
@@ -110,6 +155,51 @@ class AutoARIMA(Forecaster):
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        """Generate forecasts for time series data using the model.
+
+        This method produces point forecasts and, optionally, prediction
+        intervals or quantile forecasts. The input DataFrame can contain one
+        or multiple time series in stacked (long) format.
+
+        Args:
+            df (pd.DataFrame):
+                DataFrame containing the time series to forecast. It must
+                include as columns:
+
+                    - "unique_id": an ID column to distinguish multiple series.
+                    - "ds": a time column indicating timestamps or periods.
+                    - "y": a target column with the observed values.
+
+            h (int):
+                Forecast horizon specifying how many future steps to predict.
+            freq (str):
+                Frequency of the time series (e.g. "D" for daily, "M" for
+                monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
+                valid values.
+            level (list[int | float], optional):
+                Confidence levels for prediction intervals, expressed as
+                percentages (e.g. [80, 95]). If provided, the returned
+                DataFrame will include lower and upper interval columns for
+                each specified level.
+            quantiles (list[float], optional):
+                List of quantiles to forecast, expressed as floats between 0
+                and 1. Should not be used simultaneously with `level`. When
+                provided, the output DataFrame will contain additional columns
+                named in the format "model-q-{percentile}", where {percentile}
+                = 100 × quantile value.
+
+        Returns:
+            pd.DataFrame:
+                DataFrame containing forecast results. Includes:
+
+                    - point forecasts for each timestamp and series.
+                    - prediction intervals if `level` is specified.
+                    - quantile forecasts if `quantiles` is specified.
+
+                For multi-series data, the output retains the same unique
+                identifiers as the input DataFrame.
+        """
         seasonality = get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_AutoARIMA(season_length=seasonality, alias=self.alias),
@@ -137,6 +227,51 @@ class AutoCES(Forecaster):
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        """Generate forecasts for time series data using the model.
+
+        This method produces point forecasts and, optionally, prediction
+        intervals or quantile forecasts. The input DataFrame can contain one
+        or multiple time series in stacked (long) format.
+
+        Args:
+            df (pd.DataFrame):
+                DataFrame containing the time series to forecast. It must
+                include as columns:
+
+                    - "unique_id": an ID column to distinguish multiple series.
+                    - "ds": a time column indicating timestamps or periods.
+                    - "y": a target column with the observed values.
+
+            h (int):
+                Forecast horizon specifying how many future steps to predict.
+            freq (str):
+                Frequency of the time series (e.g. "D" for daily, "M" for
+                monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
+                valid values.
+            level (list[int | float], optional):
+                Confidence levels for prediction intervals, expressed as
+                percentages (e.g. [80, 95]). If provided, the returned
+                DataFrame will include lower and upper interval columns for
+                each specified level.
+            quantiles (list[float], optional):
+                List of quantiles to forecast, expressed as floats between 0
+                and 1. Should not be used simultaneously with `level`. When
+                provided, the output DataFrame will contain additional columns
+                named in the format "model-q-{percentile}", where {percentile}
+                = 100 × quantile value.
+
+        Returns:
+            pd.DataFrame:
+                DataFrame containing forecast results. Includes:
+
+                    - point forecasts for each timestamp and series.
+                    - prediction intervals if `level` is specified.
+                    - quantile forecasts if `quantiles` is specified.
+
+                For multi-series data, the output retains the same unique
+                identifiers as the input DataFrame.
+        """
         seasonality = get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_AutoCES(season_length=seasonality, alias=self.alias),
@@ -164,6 +299,51 @@ class AutoETS(Forecaster):
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        """Generate forecasts for time series data using the model.
+
+        This method produces point forecasts and, optionally, prediction
+        intervals or quantile forecasts. The input DataFrame can contain one
+        or multiple time series in stacked (long) format.
+
+        Args:
+            df (pd.DataFrame):
+                DataFrame containing the time series to forecast. It must
+                include as columns:
+
+                    - "unique_id": an ID column to distinguish multiple series.
+                    - "ds": a time column indicating timestamps or periods.
+                    - "y": a target column with the observed values.
+
+            h (int):
+                Forecast horizon specifying how many future steps to predict.
+            freq (str):
+                Frequency of the time series (e.g. "D" for daily, "M" for
+                monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
+                valid values.
+            level (list[int | float], optional):
+                Confidence levels for prediction intervals, expressed as
+                percentages (e.g. [80, 95]). If provided, the returned
+                DataFrame will include lower and upper interval columns for
+                each specified level.
+            quantiles (list[float], optional):
+                List of quantiles to forecast, expressed as floats between 0
+                and 1. Should not be used simultaneously with `level`. When
+                provided, the output DataFrame will contain additional columns
+                named in the format "model-q-{percentile}", where {percentile}
+                = 100 × quantile value.
+
+        Returns:
+            pd.DataFrame:
+                DataFrame containing forecast results. Includes:
+
+                    - point forecasts for each timestamp and series.
+                    - prediction intervals if `level` is specified.
+                    - quantile forecasts if `quantiles` is specified.
+
+                For multi-series data, the output retains the same unique
+                identifiers as the input DataFrame.
+        """
         seasonality = get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_AutoETS(season_length=seasonality, alias=self.alias),
@@ -191,6 +371,51 @@ class CrostonClassic(Forecaster):
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        """Generate forecasts for time series data using the model.
+
+        This method produces point forecasts and, optionally, prediction
+        intervals or quantile forecasts. The input DataFrame can contain one
+        or multiple time series in stacked (long) format.
+
+        Args:
+            df (pd.DataFrame):
+                DataFrame containing the time series to forecast. It must
+                include as columns:
+
+                    - "unique_id": an ID column to distinguish multiple series.
+                    - "ds": a time column indicating timestamps or periods.
+                    - "y": a target column with the observed values.
+
+            h (int):
+                Forecast horizon specifying how many future steps to predict.
+            freq (str):
+                Frequency of the time series (e.g. "D" for daily, "M" for
+                monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
+                valid values.
+            level (list[int | float], optional):
+                Confidence levels for prediction intervals, expressed as
+                percentages (e.g. [80, 95]). If provided, the returned
+                DataFrame will include lower and upper interval columns for
+                each specified level.
+            quantiles (list[float], optional):
+                List of quantiles to forecast, expressed as floats between 0
+                and 1. Should not be used simultaneously with `level`. When
+                provided, the output DataFrame will contain additional columns
+                named in the format "model-q-{percentile}", where {percentile}
+                = 100 × quantile value.
+
+        Returns:
+            pd.DataFrame:
+                DataFrame containing forecast results. Includes:
+
+                    - point forecasts for each timestamp and series.
+                    - prediction intervals if `level` is specified.
+                    - quantile forecasts if `quantiles` is specified.
+
+                For multi-series data, the output retains the same unique
+                identifiers as the input DataFrame.
+        """
         fcst_df = run_statsforecast_model(
             model=_CrostonClassic(alias=self.alias),
             df=df,
@@ -217,6 +442,51 @@ class DOTheta(Forecaster):
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        """Generate forecasts for time series data using the model.
+
+        This method produces point forecasts and, optionally, prediction
+        intervals or quantile forecasts. The input DataFrame can contain one
+        or multiple time series in stacked (long) format.
+
+        Args:
+            df (pd.DataFrame):
+                DataFrame containing the time series to forecast. It must
+                include as columns:
+
+                    - "unique_id": an ID column to distinguish multiple series.
+                    - "ds": a time column indicating timestamps or periods.
+                    - "y": a target column with the observed values.
+
+            h (int):
+                Forecast horizon specifying how many future steps to predict.
+            freq (str):
+                Frequency of the time series (e.g. "D" for daily, "M" for
+                monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
+                valid values.
+            level (list[int | float], optional):
+                Confidence levels for prediction intervals, expressed as
+                percentages (e.g. [80, 95]). If provided, the returned
+                DataFrame will include lower and upper interval columns for
+                each specified level.
+            quantiles (list[float], optional):
+                List of quantiles to forecast, expressed as floats between 0
+                and 1. Should not be used simultaneously with `level`. When
+                provided, the output DataFrame will contain additional columns
+                named in the format "model-q-{percentile}", where {percentile}
+                = 100 × quantile value.
+
+        Returns:
+            pd.DataFrame:
+                DataFrame containing forecast results. Includes:
+
+                    - point forecasts for each timestamp and series.
+                    - prediction intervals if `level` is specified.
+                    - quantile forecasts if `quantiles` is specified.
+
+                For multi-series data, the output retains the same unique
+                identifiers as the input DataFrame.
+        """
         seasonality = get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_DOTheta(season_length=seasonality, alias=self.alias),
@@ -244,6 +514,51 @@ class HistoricAverage(Forecaster):
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        """Generate forecasts for time series data using the model.
+
+        This method produces point forecasts and, optionally, prediction
+        intervals or quantile forecasts. The input DataFrame can contain one
+        or multiple time series in stacked (long) format.
+
+        Args:
+            df (pd.DataFrame):
+                DataFrame containing the time series to forecast. It must
+                include as columns:
+
+                    - "unique_id": an ID column to distinguish multiple series.
+                    - "ds": a time column indicating timestamps or periods.
+                    - "y": a target column with the observed values.
+
+            h (int):
+                Forecast horizon specifying how many future steps to predict.
+            freq (str):
+                Frequency of the time series (e.g. "D" for daily, "M" for
+                monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
+                valid values.
+            level (list[int | float], optional):
+                Confidence levels for prediction intervals, expressed as
+                percentages (e.g. [80, 95]). If provided, the returned
+                DataFrame will include lower and upper interval columns for
+                each specified level.
+            quantiles (list[float], optional):
+                List of quantiles to forecast, expressed as floats between 0
+                and 1. Should not be used simultaneously with `level`. When
+                provided, the output DataFrame will contain additional columns
+                named in the format "model-q-{percentile}", where {percentile}
+                = 100 × quantile value.
+
+        Returns:
+            pd.DataFrame:
+                DataFrame containing forecast results. Includes:
+
+                    - point forecasts for each timestamp and series.
+                    - prediction intervals if `level` is specified.
+                    - quantile forecasts if `quantiles` is specified.
+
+                For multi-series data, the output retains the same unique
+                identifiers as the input DataFrame.
+        """
         fcst_df = run_statsforecast_model(
             model=_HistoricAverage(alias=self.alias),
             df=df,
@@ -270,6 +585,51 @@ class IMAPA(Forecaster):
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        """Generate forecasts for time series data using the model.
+
+        This method produces point forecasts and, optionally, prediction
+        intervals or quantile forecasts. The input DataFrame can contain one
+        or multiple time series in stacked (long) format.
+
+        Args:
+            df (pd.DataFrame):
+                DataFrame containing the time series to forecast. It must
+                include as columns:
+
+                    - "unique_id": an ID column to distinguish multiple series.
+                    - "ds": a time column indicating timestamps or periods.
+                    - "y": a target column with the observed values.
+
+            h (int):
+                Forecast horizon specifying how many future steps to predict.
+            freq (str):
+                Frequency of the time series (e.g. "D" for daily, "M" for
+                monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
+                valid values.
+            level (list[int | float], optional):
+                Confidence levels for prediction intervals, expressed as
+                percentages (e.g. [80, 95]). If provided, the returned
+                DataFrame will include lower and upper interval columns for
+                each specified level.
+            quantiles (list[float], optional):
+                List of quantiles to forecast, expressed as floats between 0
+                and 1. Should not be used simultaneously with `level`. When
+                provided, the output DataFrame will contain additional columns
+                named in the format "model-q-{percentile}", where {percentile}
+                = 100 × quantile value.
+
+        Returns:
+            pd.DataFrame:
+                DataFrame containing forecast results. Includes:
+
+                    - point forecasts for each timestamp and series.
+                    - prediction intervals if `level` is specified.
+                    - quantile forecasts if `quantiles` is specified.
+
+                For multi-series data, the output retains the same unique
+                identifiers as the input DataFrame.
+        """
         fcst_df = run_statsforecast_model(
             model=_IMAPA(alias=self.alias),
             df=df,
@@ -296,6 +656,51 @@ class SeasonalNaive(Forecaster):
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        """Generate forecasts for time series data using the model.
+
+        This method produces point forecasts and, optionally, prediction
+        intervals or quantile forecasts. The input DataFrame can contain one
+        or multiple time series in stacked (long) format.
+
+        Args:
+            df (pd.DataFrame):
+                DataFrame containing the time series to forecast. It must
+                include as columns:
+
+                    - "unique_id": an ID column to distinguish multiple series.
+                    - "ds": a time column indicating timestamps or periods.
+                    - "y": a target column with the observed values.
+
+            h (int):
+                Forecast horizon specifying how many future steps to predict.
+            freq (str):
+                Frequency of the time series (e.g. "D" for daily, "M" for
+                monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
+                valid values.
+            level (list[int | float], optional):
+                Confidence levels for prediction intervals, expressed as
+                percentages (e.g. [80, 95]). If provided, the returned
+                DataFrame will include lower and upper interval columns for
+                each specified level.
+            quantiles (list[float], optional):
+                List of quantiles to forecast, expressed as floats between 0
+                and 1. Should not be used simultaneously with `level`. When
+                provided, the output DataFrame will contain additional columns
+                named in the format "model-q-{percentile}", where {percentile}
+                = 100 × quantile value.
+
+        Returns:
+            pd.DataFrame:
+                DataFrame containing forecast results. Includes:
+
+                    - point forecasts for each timestamp and series.
+                    - prediction intervals if `level` is specified.
+                    - quantile forecasts if `quantiles` is specified.
+
+                For multi-series data, the output retains the same unique
+                identifiers as the input DataFrame.
+        """
         seasonality = get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_SeasonalNaive(season_length=seasonality, alias=self.alias),
@@ -323,6 +728,51 @@ class Theta(Forecaster):
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        """Generate forecasts for time series data using the model.
+
+        This method produces point forecasts and, optionally, prediction
+        intervals or quantile forecasts. The input DataFrame can contain one
+        or multiple time series in stacked (long) format.
+
+        Args:
+            df (pd.DataFrame):
+                DataFrame containing the time series to forecast. It must
+                include as columns:
+
+                    - "unique_id": an ID column to distinguish multiple series.
+                    - "ds": a time column indicating timestamps or periods.
+                    - "y": a target column with the observed values.
+
+            h (int):
+                Forecast horizon specifying how many future steps to predict.
+            freq (str):
+                Frequency of the time series (e.g. "D" for daily, "M" for
+                monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
+                valid values.
+            level (list[int | float], optional):
+                Confidence levels for prediction intervals, expressed as
+                percentages (e.g. [80, 95]). If provided, the returned
+                DataFrame will include lower and upper interval columns for
+                each specified level.
+            quantiles (list[float], optional):
+                List of quantiles to forecast, expressed as floats between 0
+                and 1. Should not be used simultaneously with `level`. When
+                provided, the output DataFrame will contain additional columns
+                named in the format "model-q-{percentile}", where {percentile}
+                = 100 × quantile value.
+
+        Returns:
+            pd.DataFrame:
+                DataFrame containing forecast results. Includes:
+
+                    - point forecasts for each timestamp and series.
+                    - prediction intervals if `level` is specified.
+                    - quantile forecasts if `quantiles` is specified.
+
+                For multi-series data, the output retains the same unique
+                identifiers as the input DataFrame.
+        """
         seasonality = get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_Theta(season_length=seasonality, alias=self.alias),
@@ -350,6 +800,51 @@ class ZeroModel(Forecaster):
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
+        """Generate forecasts for time series data using the model.
+
+        This method produces point forecasts and, optionally, prediction
+        intervals or quantile forecasts. The input DataFrame can contain one
+        or multiple time series in stacked (long) format.
+
+        Args:
+            df (pd.DataFrame):
+                DataFrame containing the time series to forecast. It must
+                include as columns:
+
+                    - "unique_id": an ID column to distinguish multiple series.
+                    - "ds": a time column indicating timestamps or periods.
+                    - "y": a target column with the observed values.
+
+            h (int):
+                Forecast horizon specifying how many future steps to predict.
+            freq (str):
+                Frequency of the time series (e.g. "D" for daily, "M" for
+                monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
+                valid values.
+            level (list[int | float], optional):
+                Confidence levels for prediction intervals, expressed as
+                percentages (e.g. [80, 95]). If provided, the returned
+                DataFrame will include lower and upper interval columns for
+                each specified level.
+            quantiles (list[float], optional):
+                List of quantiles to forecast, expressed as floats between 0
+                and 1. Should not be used simultaneously with `level`. When
+                provided, the output DataFrame will contain additional columns
+                named in the format "model-q-{percentile}", where {percentile}
+                = 100 × quantile value.
+
+        Returns:
+            pd.DataFrame:
+                DataFrame containing forecast results. Includes:
+
+                    - point forecasts for each timestamp and series.
+                    - prediction intervals if `level` is specified.
+                    - quantile forecasts if `quantiles` is specified.
+
+                For multi-series data, the output retains the same unique
+                identifiers as the input DataFrame.
+        """
         fcst_df = run_statsforecast_model(
             model=_ZeroModel(alias=self.alias),
             df=df,
