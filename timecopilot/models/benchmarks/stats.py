@@ -326,7 +326,7 @@ class AutoARIMA(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        season_length = self.maybe_get_seasonality(freq)
+        season_length = self._maybe_get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_AutoARIMA(
                 d=self.d,
@@ -453,7 +453,7 @@ class AutoCES(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        season_length = self.maybe_get_seasonality(freq)
+        season_length = self._maybe_get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_AutoCES(
                 season_length=season_length,
@@ -557,7 +557,7 @@ class AutoETS(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        season_length = self.maybe_get_seasonality(freq)
+        season_length = self._maybe_get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_AutoETS(
                 season_length=season_length,
@@ -733,7 +733,7 @@ class DynamicOptimizedTheta(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        season_length = self.maybe_get_seasonality(freq)
+        season_length = self._maybe_get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_DynamicOptimizedTheta(
                 season_length=season_length,
@@ -992,7 +992,7 @@ class SeasonalNaive(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        season_length = self.maybe_get_seasonality(freq)
+        season_length = self._maybe_get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_SeasonalNaive(
                 season_length=season_length,
@@ -1080,7 +1080,7 @@ class Theta(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        season_length = self.maybe_get_seasonality(freq)
+        season_length = self._maybe_get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_Theta(
                 season_length=season_length,

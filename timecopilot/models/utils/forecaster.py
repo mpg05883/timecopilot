@@ -31,7 +31,7 @@ def maybe_convert_col_to_datetime(df: pd.DataFrame, col_name: str) -> pd.DataFra
 class Forecaster:
     alias: str
 
-    def maybe_get_seasonality(self, freq: str) -> int:
+    def _maybe_get_seasonality(self, freq: str) -> int:
         if hasattr(self, "season_length"):
             if self.season_length is not None:
                 return self.season_length

@@ -8,13 +8,13 @@ from timecopilot.models.utils.forecaster import QuantileConverter, get_seasonali
 
 def test_maybe_get_seasonality_explicit():
     model = SeasonalNaive(season_length=4)
-    assert model.maybe_get_seasonality("D") == 4
+    assert model._maybe_get_seasonality("D") == 4
 
 
 @pytest.mark.parametrize("freq", ["M", "W-MON", "D"])
 def test_maybe_get_seasonality_infer(freq):
     model = SeasonalNaive(season_length=None)
-    assert model.maybe_get_seasonality(freq) == get_seasonality(freq)
+    assert model._maybe_get_seasonality(freq) == get_seasonality(freq)
 
 
 @pytest.mark.parametrize("freq", ["M", "W-MON", "D"])
