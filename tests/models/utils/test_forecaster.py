@@ -18,7 +18,7 @@ def test_maybe_get_seasonality_infer(freq):
 
 
 @pytest.mark.parametrize("freq", ["M", "W-MON", "D"])
-def test_get_seasonality_infered_correctly(freq):
+def test_get_seasonality_inferred_correctly(freq):
     season_length = get_seasonality(freq)
     y = 2 * list(range(1, season_length + 1))
     df = pd.DataFrame(

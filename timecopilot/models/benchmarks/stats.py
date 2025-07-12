@@ -201,9 +201,9 @@ class AutoARIMA(Forecaster):
         Args:
             d (int, optional): Order of first-differencing.
             D (int, optional): Order of seasonal-differencing.
-            max_p (int): Max autorregresives p.
+            max_p (int): Max autoregressives p.
             max_q (int): Max moving averages q.
-            max_P (int): Max seasonal autorregresives P.
+            max_P (int): Max seasonal autoregressives P.
             max_Q (int): Max seasonal moving averages Q.
             max_order (int): Max p+q+P+Q value if not stepwise selection.
             max_d (int): Max non-seasonal differences.
