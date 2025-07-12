@@ -23,10 +23,7 @@ class TimesFM(Forecaster):
         model_dims: int = 1280,
         alias: str = "TimesFM",
     ):
-        """Initialize a TimesFM time series forecasting model.
-
-        Loads a pretrained TimesFM model from the Hugging Face Hub or a local directory.
-
+        """
         Args:
             repo_id (str, optional): The Hugging Face Hub model ID or local path to
                 load the TimesFM model from. Examples include

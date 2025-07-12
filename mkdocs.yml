@@ -109,6 +109,7 @@ plugins:
             heading_level: 3
             inherited_members: true
             members: true
+            merge_init_into_class: true
           extensions:
             - griffe_inherited_docstrings:
                 merge: true

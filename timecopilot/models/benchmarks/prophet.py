@@ -30,8 +30,6 @@ class Prophet(ProphetBase, ParallelForecaster, Forecaster):
         **kwargs: Any,
     ):
         """
-        Initialize a Prophet model.
-
         Args:
             alias (str, optional): Custom name for the model instance.
                 Default is "Prophet".

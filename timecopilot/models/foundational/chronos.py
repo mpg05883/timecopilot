@@ -22,11 +22,7 @@ class Chronos(Forecaster):
         batch_size: int = 16,
         alias: str = "Chronos",
     ):
-        """Initialize a Chronos time series forecasting model.
-
-        Loads a pretrained Chronos model from the Hugging Face Hub or a local
-        directory.
-
+        """
         Args:
             repo_id (str, optional): The Hugging Face Hub model ID or local
                 path to load the Chronos model from. Examples include

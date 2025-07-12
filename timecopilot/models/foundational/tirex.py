@@ -27,10 +27,7 @@ class TiRex(Forecaster):
         batch_size: int = 16,
         alias: str = "TiRex",
     ):
-        """Initialize a TiRex time series forecasting model.
-
-        Loads a pretrained TiRex model from the Hugging Face Hub or a local directory.
-
+        """
         Args:
             repo_id (str, optional): The Hugging Face Hub model ID or local path to load
                 the TiRex model from. Examples include "NX-AI/TiRex". Defaults to

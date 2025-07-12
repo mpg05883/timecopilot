@@ -26,10 +26,7 @@ class Toto(Forecaster):
         samples_per_batch: int = 256,
         alias: str = "Toto",
     ):
-        """Initialize a Toto time series forecasting model.
-
-        Loads a pretrained Toto model from the Hugging Face Hub or a local directory.
-
+        """
         Args:
             repo_id (str, optional): The Hugging Face Hub model ID or local path to
                 load the Toto model from. Examples include "Datadog/Toto-Open-Base-1.0".
