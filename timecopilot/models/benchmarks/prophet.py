@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import Any
 
 import pandas as pd
 from prophet import Prophet as ProphetBase
@@ -9,12 +10,38 @@ from ..utils.parallel_forecaster import ParallelForecaster
 
 
 class Prophet(ProphetBase, ParallelForecaster, Forecaster):
+    """
+    Wrapper for Facebook Prophet for time series forecasting.
+
+    Prophet is a procedure for forecasting time series data based on an additive model
+    where non-linear trends are fit with yearly, weekly, and daily seasonality, plus
+    holiday effects. It works best with time series that have strong seasonal effects
+    and several seasons of historical data. Prophet is robust to missing data and
+    shifts in the trend, and typically handles outliers well.
+
+    See the [official documentation](https://github.com/facebook/prophet)
+    for more details.
+    """
+
     def __init__(
         self,
         alias: str = "Prophet",
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ):
+        """
+        Initialize a Prophet model.
+
+        Args:
+            alias (str, optional): Custom name for the model instance.
+                Default is "Prophet".
+            *args: Additional positional arguments passed to ProphetBase.
+            **kwargs: Additional keyword arguments passed to ProphetBase.
+
+        Raises:
+            ValueError: If 'interval_width' is provided in kwargs. Use 'level' or
+                'quantiles' instead when using 'forecast' or 'cross_validation'.
+        """
         super().__init__(*args, **kwargs)
         self.alias = alias
         if "interval_width" in kwargs:
