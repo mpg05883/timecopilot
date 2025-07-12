@@ -22,7 +22,7 @@ nav:
       - Forecasting Parameters: forecasting_parameters.md
   - API Reference:
       - api/agent.md
-      - models/utils/forecaster.md
+      - api/models/utils/forecaster.md
   - Changelogs:
       - changelogs/index.md
       - changelogs/v0.0.10.md
