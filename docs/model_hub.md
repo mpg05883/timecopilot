@@ -31,7 +31,7 @@ TimeCopilot includes a suite of classical and statistical forecasting models, pr
 - [AutoCES](api/models/benchmarks/stats.md#timecopilot.models.benchmarks.stats.AutoCES)
 - [AutoETS](api/models/benchmarks/stats.md#timecopilot.models.benchmarks.stats.AutoETS)
 - [CrostonClassic](api/models/benchmarks/stats.md#timecopilot.models.benchmarks.stats.CrostonClassic)
-- [DOTheta](api/models/benchmarks/stats.md#timecopilot.models.benchmarks.stats.DOTheta)
+- [DynamicOptimizedTheta](api/models/benchmarks/stats.md#timecopilot.models.benchmarks.stats.DynamicOptimizedTheta)
 - [HistoricAverage](api/models/benchmarks/stats.md#timecopilot.models.benchmarks.stats.HistoricAverage)
 - [IMAPA](api/models/benchmarks/stats.md#timecopilot.models.benchmarks.stats.IMAPA)
 - [SeasonalNaive](api/models/benchmarks/stats.md#timecopilot.models.benchmarks.stats.SeasonalNaive)
