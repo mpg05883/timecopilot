@@ -17,6 +17,45 @@ class TimesFM(Forecaster):
         model_dims: int = 1280,
         alias: str = "TimesFM",
     ):
+        """Initialize a TimesFM time series forecasting model.
+
+        Loads a pretrained TimesFM model from the Hugging Face Hub or a local directory.
+        TimesFM is a large language model for time series forecasting, supporting both
+        probabilistic and point forecasts. See the [official repo](https://github.com/
+        google-research/timesfm) for more details.
+
+        Args:
+            repo_id (str, optional): The Hugging Face Hub model ID or local path to
+                load the TimesFM model from. Examples include
+                "google/timesfm-1.0-200m-pytorch". Defaults to
+                "google/timesfm-1.0-200m-pytorch". See the full list of models at
+                [Hugging Face](https://huggingface.co/collections/google/timesfm-release-
+                66e4be5fdb56e960c1e482a6).
+            context_length (int, optional): Maximum context length (input window size)
+                for the model. Defaults to 512. For TimesFM 2.0 models, max is 2048
+                (must be a multiple of 32). See [TimesFM docs](https://github.com/google-
+                research/timesfm#loading-the-model) for details.
+            per_core_batch_size (int, optional): Batch size per device/core for
+                inference. Defaults to 64. Adjust based on available memory and model
+                size.
+            num_layers (int, optional): Number of transformer layers in the model.
+                Defaults to 20. Should match the configuration of the pretrained
+                checkpoint.
+            model_dims (int, optional): Model hidden dimension size. Defaults to 1280.
+                Should match the configuration of the pretrained checkpoint.
+            alias (str, optional): Name to use for the model in output DataFrames and
+                logs. Defaults to "TimesFM".
+
+        Notes:
+            - Only PyTorch checkpoints are currently supported. JAX is not supported.
+            - TimesFM 2.0 models are not yet supported. See
+              [issue #269](https://github.com/google-research/timesfm/issues/269)
+              for more details.
+            - The model is loaded onto the best available device (GPU if available,
+              otherwise CPU).
+            - For more information, see the
+              [TimesFM documentation](https://github.com/google-research/timesfm).
+        """
         if "pytorch" not in repo_id:
             raise ValueError(
                 "TimesFM only supports pytorch models, "
