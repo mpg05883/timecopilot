@@ -19,6 +19,23 @@ def test_tirex_import_fails():
 
 @pytest.mark.parametrize("model", models)
 @pytest.mark.parametrize("freq", ["H", "D", "W-MON", "MS"])
+def test_freq_inferred_correctly(model, freq):
+    n_series = 2
+    df = generate_series(
+        n_series,
+        freq=freq,
+    )
+    df["unique_id"] = df["unique_id"].astype(str)
+    fcsts_no_freq = model.forecast(df, h=3)
+    fcsts_with_freq = model.forecast(df, h=3, freq=freq)
+    cv_no_freq = model.cross_validation(df, h=3)
+    cv_with_freq = model.cross_validation(df, h=3, freq=freq)
+    pd.testing.assert_frame_equal(fcsts_no_freq, fcsts_with_freq)
+    pd.testing.assert_frame_equal(cv_no_freq, cv_with_freq)
+
+
+@pytest.mark.parametrize("model", models)
+@pytest.mark.parametrize("freq", ["H", "D", "W-MON", "MS"])
 @pytest.mark.parametrize("h", [1, 12])
 def test_correct_forecast_dates(model, freq, h):
     n_series = 5
