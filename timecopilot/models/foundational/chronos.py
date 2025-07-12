@@ -9,6 +9,13 @@ from .utils import TimeSeriesDataset
 
 
 class Chronos(Forecaster):
+    """
+    Chronos models are large pre-trained models for time series forecasting,
+    supporting both probabilistic and point forecasts. See the
+    [official repo](https://github.com/amazon-science/chronos-forecasting)
+    for more details.
+    """
+
     def __init__(
         self,
         repo_id: str = "amazon/chronos-t5-large",
@@ -18,11 +25,7 @@ class Chronos(Forecaster):
         """Initialize a Chronos time series forecasting model.
 
         Loads a pretrained Chronos model from the Hugging Face Hub or a local
-        directory. Chronos models are large language models for time series
-        forecasting, supporting both probabilistic and point forecasts. See
-        the [official repo](https://github.com/amazon-science/
-        chronos-forecasting)
-        for more details.
+        directory.
 
         Args:
             repo_id (str, optional): The Hugging Face Hub model ID or local
