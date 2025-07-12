@@ -30,8 +30,18 @@ def test_freq_inferred_correctly(model, freq):
     fcsts_with_freq = model.forecast(df, h=3, freq=freq)
     cv_no_freq = model.cross_validation(df, h=3)
     cv_with_freq = model.cross_validation(df, h=3, freq=freq)
-    pd.testing.assert_frame_equal(fcsts_no_freq, fcsts_with_freq)
-    pd.testing.assert_frame_equal(cv_no_freq, cv_with_freq)
+    # some foundation models produce different results
+    # each time they are called
+    cols_to_check = ["unique_id", "ds"]
+    cols_to_check_cv = ["unique_id", "ds", "y", "cutoff"]
+    pd.testing.assert_frame_equal(
+        fcsts_no_freq[cols_to_check],
+        fcsts_with_freq[cols_to_check],
+    )
+    pd.testing.assert_frame_equal(
+        cv_no_freq[cols_to_check_cv],
+        cv_with_freq[cols_to_check_cv],
+    )
 
 
 @pytest.mark.parametrize("model", models)
