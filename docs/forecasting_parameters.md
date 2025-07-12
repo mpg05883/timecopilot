@@ -21,7 +21,7 @@ You can:
 * **`h` (horizon)**: how many future periods you want to forecast.
 
 !!! tip "Pandas available frequencies"
-    You can see [here](http://pandas.pydata.org/docs/user_guide/timeseries.html#dateoffset-objects) the complete list of available frequencies.  
+    You can see [here](https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases) the complete list of available frequencies.  
 
 With these concepts in mind, let's see how [`TimeCopilot`][timecopilot.agent.TimeCopilot] chooses their values.
 
