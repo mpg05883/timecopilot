@@ -20,6 +20,39 @@ class Toto(Forecaster):
         samples_per_batch: int = 256,
         alias: str = "Toto",
     ):
+        """Initialize a Toto time series forecasting model.
+
+        Loads a pretrained Toto model from the Hugging Face Hub or a local directory.
+        Toto is a foundation model for multivariate time series forecasting, optimized
+        for observability and high-dimensional data. See the
+        [official repo](https://github.com/DataDog/toto) for more details.
+
+        Args:
+            repo_id (str, optional): The Hugging Face Hub model ID or local path to
+                load the Toto model from. Examples include "Datadog/Toto-Open-Base-1.0".
+                Defaults to "Datadog/Toto-Open-Base-1.0". See the full list of models
+                at [Hugging Face](https://huggingface.co/Datadog).
+            context_length (int, optional): Maximum context length (input window size)
+                for the model. Defaults to 4096. Should match the configuration of the
+                pretrained checkpoint. See [Toto docs](https://github.com/DataDog/toto#
+                toto-model) for details.
+            batch_size (int, optional): Batch size to use for inference. Defaults to 16.
+                Adjust based on available memory and model size.
+            num_samples (int, optional): Number of samples for probabilistic
+                forecasting. Controls the number of forecast samples drawn for
+                uncertainty estimation. Defaults to 256.
+            samples_per_batch (int, optional): Number of samples processed per batch
+                during inference. Controls memory usage. Defaults to 256.
+            alias (str, optional): Name to use for the model in output DataFrames and
+                logs. Defaults to "Toto".
+
+        Notes:
+            - The model is loaded onto the best available device (GPU if available,
+              otherwise CPU).
+            - For best performance, a CUDA-capable GPU is recommended.
+            - For more information, see the
+              [Toto documentation](https://github.com/DataDog/toto).
+        """
         self.repo_id = repo_id
         self.context_length = context_length
         self.batch_size = batch_size
@@ -125,51 +158,6 @@ class Toto(Forecaster):
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
-        """Generate forecasts for time series data using the model.
-
-        This method produces point forecasts and, optionally, prediction
-        intervals or quantile forecasts. The input DataFrame can contain one
-        or multiple time series in stacked (long) format.
-
-        Args:
-            df (pd.DataFrame):
-                DataFrame containing the time series to forecast. It must
-                include as columns:
-
-                    - "unique_id": an ID column to distinguish multiple series.
-                    - "ds": a time column indicating timestamps or periods.
-                    - "y": a target column with the observed values.
-
-            h (int):
-                Forecast horizon specifying how many future steps to predict.
-            freq (str):
-                Frequency of the time series (e.g. "D" for daily, "M" for
-                monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
-                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values.
-            level (list[int | float], optional):
-                Confidence levels for prediction intervals, expressed as
-                percentages (e.g. [80, 95]). If provided, the returned
-                DataFrame will include lower and upper interval columns for
-                each specified level.
-            quantiles (list[float], optional):
-                List of quantiles to forecast, expressed as floats between 0
-                and 1. Should not be used simultaneously with `level`. When
-                provided, the output DataFrame will contain additional columns
-                named in the format "model-q-{percentile}", where {percentile}
-                = 100 × quantile value.
-
-        Returns:
-            pd.DataFrame:
-                DataFrame containing forecast results. Includes:
-
-                    - point forecasts for each timestamp and series.
-                    - prediction intervals if `level` is specified.
-                    - quantile forecasts if `quantiles` is specified.
-
-                For multi-series data, the output retains the same unique
-                identifiers as the input DataFrame.
-        """
         qc = QuantileConverter(level=level, quantiles=quantiles)
         dataset = TimeSeriesDataset.from_df(df, batch_size=self.batch_size)
         fcst_df = dataset.make_future_dataframe(h=h, freq=freq)

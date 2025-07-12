@@ -15,6 +15,42 @@ class Chronos(Forecaster):
         batch_size: int = 16,
         alias: str = "Chronos",
     ):
+        """Initialize a Chronos time series forecasting model.
+
+        Loads a pretrained Chronos model from the Hugging Face Hub or a local
+        directory. Chronos models are large language models for time series
+        forecasting, supporting both probabilistic and point forecasts. See
+        the [official repo](https://github.com/amazon-science/
+        chronos-forecasting)
+        for more details.
+
+        Args:
+            repo_id (str, optional): The Hugging Face Hub model ID or local
+                path to load the Chronos model from. Examples include
+                "amazon/chronos-t5-tiny", "amazon/chronos-t5-large", or a
+                local directory. Defaults to "amazon/chronos-t5-large". See
+                the full list of available models at
+                [Hugging Face](https://huggingface.co/collections/
+                amazon/chronos-models-65f1791d630a8d57cb718444)
+            batch_size (int, optional): Batch size to use for inference.
+                Larger models may require smaller batch sizes due to GPU
+                memory constraints. Defaults to 16. For Chronos-Bolt models,
+                higher batch sizes (e.g., 256) are possible.
+            alias (str, optional): Name to use for the model in output
+                DataFrames and logs. Defaults to "Chronos".
+
+        Notes:
+            - The model is loaded onto the best available device (GPU if
+              available, otherwise CPU).
+            - For best performance with large models (e.g., "chronos-t5-large"),
+              a CUDA-compatible GPU is recommended.
+            - The model weights are loaded with torch_dtype=torch.bfloat16 for
+              efficiency on supported hardware.
+            - For more information, see the
+              [Chronos documentation](
+              https://github.com/amazon-science/chronos-forecasting)
+
+        """
         self.repo_id = repo_id
         self.batch_size = batch_size
         self.alias = alias

@@ -21,6 +21,34 @@ class TiRex(Forecaster):
         batch_size: int = 16,
         alias: str = "TiRex",
     ):
+        """Initialize a TiRex time series forecasting model.
+
+        Loads a pretrained TiRex model from the Hugging Face Hub or a local directory.
+        TiRex is a zero-shot time series forecasting model based on xLSTM,
+        supporting both point and quantile predictions for long and short horizons.
+        See the [official repo](https://github.com/NX-AI/tirex) for more details.
+
+        Args:
+            repo_id (str, optional): The Hugging Face Hub model ID or local path to load
+                the TiRex model from. Examples include "NX-AI/TiRex". Defaults to
+                "NX-AI/TiRex". See the full list of models at
+                [Hugging Face](https://huggingface.co/NX-AI).
+            batch_size (int, optional): Batch size to use for inference. Defaults to 16.
+                Adjust based on available memory and model size.
+            alias (str, optional): Name to use for the model in output DataFrames
+                and logs. Defaults to "TiRex".
+
+        Notes:
+            - The model is loaded onto the best available device (GPU if available,
+              otherwise CPU).
+            - On CPU, CUDA kernels are disabled automatically. See the
+              [CUDA kernels section](https://github.com/NX-AI/tirex#cuda-kernels)
+              for details.
+            - For best performance, a CUDA-capable GPU with compute capability >= 8.0
+              is recommended.
+            - For more information, see the
+              [TiRex documentation](https://github.com/NX-AI/tirex).
+        """
         self.repo_id = repo_id
         self.batch_size = batch_size
         self.alias = alias
