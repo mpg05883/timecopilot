@@ -5,7 +5,6 @@ from .benchmarks import (
     AutoCES,
     AutoETS,
     CrostonClassic,
-    DOTheta,
     HistoricAverage,
     SeasonalNaive,
     Theta,

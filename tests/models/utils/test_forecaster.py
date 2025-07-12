@@ -2,7 +2,50 @@ import pandas as pd
 import pytest
 from utilsforecast.data import generate_series
 
-from timecopilot.models.utils.forecaster import QuantileConverter
+from timecopilot.models.benchmarks.stats import SeasonalNaive
+from timecopilot.models.utils.forecaster import QuantileConverter, get_seasonality
+
+
+def test_maybe_get_seasonality_explicit():
+    model = SeasonalNaive(season_length=4)
+    assert model.maybe_get_seasonality("D") == 4
+
+
+@pytest.mark.parametrize("freq", ["M", "W-MON", "D"])
+def test_maybe_get_seasonality_infer(freq):
+    model = SeasonalNaive(season_length=None)
+    assert model.maybe_get_seasonality(freq) == get_seasonality(freq)
+
+
+@pytest.mark.parametrize("freq", ["M", "W-MON", "D"])
+def test_get_seasonality_infered_correctly(freq):
+    season_length = get_seasonality(freq)
+    y = 2 * list(range(1, season_length + 1))
+    df = pd.DataFrame(
+        {
+            "unique_id": ["A"] * len(y),
+            "ds": pd.date_range("2023-01-01", periods=len(y), freq=freq),
+            "y": y,
+        }
+    )
+    model = SeasonalNaive()
+    fcst = model.forecast(df, h=season_length, freq=freq)
+    assert (fcst["SeasonalNaive"].values == y[-season_length:]).all()
+
+
+@pytest.mark.parametrize("season_length,freq", [(4, "D"), (7, "W-MON")])
+def test_seasonality_used_correctly(season_length, freq):
+    y = 2 * list(range(1, season_length + 1))
+    df = pd.DataFrame(
+        {
+            "unique_id": ["A"] * len(y),
+            "ds": pd.date_range("2023-01-01", periods=len(y), freq=freq),
+            "y": y,
+        }
+    )
+    model = SeasonalNaive(season_length=season_length)
+    fcst = model.forecast(df, h=season_length, freq=freq)
+    assert (fcst["SeasonalNaive"].values == y[-season_length:]).all()
 
 
 def test_prepare_level_and_quantiles_with_levels():
