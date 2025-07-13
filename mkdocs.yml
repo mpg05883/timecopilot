@@ -23,6 +23,7 @@ nav:
       - Forecasting Parameters: forecasting_parameters.md
   - API Reference:
       - api/agent.md
+      - api/forecaster.md
       - api/models/foundational/models.md
       - api/models/benchmarks/stats.md
       - api/models/benchmarks/prophet.md
