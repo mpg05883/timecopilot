@@ -1,10 +1,37 @@
 # Time Series Model Hub
 
 
-!!! abstract "Welcome to the Time Series Model Hub!"
-    TimeCopilot provides a unified API for time series forecasting, integrating foundation models, classical statistical models, machine learning, and neural network families of models. This approach lets you experiment, benchmark, and deploy a wide range of forecasting models with minimal code changes, so you can choose the best tool for your data and use case.
+TimeCopilot provides a unified API for time series forecasting, integrating foundation models, classical statistical models, machine learning, and neural network families of models. This approach lets you experiment, benchmark, and deploy a wide range of forecasting models with minimal code changes, so you can choose the best tool for your data and use case.
 
-    Here you'll find all the time series forecasting models available in TimeCopilot, organized by family. Click on any model name to jump to its detailed API documentation.
+Here you'll find all the time series forecasting models available in TimeCopilot, organized by family. Click on any model name to jump to its detailed API documentation.
+
+!!! tip "Forecast multiple models using a unified API"
+
+    With the [TimeCopilotForecaster][timecopilot.forecaster.TimeCopilotForecaster] class, you can generate and cross-validate forecasts using a unified API. Here's an example:
+
+    ```python
+    import pandas as pd
+    from timecopilot.forecaster import TimeCopilotForecaster
+    from timecopilot.models.benchmarks.prophet import Prophet
+    from timecopilot.models.benchmarks.stats import AutoARIMA, SeasonalNaive
+    from timecopilot.models.foundational.toto import Toto
+
+    df = pd.read_csv(
+        "https://timecopilot.s3.amazonaws.com/public/data/air_passengers.csv",
+        parse_dates=["ds"],
+    )
+    tcf = TimeCopilotForecaster(
+        models=[
+            AutoARIMA(),
+            SeasonalNaive(),
+            Prophet(),
+            Toto(context_length=256),
+        ]
+    )
+
+    fcst_df = tcf.forecast(df=df, h=12)
+    cv_df = tcf.cross_validation(df=df, h=12)
+    ```
 
 ---
 
