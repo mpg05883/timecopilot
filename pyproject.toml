@@ -2,6 +2,7 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+
 [project]
 name = "timecopilot"
 version = "0.0.11"
@@ -38,9 +39,9 @@ dependencies = [
   "python-dotenv",
   "scipy<=1.15.3",
   "statsforecast",
-  "timesfm>=1.2.9",
-  "tirex ; python_full_version >= '3.11'",
-  "toto",
+  "timesfm @ git+https://github.com/google-research/timesfm",
+  "tirex @ git+https://github.com/NX-AI/tirex.git ; python_full_version >= '3.11'",
+  "toto @ git+https://github.com/AzulGarza/toto.git",
   "tsfeatures",
   "utilsforecast",
 ]
@@ -75,6 +76,9 @@ omit = [
 [tool.coverage.report]
 fail_under = 80
 show_missing = true
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.mypy]
 disable_error_code = ["no-redef"]  # for fasthtml
