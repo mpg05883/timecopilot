@@ -37,7 +37,7 @@ With these concepts in mind, let's see how [`TimeCopilot`][timecopilot.agent.Tim
    `seasonality=` ) fills the gaps left by the query.
 3. **Automatic inference is the fallback.**
    If a value is still unknown it is inferred from the data frame:
-    * `freq`: [`pd.infer_freq(df["ds"])`](https://pandas.pydata.org/docs/reference/api/pandas.infer_freq.html)
+    * `freq`: [`maybe_infer_freq(df)`][timecopilot.models.utils.forecaster.maybe_infer_freq]
     * `seasonality`: [`get_seasonality(freq)`][timecopilot.models.utils.forecaster.get_seasonality]
     * `h`: `2 * seasonality`
 

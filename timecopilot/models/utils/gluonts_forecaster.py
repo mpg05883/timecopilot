@@ -95,7 +95,7 @@ class GluonTSForecaster(Forecaster):
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
@@ -116,11 +116,11 @@ class GluonTSForecaster(Forecaster):
 
             h (int):
                 Forecast horizon specifying how many future steps to predict.
-            freq (str):
+            freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
                 pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values.
+                valid values. If None, the frequency will be inferred from the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned
@@ -149,6 +149,7 @@ class GluonTSForecaster(Forecaster):
                 "Level and quantiles are not supported for GluonTSForecaster yet"
             )
         df = maybe_convert_col_to_float32(df, "y")
+        freq = self._maybe_infer_freq(df, freq)
         gluonts_dataset = PandasDataset.from_long_dataframe(
             df,
             target="y",

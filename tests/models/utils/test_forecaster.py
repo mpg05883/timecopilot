@@ -3,21 +3,35 @@ import pytest
 from utilsforecast.data import generate_series
 
 from timecopilot.models.benchmarks.stats import SeasonalNaive
-from timecopilot.models.utils.forecaster import QuantileConverter, get_seasonality
+from timecopilot.models.utils.forecaster import (
+    QuantileConverter,
+    get_seasonality,
+    maybe_infer_freq,
+)
+
+
+@pytest.mark.parametrize("freq", ["ME", "MS", "W-MON", "D"])
+def test_maybe_infer_freq(freq):
+    df = generate_series(
+        n_series=2,
+        freq=freq,
+    )
+    assert maybe_infer_freq(df, None) == freq
+    assert maybe_infer_freq(df, "H") == "H"
 
 
 def test_maybe_get_seasonality_explicit():
     model = SeasonalNaive(season_length=4)
-    assert model.maybe_get_seasonality("D") == 4
+    assert model._maybe_get_seasonality("D") == 4
 
 
-@pytest.mark.parametrize("freq", ["M", "W-MON", "D"])
+@pytest.mark.parametrize("freq", ["M", "MS", "W-MON", "D"])
 def test_maybe_get_seasonality_infer(freq):
     model = SeasonalNaive(season_length=None)
-    assert model.maybe_get_seasonality(freq) == get_seasonality(freq)
+    assert model._maybe_get_seasonality(freq) == get_seasonality(freq)
 
 
-@pytest.mark.parametrize("freq", ["M", "W-MON", "D"])
+@pytest.mark.parametrize("freq", ["M", "MS", "W-MON", "D"])
 def test_get_seasonality_inferred_correctly(freq):
     season_length = get_seasonality(freq)
     y = 2 * list(range(1, season_length + 1))

@@ -11,7 +11,7 @@ from pydantic_ai import Agent
 from utilsforecast.evaluation import evaluate
 from utilsforecast.losses import _zero_to_nan, mae
 
-from ..models.utils.forecaster import get_seasonality
+from ..models.utils.forecaster import get_seasonality, maybe_infer_freq
 
 warnings.simplefilter(
     action="ignore",
@@ -156,7 +156,7 @@ class ExperimentDatasetParser:
                 seasonality=seasonality,
             )
         # Infer from df if any parameters are still None
-        dataset_params.freq = dataset_params.freq or pd.infer_freq(df["ds"])
+        dataset_params.freq = dataset_params.freq or maybe_infer_freq(df=df, freq=None)
         dataset_params.seasonality = dataset_params.seasonality or get_seasonality(
             dataset_params.freq
         )

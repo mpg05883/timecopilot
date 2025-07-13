@@ -94,7 +94,7 @@ class ADIDA(Forecaster):
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
@@ -115,11 +115,12 @@ class ADIDA(Forecaster):
 
             h (int):
                 Forecast horizon specifying how many future steps to predict.
-            freq (str):
+            freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
                 pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values.
+                valid values. If not provided, the frequency will be inferred
+                from the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned
@@ -143,6 +144,7 @@ class ADIDA(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
+        freq = self._maybe_infer_freq(df, freq)
         fcst_df = run_statsforecast_model(
             model=_ADIDA(alias=self.alias),
             df=df,
@@ -277,7 +279,7 @@ class AutoARIMA(Forecaster):
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
@@ -298,11 +300,12 @@ class AutoARIMA(Forecaster):
 
             h (int):
                 Forecast horizon specifying how many future steps to predict.
-            freq (str):
+            freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
                 pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values.
+                valid values. If not provided, the frequency will be inferred
+                from the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned
@@ -326,7 +329,8 @@ class AutoARIMA(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        season_length = self.maybe_get_seasonality(freq)
+        freq = self._maybe_infer_freq(df, freq)
+        season_length = self._maybe_get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_AutoARIMA(
                 d=self.d,
@@ -404,7 +408,7 @@ class AutoCES(Forecaster):
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
@@ -425,11 +429,12 @@ class AutoCES(Forecaster):
 
             h (int):
                 Forecast horizon specifying how many future steps to predict.
-            freq (str):
+            freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
                 pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values.
+                valid values. If not provided, the frequency will be inferred
+                from the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned
@@ -453,7 +458,8 @@ class AutoCES(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        season_length = self.maybe_get_seasonality(freq)
+        freq = self._maybe_infer_freq(df, freq)
+        season_length = self._maybe_get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_AutoCES(
                 season_length=season_length,
@@ -508,7 +514,7 @@ class AutoETS(Forecaster):
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
@@ -529,11 +535,12 @@ class AutoETS(Forecaster):
 
             h (int):
                 Forecast horizon specifying how many future steps to predict.
-            freq (str):
+            freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
                 pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values.
+                valid values. If not provided, the frequency will be inferred
+                from the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned
@@ -557,7 +564,8 @@ class AutoETS(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        season_length = self.maybe_get_seasonality(freq)
+        freq = self._maybe_infer_freq(df, freq)
+        season_length = self._maybe_get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_AutoETS(
                 season_length=season_length,
@@ -598,7 +606,7 @@ class CrostonClassic(Forecaster):
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
@@ -619,11 +627,12 @@ class CrostonClassic(Forecaster):
 
             h (int):
                 Forecast horizon specifying how many future steps to predict.
-            freq (str):
+            freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
                 pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values.
+                valid values. If not provided, the frequency will be inferred
+                from the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned
@@ -647,6 +656,7 @@ class CrostonClassic(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
+        freq = self._maybe_infer_freq(df, freq)
         fcst_df = run_statsforecast_model(
             model=_CrostonClassic(
                 alias=self.alias,
@@ -684,7 +694,7 @@ class DynamicOptimizedTheta(Forecaster):
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
@@ -705,11 +715,12 @@ class DynamicOptimizedTheta(Forecaster):
 
             h (int):
                 Forecast horizon specifying how many future steps to predict.
-            freq (str):
+            freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
                 pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values.
+                valid values. If not provided, the frequency will be inferred
+                from the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned
@@ -733,7 +744,8 @@ class DynamicOptimizedTheta(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        season_length = self.maybe_get_seasonality(freq)
+        freq = self._maybe_infer_freq(df, freq)
+        season_length = self._maybe_get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_DynamicOptimizedTheta(
                 season_length=season_length,
@@ -771,7 +783,7 @@ class HistoricAverage(Forecaster):
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
@@ -792,11 +804,12 @@ class HistoricAverage(Forecaster):
 
             h (int):
                 Forecast horizon specifying how many future steps to predict.
-            freq (str):
+            freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
                 pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values.
+                valid values. If not provided, the frequency will be inferred
+                from the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned
@@ -820,6 +833,7 @@ class HistoricAverage(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
+        freq = self._maybe_infer_freq(df, freq)
         fcst_df = run_statsforecast_model(
             model=_HistoricAverage(
                 alias=self.alias,
@@ -857,7 +871,7 @@ class IMAPA(Forecaster):
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
@@ -878,11 +892,12 @@ class IMAPA(Forecaster):
 
             h (int):
                 Forecast horizon specifying how many future steps to predict.
-            freq (str):
+            freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
                 pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values.
+                valid values. If not provided, the frequency will be inferred
+                from the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned
@@ -906,6 +921,7 @@ class IMAPA(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
+        freq = self._maybe_infer_freq(df, freq)
         fcst_df = run_statsforecast_model(
             model=_IMAPA(
                 alias=self.alias,
@@ -943,7 +959,7 @@ class SeasonalNaive(Forecaster):
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
@@ -964,11 +980,12 @@ class SeasonalNaive(Forecaster):
 
             h (int):
                 Forecast horizon specifying how many future steps to predict.
-            freq (str):
+            freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
                 pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values.
+                valid values. If not provided, the frequency will be inferred
+                from the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned
@@ -992,7 +1009,8 @@ class SeasonalNaive(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        season_length = self.maybe_get_seasonality(freq)
+        freq = self._maybe_infer_freq(df, freq)
+        season_length = self._maybe_get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_SeasonalNaive(
                 season_length=season_length,
@@ -1031,7 +1049,7 @@ class Theta(Forecaster):
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
@@ -1052,11 +1070,12 @@ class Theta(Forecaster):
 
             h (int):
                 Forecast horizon specifying how many future steps to predict.
-            freq (str):
+            freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
                 pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values.
+                valid values. If not provided, the frequency will be inferred
+                from the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned
@@ -1080,7 +1099,8 @@ class Theta(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        season_length = self.maybe_get_seasonality(freq)
+        freq = self._maybe_infer_freq(df, freq)
+        season_length = self._maybe_get_seasonality(freq)
         fcst_df = run_statsforecast_model(
             model=_Theta(
                 season_length=season_length,
@@ -1118,7 +1138,7 @@ class ZeroModel(Forecaster):
         self,
         df: pd.DataFrame,
         h: int,
-        freq: str,
+        freq: str | None = None,
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
@@ -1139,11 +1159,12 @@ class ZeroModel(Forecaster):
 
             h (int):
                 Forecast horizon specifying how many future steps to predict.
-            freq (str):
+            freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
                 pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values.
+                valid values. If not provided, the frequency will be inferred
+                from the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned
@@ -1167,6 +1188,7 @@ class ZeroModel(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
+        freq = self._maybe_infer_freq(df, freq)
         fcst_df = run_statsforecast_model(
             model=_ZeroModel(
                 alias=self.alias,

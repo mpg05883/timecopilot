@@ -4,3 +4,4 @@
     options:
         members:
             - get_seasonality
+            - maybe_infer_freq
