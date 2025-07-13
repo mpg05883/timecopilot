@@ -61,7 +61,7 @@ def test_forecaster_forecast_with_level(models):
     level = [80, 90]
     df = generate_series(n_series=n_uids, freq="D", min_length=30)
     forecaster = TimeCopilotForecaster(models=models)
-    fcst_df = forecaster.forecast(df=df, h=2, freq="D", level=level)
+    fcst_df = forecaster.forecast(df=df, h=2, freq="D", level=level)  # type: ignore
     assert len(fcst_df) == 2 * n_uids
     assert len(fcst_df.columns) == 2 + len(models) * (1 + 2 * len(level))
     for model in models:
