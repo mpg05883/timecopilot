@@ -5330,9 +5330,9 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "scipy" },
     { name = "statsforecast" },
+    { name = "timecopilot-timesfm" },
+    { name = "timecopilot-tirex", marker = "python_full_version >= '3.11'" },
     { name = "timecopilot-toto" },
-    { name = "timesfm" },
-    { name = "tirex", marker = "python_full_version >= '3.11'" },
     { name = "tsfeatures" },
     { name = "utilsforecast" },
 ]
@@ -5362,9 +5362,9 @@ requires-dist = [
     { name = "python-dotenv" },
     { name = "scipy", specifier = "<=1.15.3" },
     { name = "statsforecast" },
+    { name = "timecopilot-timesfm", specifier = ">=0.1.0" },
+    { name = "timecopilot-tirex", marker = "python_full_version >= '3.11'", specifier = ">=0.1.0" },
     { name = "timecopilot-toto", specifier = ">=0.1.0" },
-    { name = "timesfm", git = "https://github.com/AzulGarza/timesfm?branch=feat%2Fallow-more-freqs" },
-    { name = "tirex", marker = "python_full_version >= '3.11'", git = "https://github.com/NX-AI/tirex.git" },
     { name = "tsfeatures" },
     { name = "utilsforecast" },
 ]
@@ -5382,6 +5382,50 @@ docs = [
     { name = "mkdocstrings", extras = ["python"], specifier = ">=0.29.1" },
     { name = "modal", specifier = ">=1.0.4" },
     { name = "ruff", specifier = ">=0.12.1" },
+]
+
+[[package]]
+name = "timecopilot-timesfm"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "absl-py" },
+    { name = "einshape" },
+    { name = "huggingface-hub", extra = ["cli"] },
+    { name = "numpy" },
+    { name = "pandas" },
+    { name = "safetensors" },
+    { name = "scikit-learn" },
+    { name = "torch" },
+    { name = "typer" },
+    { name = "utilsforecast" },
+    { name = "wandb" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c9/83/a04e5548ebe86515aeed34cf0d8605c0240ec9097c2988ae7d2379871b38/timecopilot_timesfm-0.1.0.tar.gz", hash = "sha256:bd03a4ce80ef0ae01bfd67f9f0a62570813f4e3a1cb81e1752afc3b016c72c6f", size = 43686, upload-time = "2025-07-14T20:19:28.81Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/86/cc/85f97c945aac57e860863b898abe54cd68a0dd29e5a3c4f0b2a5bcaf5895/timecopilot_timesfm-0.1.0-py3-none-any.whl", hash = "sha256:4c88bedabbea252274cbd9886d763fd1f1c32820e415ac5dfa0c62c444bfd480", size = 59186, upload-time = "2025-07-14T20:19:27.354Z" },
+]
+
+[[package]]
+name = "timecopilot-tirex"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dacite", marker = "python_full_version >= '3.11'" },
+    { name = "einops", marker = "python_full_version >= '3.11'" },
+    { name = "huggingface-hub", marker = "python_full_version >= '3.11'" },
+    { name = "lightning", marker = "python_full_version >= '3.11'" },
+    { name = "ninja", marker = "python_full_version >= '3.11'" },
+    { name = "numpy", marker = "python_full_version >= '3.11'" },
+    { name = "pandas", marker = "python_full_version >= '3.11'" },
+    { name = "torch", marker = "python_full_version >= '3.11'" },
+    { name = "torchvision", marker = "python_full_version >= '3.11'" },
+    { name = "tqdm", marker = "python_full_version >= '3.11'" },
+    { name = "xlstm", marker = "python_full_version >= '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/04/5c/d14a58b48a52c00d3d66b4fbc380b582345c58765a7fe564cecb4270e001/timecopilot_tirex-0.1.0.tar.gz", hash = "sha256:1c1b972e4705fce494d2c205d59512980bdad7bdd2124a298c9a6eee45ff3db2", size = 23952, upload-time = "2025-07-14T18:02:28.981Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f0/b0/6dd7696d01a6ad7a4dc0095316aab073b900162208af432aaa459e17fc6c/timecopilot_tirex-0.1.0-py3-none-any.whl", hash = "sha256:810ca0a410868010cb3bd8190e2539574af8df86f7cb64bf3f9363811d899f51", size = 25532, upload-time = "2025-07-14T18:02:27.849Z" },
 ]
 
 [[package]]
@@ -5421,22 +5465,6 @@ wheels = [
 ]
 
 [[package]]
-name = "timesfm"
-version = "1.2.9"
-source = { git = "https://github.com/AzulGarza/timesfm?branch=feat%2Fallow-more-freqs#fffb37852bcb8a0cc2421f9e6a0a72753c2e142d" }
-dependencies = [
-    { name = "absl-py" },
-    { name = "einshape" },
-    { name = "huggingface-hub", extra = ["cli"] },
-    { name = "numpy" },
-    { name = "pandas" },
-    { name = "scikit-learn" },
-    { name = "typer" },
-    { name = "utilsforecast" },
-    { name = "wandb" },
-]
-
-[[package]]
 name = "tinycss2"
 version = "1.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -5446,24 +5474,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/7a/fd/7a5ee21fd08ff70d3d33a5781c255cbe779659bd03278feb98b19ee550f4/tinycss2-1.4.0.tar.gz", hash = "sha256:10c0972f6fc0fbee87c3edb76549357415e94548c1ae10ebccdea16fb404a9b7", size = 87085, upload-time = "2024-10-24T14:58:29.895Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e6/34/ebdc18bae6aa14fbee1a08b63c015c72b64868ff7dae68808ab500c492e2/tinycss2-1.4.0-py3-none-any.whl", hash = "sha256:3a49cf47b7675da0b15d0c6e1df8df4ebd96e9394bb905a5775adb0d884c5289", size = 26610, upload-time = "2024-10-24T14:58:28.029Z" },
-]
-
-[[package]]
-name = "tirex"
-version = "1.0.0"
-source = { git = "https://github.com/NX-AI/tirex.git#341adb31e1f727d181682993db223bf249d9aa9a" }
-dependencies = [
-    { name = "dacite", marker = "python_full_version >= '3.11'" },
-    { name = "einops", marker = "python_full_version >= '3.11'" },
-    { name = "huggingface-hub", marker = "python_full_version >= '3.11'" },
-    { name = "lightning", marker = "python_full_version >= '3.11'" },
-    { name = "ninja", marker = "python_full_version >= '3.11'" },
-    { name = "numpy", marker = "python_full_version >= '3.11'" },
-    { name = "pandas", marker = "python_full_version >= '3.11'" },
-    { name = "torch", marker = "python_full_version >= '3.11'" },
-    { name = "torchvision", marker = "python_full_version >= '3.11'" },
-    { name = "tqdm", marker = "python_full_version >= '3.11'" },
-    { name = "xlstm", marker = "python_full_version >= '3.11'" },
 ]
 
 [[package]]
