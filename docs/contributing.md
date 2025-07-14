@@ -60,3 +60,22 @@ uv run mkdocs serve
 ## Adding New Datasets
 
 The datasets utilized in our documentation are hosted on AWS at `https://timecopilot.s3.amazonaws.com/public/data/`. If you wish to contribute additional datasets for your changes, please contact [@AzulGarza](http://github.com/AzulGarza) for guidance.
+
+## Forked Dependencies
+
+TimeCopilot uses some forked Python packages, maintained under custom names on PyPI:
+
+- **toto**
+    - Forked from: [DataDog/toto](https://github.com/DataDog/toto)
+    - TimeCopilot fork: [AzulGarza/toto](https://github.com/AzulGarza/toto)
+    - Published on PyPI as: [`timecopilot-toto`](https://pypi.org/project/timecopilot-toto/)
+
+- **tirex**
+    - Forked from: [NX-AI/tirex](https://github.com/NX-AI/tirex)
+    - TimeCopilot fork: [AzulGarza/tirex](https://github.com/AzulGarza/tirex)
+    - Published on PyPI as: [`timecopilot-tirex`](https://pypi.org/project/timecopilot-tirex/)
+
+- **timesfm**
+    - Forked from: [google-research/timesfm](https://github.com/google-research/timesfm)
+    - TimeCopilot fork: [AzulGarza/timesfm](https://github.com/AzulGarza/timesfm)
+    - Published on PyPI as: [`timecopilot-timesfm`](https://pypi.org/project/timecopilot-timesfm/)
