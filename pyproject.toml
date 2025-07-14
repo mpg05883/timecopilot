@@ -39,9 +39,9 @@ dependencies = [
   "python-dotenv",
   "scipy<=1.15.3",
   "statsforecast",
+  "timecopilot-toto>=0.1.0",
   "timesfm @ git+https://github.com/google-research/timesfm",
   "tirex @ git+https://github.com/NX-AI/tirex.git ; python_full_version >= '3.11'",
-  "toto @ git+https://github.com/AzulGarza/toto.git",
   "tsfeatures",
   "utilsforecast",
 ]
@@ -112,4 +112,3 @@ no-lines-before = ["local-folder"]
 [tool.uv.sources]
 timesfm = { git = "https://github.com/AzulGarza/timesfm", branch = "feat/allow-more-freqs" }
 tirex = { git = "https://github.com/NX-AI/tirex.git" }
-toto = { git = "https://github.com/AzulGarza/toto.git" }
