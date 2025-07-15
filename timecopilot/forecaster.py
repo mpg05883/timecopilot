@@ -36,11 +36,13 @@ class TimeCopilotForecaster(Forecaster):
         merge_on: list[str],
         df: pd.DataFrame,
         h: int,
-        freq: str,
-        level: list[int | float] | None = None,
-        quantiles: list[float] | None = None,
+        freq: str | None,
+        level: list[int | float] | None,
+        quantiles: list[float] | None,
         **kwargs,
     ) -> pd.DataFrame:
+        # infer just once to avoid multiple calls to _maybe_infer_freq
+        freq = self._maybe_infer_freq(df, freq)
         res_df: pd.DataFrame | None = None
         for model in self.models:
             res_df_model = getattr(model, attr)(
@@ -121,8 +123,6 @@ class TimeCopilotForecaster(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        # infer just once to avoid multiple calls to _maybe_infer_freq
-        freq = self._maybe_infer_freq(df, freq)
         return self._call_models(
             "forecast",
             merge_on=["unique_id", "ds"],
@@ -197,8 +197,6 @@ class TimeCopilotForecaster(Forecaster):
                     - prediction intervals if `level` is specified.
                     - quantile forecasts if `quantiles` is specified.
         """
-        # infer just once to avoid multiple calls to _maybe_infer_freq
-        freq = self._maybe_infer_freq(df, freq)
         return self._call_models(
             "cross_validation",
             merge_on=["unique_id", "ds", "cutoff"],
