@@ -122,18 +122,14 @@ class Toto(Forecaster):
             for batch in tqdm(dataset)
         ]  # list of fcsts objects
 
-        def _check_fcst_shape_and_squeeze(fcst):
-            if fcst.shape[0] != 1:
-                raise ValueError(
-                    "fcst.shape[0] != 1 for some batch, "
-                    "this is not expected, please open an issue on github"
-                )
-            return fcst.squeeze(axis=0)
-
-        fcsts_mean = [
-            _check_fcst_shape_and_squeeze(fcst.mean.cpu().numpy()) for fcst in fcsts
-        ]
-        fcsts_mean_np = np.concatenate(fcsts_mean)
+        fcsts_mean = [fcst.mean.cpu().numpy() for fcst in fcsts]
+        fcsts_mean_np = np.concatenate(fcsts_mean, axis=1)
+        if fcsts_mean_np.shape[0] != 1:
+            raise ValueError(
+                f"fcsts_mean_np.shape[0] != 1: {fcsts_mean_np.shape[0]} != 1, "
+                "this is not expected, please open an issue on github"
+            )
+        fcsts_mean_np = fcsts_mean_np.squeeze(axis=0)
         if quantiles is not None:
             quantiles_torch = torch.tensor(
                 quantiles,
@@ -141,17 +137,16 @@ class Toto(Forecaster):
                 dtype=torch.float,
             )
             fcsts_quantiles = [
-                _check_fcst_shape_and_squeeze(
-                    np.moveaxis(
-                        # size n_quantiles x 1 x batch_size x h
-                        fcst.quantile(quantiles_torch).cpu().numpy(),
-                        0,
-                        -1,
-                    )
-                )
-                for fcst in fcsts
+                fcst.quantile(quantiles_torch).cpu().numpy() for fcst in fcsts
             ]
-            fcsts_quantiles_np = np.concatenate(fcsts_quantiles)
+            fcsts_quantiles_np = np.concatenate(fcsts_quantiles, axis=2)
+            if fcsts_quantiles_np.shape[1] != 1:
+                raise ValueError(
+                    "fcsts_quantiles_np.shape[1] != 1: "
+                    f"{fcsts_quantiles_np.shape[1]} != 1, "
+                    "this is not expected, please open an issue on github"
+                )
+            fcsts_quantiles_np = np.moveaxis(fcsts_quantiles_np, 0, -1).squeeze(axis=0)
         else:
             fcsts_quantiles_np = None
         return fcsts_mean_np, fcsts_quantiles_np
