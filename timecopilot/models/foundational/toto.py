@@ -131,8 +131,9 @@ class Toto(Forecaster):
             )
             for batch in tqdm(dataset)
         ]  # list of fcsts objects
+
         fcsts_mean = [fcst.mean.cpu().numpy() for fcst in fcsts]
-        fcsts_mean_np = np.concatenate(fcsts_mean)
+        fcsts_mean_np = np.concatenate(fcsts_mean, axis=1)
         if fcsts_mean_np.shape[0] != 1:
             raise ValueError(
                 f"fcsts_mean_np.shape[0] != 1: {fcsts_mean_np.shape[0]} != 1, "
@@ -148,7 +149,7 @@ class Toto(Forecaster):
             fcsts_quantiles = [
                 fcst.quantile(quantiles_torch).cpu().numpy() for fcst in fcsts
             ]
-            fcsts_quantiles_np = np.concatenate(fcsts_quantiles)
+            fcsts_quantiles_np = np.concatenate(fcsts_quantiles, axis=2)
             if fcsts_quantiles_np.shape[1] != 1:
                 raise ValueError(
                     "fcsts_quantiles_np.shape[1] != 1: "
