@@ -24,8 +24,8 @@ class Toto(Forecaster):
         repo_id: str = "Datadog/Toto-Open-Base-1.0",
         context_length: int = 4096,
         batch_size: int = 16,
-        num_samples: int = 256,
-        samples_per_batch: int = 256,
+        num_samples: int = 128,
+        samples_per_batch: int = 8,
         alias: str = "Toto",
     ):
         """
@@ -42,9 +42,9 @@ class Toto(Forecaster):
                 Adjust based on available memory and model size.
             num_samples (int, optional): Number of samples for probabilistic
                 forecasting. Controls the number of forecast samples drawn for
-                uncertainty estimation. Defaults to 256.
+                uncertainty estimation. Defaults to 128.
             samples_per_batch (int, optional): Number of samples processed per batch
-                during inference. Controls memory usage. Defaults to 256.
+                during inference. Controls memory usage. Defaults to 8.
             alias (str, optional): Name to use for the model in output DataFrames and
                 logs. Defaults to "Toto".
 
@@ -58,12 +58,10 @@ class Toto(Forecaster):
         self.repo_id = repo_id
         self.context_length = context_length
         self.batch_size = batch_size
-        self.num_samples = (
-            num_samples  # Number of samples for probabilistic forecasting
-        )
-        self.samples_per_batch = (
-            samples_per_batch  # Control memory usage during inference
-        )
+        # Number of samples for probabilistic forecasting
+        self.num_samples = num_samples
+        # Control memory usage during inference
+        self.samples_per_batch = samples_per_batch
         self.alias = alias
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
