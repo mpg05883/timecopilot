@@ -40,7 +40,6 @@ dependencies = [
   "python-dotenv",
   "scipy<=1.15.3",
   "statsforecast",
-  "tabpfn-time-series>=1.0.3",
   "timecopilot-timesfm>=0.1.0",
   "timecopilot-tirex>=0.1.0 ; python_full_version >= '3.11'",
   "timecopilot-toto>=0.1.1",
