@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 import numpy as np
 import pandas as pd
 import torch
@@ -64,8 +66,15 @@ class Toto(Forecaster):
         )
         self.alias = alias
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    @contextmanager
+    def _get_model(self) -> TotoForecaster:
         model = TotoModel.from_pretrained(self.repo_id).to(self.device)
-        self.model = TotoForecaster(model.model)
+        try:
+            yield TotoForecaster(model.model)
+        finally:
+            del model
+            torch.cuda.empty_cache()
 
     def _to_masked_timeseries(self, batch: list[torch.Tensor]) -> MaskedTimeseries:
         batch_size = len(batch)
@@ -106,13 +115,14 @@ class Toto(Forecaster):
 
     def _forecast(
         self,
+        model: TotoForecaster,
         dataset: TimeSeriesDataset,
         h: int,
         quantiles: list[float] | None,
     ) -> tuple[np.ndarray, np.ndarray | None]:
         """handles distinction between quantiles and no quantiles"""
         fcsts = [
-            self.model.forecast(
+            model.forecast(
                 self._to_masked_timeseries(batch),
                 prediction_length=h,
                 num_samples=self.num_samples,
@@ -208,11 +218,13 @@ class Toto(Forecaster):
         qc = QuantileConverter(level=level, quantiles=quantiles)
         dataset = TimeSeriesDataset.from_df(df, batch_size=self.batch_size)
         fcst_df = dataset.make_future_dataframe(h=h, freq=freq)
-        fcsts_mean_np, fcsts_quantiles_np = self._forecast(
-            dataset,
-            h,
-            quantiles=qc.quantiles,
-        )
+        with self._get_model() as model:
+            fcsts_mean_np, fcsts_quantiles_np = self._forecast(
+                model,
+                dataset,
+                h,
+                quantiles=qc.quantiles,
+            )
         fcst_df[self.alias] = fcsts_mean_np.reshape(-1, 1)
         if qc.quantiles is not None and fcsts_quantiles_np is not None:
             for i, q in enumerate(qc.quantiles):

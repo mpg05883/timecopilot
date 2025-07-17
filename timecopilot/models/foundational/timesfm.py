@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 import pandas as pd
 import timesfm
 import torch
@@ -76,6 +78,7 @@ class TimesFM(Forecaster):
         self.model_dims = model_dims
         self.alias = alias
 
+    @contextmanager
     def get_predictor(
         self,
         prediction_length: int,
@@ -96,7 +99,11 @@ class TimesFM(Forecaster):
             hparams=tfm_hparams,
             checkpoint=tfm_checkpoint,
         )
-        return tfm
+        try:
+            yield tfm
+        finally:
+            del tfm
+            torch.cuda.empty_cache()
 
     def forecast(
         self,
@@ -160,17 +167,17 @@ class TimesFM(Forecaster):
                 "please use the default quantiles or default level, "
                 "see https://github.com/google-research/timesfm/issues/286"
             )
-        predictor = self.get_predictor(
+        with self.get_predictor(
             prediction_length=h,
             quantiles=qc.quantiles or DEFAULT_QUANTILES_TFM,
-        )
-        fcst_df = predictor.forecast_on_df(
-            inputs=df,
-            freq=freq,
-            value_name="y",
-            model_name=self.alias,
-            num_jobs=1,
-        )
+        ) as predictor:
+            fcst_df = predictor.forecast_on_df(
+                inputs=df,
+                freq=freq,
+                value_name="y",
+                model_name=self.alias,
+                num_jobs=1,
+            )
         if qc.quantiles is not None:
             for q in qc.quantiles:
                 fcst_df = ufp.assign_columns(
