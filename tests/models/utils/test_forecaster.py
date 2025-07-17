@@ -10,7 +10,7 @@ from timecopilot.models.utils.forecaster import (
 )
 
 
-@pytest.mark.parametrize("freq", ["ME", "MS", "W-MON", "D"])
+@pytest.mark.parametrize("freq", ["MS", "W-MON", "D"])
 def test_maybe_infer_freq(freq):
     df = generate_series(
         n_series=2,

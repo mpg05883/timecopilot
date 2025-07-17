@@ -34,6 +34,7 @@ dependencies = [
   "chronos-forecasting>=1.5.2",
   "fire",
   "gluonts[torch]",
+  "pandas>=2.2.0 ; python_full_version >= '3.13'",
   "prophet>=1.1.7",
   "pydantic-ai[logfire]",
   "python-dotenv",
