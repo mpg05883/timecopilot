@@ -1,5 +1,6 @@
 from gluonts.torch.model.predictor import PyTorchPredictor
 from uni2ts.model.moirai import MoiraiForecast, MoiraiModule
+from uni2ts.model.moirai_moe import MoiraiMoEForecast, MoiraiMoEModule
 
 from ..utils.gluonts_forecaster import GluonTSForecaster
 
@@ -33,8 +34,12 @@ class Moirai(GluonTSForecaster):
         self.batch_size = batch_size
 
     def get_predictor(self, prediction_length: int) -> PyTorchPredictor:
-        model = MoiraiForecast(
-            module=MoiraiModule.from_pretrained(self.repo_id),
+        if "moe" in self.repo_id:
+            model_cls, model_module = MoiraiMoEForecast, MoiraiMoEModule
+        else:
+            model_cls, model_module = MoiraiForecast, MoiraiModule
+        model = model_cls(
+            module=model_module.from_pretrained(self.repo_id),
             prediction_length=prediction_length,
             context_length=self.context_length,
             patch_size=self.patch_size,
