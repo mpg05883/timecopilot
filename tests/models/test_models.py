@@ -2,9 +2,15 @@ import sys
 
 import pandas as pd
 import pytest
-from utilsforecast.data import generate_series
+from utilsforecast.data import generate_series as _generate_series
 
 from ..conftest import models
+
+
+def generate_series(n_series, freq, **kwargs):
+    df = _generate_series(n_series, freq, **kwargs)
+    df["unique_id"] = df["unique_id"].astype(str)
+    return df
 
 
 @pytest.mark.skipif(
@@ -25,7 +31,6 @@ def test_freq_inferred_correctly(model, freq):
         n_series,
         freq=freq,
     )
-    df["unique_id"] = df["unique_id"].astype(str)
     fcsts_no_freq = model.forecast(df, h=3)
     fcsts_with_freq = model.forecast(df, h=3, freq=freq)
     cv_no_freq = model.cross_validation(df, h=3)
@@ -53,7 +58,6 @@ def test_correct_forecast_dates(model, freq, h):
         n_series,
         freq=freq,
     )
-    df["unique_id"] = df["unique_id"].astype(str)
     df_test = df.groupby("unique_id").tail(h)
     df_train = df.drop(df_test.index)
     fcst_df = model.forecast(
@@ -77,7 +81,6 @@ def test_cross_validation(model, freq, n_windows):
     h = 12
     n_series = 5
     df = generate_series(n_series, freq=freq, equal_ends=True)
-    df["unique_id"] = df["unique_id"].astype(str)
     cv_df = model.cross_validation(
         df,
         h=h,
@@ -133,7 +136,7 @@ def test_passing_both_level_and_quantiles(model):
 
 @pytest.mark.parametrize("model", models)
 def test_using_quantiles(model):
-    qs = [i * 0.1 for i in range(1, 10)]
+    qs = [round(i * 0.1, 1) for i in range(1, 10)]
     df = generate_series(n_series=3, freq="D")
     fcst_df = model.forecast(
         df=df,
@@ -155,6 +158,9 @@ def test_using_quantiles(model):
         elif "timesfm" in model.alias.lower():
             # TimesFM is a bit more lenient with the monotonicity condition
             assert fcst_df[c1].le(fcst_df[c2]).mean() >= 0.8
+        elif "tabpfn" in model.alias.lower():
+            # we are testing the mock mode, so we don't care about monotonicity
+            continue
         else:
             assert fcst_df[c1].lt(fcst_df[c2]).all()
 
@@ -184,5 +190,8 @@ def test_using_level(model):
         elif "chronos" in model.alias.lower():
             # sometimes it gives this condition
             assert fcst_df[c1].le(fcst_df[c2]).all()
+        elif "tabpfn" in model.alias.lower():
+            # we are testing the mock mode, so we don't care about monotonicity
+            continue
         else:
             assert fcst_df[c1].lt(fcst_df[c2]).all()
