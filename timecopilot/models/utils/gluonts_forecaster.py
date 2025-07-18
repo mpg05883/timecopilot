@@ -3,13 +3,14 @@ from typing import Any
 
 import pandas as pd
 import torch
+import utilsforecast.processing as ufp
 from gluonts.dataset.pandas import PandasDataset
 from gluonts.model.forecast import Forecast
 from gluonts.torch.model.predictor import PyTorchPredictor
 from huggingface_hub import hf_hub_download
 from tqdm import tqdm
 
-from .forecaster import Forecaster
+from .forecaster import Forecaster, QuantileConverter
 
 
 def fix_freq(freq: str) -> str:
@@ -27,10 +28,17 @@ def maybe_convert_col_to_float32(df: pd.DataFrame, col_name: str) -> pd.DataFram
 
 
 class GluonTSForecaster(Forecaster):
-    def __init__(self, repo_id: str, filename: str, alias: str):
+    def __init__(
+        self,
+        repo_id: str,
+        filename: str,
+        alias: str,
+        num_samples: int = 100,
+    ):
         self.repo_id = repo_id
         self.filename = filename
         self.alias = alias
+        self.num_samples = num_samples
 
     @property
     def checkpoint_path(self) -> str:
@@ -58,6 +66,7 @@ class GluonTSForecaster(Forecaster):
         fcst: Forecast,
         freq: str,
         model_name: str,
+        quantiles: list[float] | None,
     ) -> pd.DataFrame:
         point_forecast = fcst.mean
         h = len(point_forecast)
@@ -73,6 +82,13 @@ class GluonTSForecaster(Forecaster):
                 model_name: point_forecast,
             }
         )
+        if quantiles is not None:
+            for q in quantiles:
+                fcst_df = ufp.assign_columns(
+                    fcst_df,
+                    f"{model_name}-q-{int(q * 100)}",
+                    fcst.quantile(q),
+                )
         return fcst_df
 
     def gluonts_fcsts_to_df(
@@ -80,6 +96,7 @@ class GluonTSForecaster(Forecaster):
         fcsts: Iterable[Forecast],
         freq: str,
         model_name: str,
+        quantiles: list[float] | None,
     ) -> pd.DataFrame:
         df = []
         for fcst in tqdm(fcsts):
@@ -87,6 +104,7 @@ class GluonTSForecaster(Forecaster):
                 fcst=fcst,
                 freq=freq,
                 model_name=model_name,
+                quantiles=quantiles,
             )
             df.append(fcst_df)
         return pd.concat(df).reset_index(drop=True)
@@ -144,12 +162,9 @@ class GluonTSForecaster(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        if level is not None and quantiles is not None:
-            raise NotImplementedError(
-                "Level and quantiles are not supported for GluonTSForecaster yet"
-            )
         df = maybe_convert_col_to_float32(df, "y")
         freq = self._maybe_infer_freq(df, freq)
+        qc = QuantileConverter(level=level, quantiles=quantiles)
         gluonts_dataset = PandasDataset.from_long_dataframe(
             df,
             target="y",
@@ -158,10 +173,20 @@ class GluonTSForecaster(Forecaster):
             freq=fix_freq(freq),
         )
         predictor = self.get_predictor(prediction_length=h)
-        fcsts = predictor.predict(gluonts_dataset, num_samples=100)
+        fcsts = predictor.predict(
+            gluonts_dataset,
+            num_samples=self.num_samples,
+        )
         fcst_df = self.gluonts_fcsts_to_df(
             fcsts,
             freq=freq,
             model_name=self.alias,
+            quantiles=qc.quantiles,
         )
+        if qc.quantiles is not None:
+            fcst_df = qc.maybe_convert_quantiles_to_level(
+                fcst_df,
+                models=[self.alias],
+            )
+
         return fcst_df

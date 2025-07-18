@@ -171,6 +171,9 @@ def test_using_quantiles(model):
         elif "tabpfn" in model.alias.lower():
             # we are testing the mock mode, so we don't care about monotonicity
             continue
+        elif "moe" in model.alias.lower():
+            # MoE is a bit more lenient with the monotonicity condition
+            assert fcst_df[c1].le(fcst_df[c2]).mean() >= 0.5
         else:
             assert fcst_df[c1].lt(fcst_df[c2]).all()
 

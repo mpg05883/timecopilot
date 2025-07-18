@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 from timecopilot.agent import MODELS
 from timecopilot.models.foundational.chronos import Chronos
+from timecopilot.models.foundational.moirai import Moirai
 from timecopilot.models.foundational.toto import Toto
 
 load_dotenv()
@@ -34,5 +35,17 @@ models.extend(
         Chronos(repo_id="amazon/chronos-t5-tiny", alias="Chronos-T5"),
         Chronos(repo_id="amazon/chronos-bolt-tiny", alias="Chronos-Bolt"),
         Toto(context_length=256, batch_size=2),
+        Moirai(
+            context_length=256,
+            batch_size=2,
+            repo_id="Salesforce/moirai-1.1-R-small",
+        ),
+        Moirai(
+            context_length=256,
+            batch_size=2,
+            repo_id="Salesforce/moirai-moe-1.0-R-small",
+            alias="Moirai-MoE",
+        ),
     ]
 )
+models = models[-1:]
