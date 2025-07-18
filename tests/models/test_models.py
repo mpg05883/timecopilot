@@ -23,6 +23,16 @@ def test_tirex_import_fails():
     assert "requires Python >= 3.11" in str(excinfo.value)
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 13),
+    reason="TabPFN requires Python < 3.13",
+)
+def test_tabpfn_import_fails():
+    with pytest.raises(ImportError) as excinfo:
+        from timecopilot.models.foundational.tabpfn import TabPFN  # noqa: F401
+    assert "requires Python < 3.13" in str(excinfo.value)
+
+
 @pytest.mark.parametrize("model", models)
 @pytest.mark.parametrize("freq", ["H", "D", "W-MON", "MS"])
 def test_freq_inferred_correctly(model, freq):
