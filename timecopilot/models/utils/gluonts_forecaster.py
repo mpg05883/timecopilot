@@ -27,10 +27,17 @@ def maybe_convert_col_to_float32(df: pd.DataFrame, col_name: str) -> pd.DataFram
 
 
 class GluonTSForecaster(Forecaster):
-    def __init__(self, repo_id: str, filename: str, alias: str):
+    def __init__(
+        self,
+        repo_id: str,
+        filename: str,
+        alias: str,
+        num_samples: int = 100,
+    ):
         self.repo_id = repo_id
         self.filename = filename
         self.alias = alias
+        self.num_samples = num_samples
 
     @property
     def checkpoint_path(self) -> str:
@@ -158,7 +165,10 @@ class GluonTSForecaster(Forecaster):
             freq=fix_freq(freq),
         )
         predictor = self.get_predictor(prediction_length=h)
-        fcsts = predictor.predict(gluonts_dataset, num_samples=100)
+        fcsts = predictor.predict(
+            gluonts_dataset,
+            num_samples=self.num_samples,
+        )
         fcst_df = self.gluonts_fcsts_to_df(
             fcsts,
             freq=freq,
