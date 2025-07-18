@@ -31,6 +31,11 @@
         members:
             - LagLlama
 
+::: timecopilot.models.foundational.tabpfn
+    options:
+        members:
+            - TabPFN
+
 ::: timecopilot.models.foundational.moirai
     options:
         members:

@@ -3346,8 +3346,8 @@ name = "omegaconf"
 version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "antlr4-python3-runtime", marker = "python_full_version >= '3.11'" },
-    { name = "pyyaml", marker = "python_full_version >= '3.11'" },
+    { name = "antlr4-python3-runtime" },
+    { name = "pyyaml" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/09/48/6388f1bb9da707110532cb70ec4d2822858ddfb44f1cdf1233c20a80ea4b/omegaconf-2.3.0.tar.gz", hash = "sha256:d5d4b6d29955cc50ad50c46dc269bcd92c6e00f5f90d23ab5fee7bfca4ba4cc7", size = 3298120, upload-time = "2022-12-08T20:59:22.753Z" }
 wheels = [
@@ -3614,6 +3614,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/66/94/68e2e17afaa9169cf6412ab0f28623903be73d1b32e208d9e8e541bb086d/parso-0.8.4.tar.gz", hash = "sha256:eb3a7b58240fb99099a345571deecc0f9540ea5f4dd2fe14c2a99d6b281ab92d", size = 400609, upload-time = "2024-04-05T09:43:55.897Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c6/ac/dac4a63f978e4dcb3c6d3a78c4d8e0192a113d288502a1216950c41b1027/parso-0.8.4-py2.py3-none-any.whl", hash = "sha256:a418670a20291dacd2dddc80c377c5c3791378ee1e8d12bffc35420643d43f18", size = 103650, upload-time = "2024-04-05T09:43:53.299Z" },
+]
+
+[[package]]
+name = "password-strength"
+version = "0.0.3.post2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "six", marker = "python_full_version < '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/db/f1/6165ebcca27fca3f1d63f8c3a45805c2ed8568be4d09219a2aa45e792c14/password_strength-0.0.3.post2.tar.gz", hash = "sha256:bf4df10a58fcd3abfa182367307b4fd7b1cec518121dd83bf80c1c42ba796762", size = 12857, upload-time = "2019-01-04T13:41:29.711Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1c/d6/08fd888c980589e4e27c2a4177e972481e8881600138e63afb785fe52630/password_strength-0.0.3.post2-py2.py3-none-any.whl", hash = "sha256:6739357c2863d707b7c7f247ff7c6882a70904a18d12c9aaf98f8b95da176fb9", size = 12167, upload-time = "2019-01-04T13:41:27.497Z" },
 ]
 
 [[package]]
@@ -5150,6 +5162,15 @@ wheels = [
 ]
 
 [[package]]
+name = "sseclient-py"
+version = "1.8.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e8/ed/3df5ab8bb0c12f86c28d0cadb11ed1de44a92ed35ce7ff4fd5518a809325/sseclient-py-1.8.0.tar.gz", hash = "sha256:c547c5c1a7633230a38dc599a21a2dc638f9b5c297286b48b46b935c71fac3e8", size = 7791, upload-time = "2023-09-01T19:39:20.45Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/49/58/97655efdfeb5b4eeab85b1fc5d3fa1023661246c2ab2a26ea8e47402d4f2/sseclient_py-1.8.0-py2.py3-none-any.whl", hash = "sha256:4ecca6dc0b9f963f8384e9d7fd529bf93dd7d708144c4fb5da0e0a1a926fee83", size = 8828, upload-time = "2023-09-01T19:39:17.627Z" },
+]
+
+[[package]]
 name = "stack-data"
 version = "0.6.3"
 source = { registry = "https://pypi.org/simple" }
@@ -5297,6 +5318,63 @@ wheels = [
 ]
 
 [[package]]
+name = "tabpfn"
+version = "2.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "einops", marker = "python_full_version < '3.13'" },
+    { name = "huggingface-hub", marker = "python_full_version < '3.13'" },
+    { name = "pandas", version = "2.1.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
+    { name = "scikit-learn", marker = "python_full_version < '3.13'" },
+    { name = "scipy", marker = "python_full_version < '3.13'" },
+    { name = "torch", marker = "python_full_version < '3.13'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/35/3a/a195dab09d94766b16837810ae8064079158193532923b96f22a95ed7024/tabpfn-2.1.0.tar.gz", hash = "sha256:bb74732d63a7cd419aaf71fbfeacd12c1a717b0a50342ae17f0736ddbad04dc5", size = 179399, upload-time = "2025-07-09T16:29:15.51Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/47/d6/dcec05d0e7d9f41d8501167f15c6a046b38e1d90bb34e6c91863915e9fe1/tabpfn-2.1.0-py3-none-any.whl", hash = "sha256:db99d7573626fa47ab27b7f03ee6a7a24e505b1dd6bfab66634fff96c1b0d436", size = 155495, upload-time = "2025-07-09T16:29:13.914Z" },
+]
+
+[[package]]
+name = "tabpfn-client"
+version = "0.1.7"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx", marker = "python_full_version < '3.13'" },
+    { name = "omegaconf", marker = "python_full_version < '3.13'" },
+    { name = "pandas", version = "2.1.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
+    { name = "password-strength", marker = "python_full_version < '3.13'" },
+    { name = "scikit-learn", marker = "python_full_version < '3.13'" },
+    { name = "sseclient-py", marker = "python_full_version < '3.13'" },
+    { name = "tqdm", marker = "python_full_version < '3.13'" },
+    { name = "xxhash", marker = "python_full_version < '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e2/cc/97be739da8d4113c13b8c9fa031908d59210005d38f944e0d678717cf91c/tabpfn_client-0.1.7.tar.gz", hash = "sha256:f8b82318ce22240b7622a05bea2422204ddd5374df335a19284eea0e2252924e", size = 17066065, upload-time = "2025-03-18T12:58:03.737Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5b/55/ba50a32b222616eb5653958fc94d91f54ab74109417ada52bb2aecb89a15/tabpfn_client-0.1.7-py3-none-any.whl", hash = "sha256:84245c893b06aa084795c31c04ec3f58186499dfcd7f6f2b8821f9a0a6028136", size = 1902270, upload-time = "2025-03-18T12:57:52.842Z" },
+]
+
+[[package]]
+name = "tabpfn-time-series"
+version = "1.0.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "datasets", marker = "python_full_version < '3.13'" },
+    { name = "gluonts", marker = "python_full_version < '3.13'" },
+    { name = "pandas", version = "2.1.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
+    { name = "python-dotenv", marker = "python_full_version < '3.13'" },
+    { name = "pyyaml", marker = "python_full_version < '3.13'" },
+    { name = "statsmodels", marker = "python_full_version < '3.13'" },
+    { name = "tabpfn", marker = "python_full_version < '3.13'" },
+    { name = "tabpfn-client", marker = "python_full_version < '3.13'" },
+    { name = "tqdm", marker = "python_full_version < '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/33/8e/82cea00d409a298144b569e4ec4eeb057f89d79c9b2a17d6c5025a7570ac/tabpfn_time_series-1.0.3.tar.gz", hash = "sha256:f0922f73dc4760cc4919b76381443f1b7287f694bb832c5675b5f4f4929fdb6b", size = 468774, upload-time = "2025-07-16T13:21:44.809Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c8/bf/13c7fdeeacaf7302b80755e85dcb01d8f47a9ddbac57adef263f0194820c/tabpfn_time_series-1.0.3-py3-none-any.whl", hash = "sha256:0f2436e1a3a87c91315852ab7f8151dcf15c3c2bee4d86e5ee569c0f7ee0f59a", size = 33340, upload-time = "2025-07-16T13:21:43.886Z" },
+]
+
+[[package]]
 name = "tabulate"
 version = "0.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -5360,6 +5438,7 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "scipy" },
     { name = "statsforecast" },
+    { name = "tabpfn-time-series", marker = "python_full_version < '3.13'" },
     { name = "timecopilot-timesfm" },
     { name = "timecopilot-tirex", marker = "python_full_version >= '3.11'" },
     { name = "timecopilot-toto" },
@@ -5393,6 +5472,7 @@ requires-dist = [
     { name = "python-dotenv" },
     { name = "scipy", specifier = "<=1.15.3" },
     { name = "statsforecast" },
+    { name = "tabpfn-time-series", marker = "python_full_version < '3.13'", specifier = ">=1.0.3" },
     { name = "timecopilot-timesfm", specifier = ">=0.1.0" },
     { name = "timecopilot-tirex", marker = "python_full_version >= '3.11'", specifier = ">=0.1.0" },
     { name = "timecopilot-toto", specifier = ">=0.1.1" },

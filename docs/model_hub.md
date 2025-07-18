@@ -46,6 +46,7 @@ TimeCopilot provides a unified interface to state-of-the-art foundation models f
 - [TiRex](api/models/foundational/models.md#timecopilot.models.foundational.tirex)
 - [LagLlama](api/models/foundational/models.md#timecopilot.models.foundational.lagllama)
 - [Moirai](api/models/foundational/models.md#timecopilot.models.foundational.moirai)
+- [TabPFN](api/models/foundational/models.md#timecopilot.models.foundational.tabpfn)
 
 ---
 
