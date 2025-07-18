@@ -77,7 +77,6 @@ class Moirai(GluonTSForecaster):
         )
         self.context_length = context_length
         self.patch_size = patch_size
-        self.num_samples = num_samples
         self.target_dim = target_dim
         self.feat_dynamic_real_dim = feat_dynamic_real_dim
         self.past_feat_dynamic_real_dim = past_feat_dynamic_real_dim
