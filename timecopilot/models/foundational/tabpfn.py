@@ -49,18 +49,20 @@ class TabPFN(Forecaster):
         Args:
             features (list[FeatureGenerator], optional): List of TabPFN-TS feature
                 generators to use for feature engineering. If None, uses
-                [RunningIndexFeature, CalendarFeature, AutoSeasonalFeature] by default.
+                `[RunningIndexFeature(), CalendarFeature(), AutoSeasonalFeature()]`
+                by default.
                 See
-                [TabPFN-TS features](https://github.com/PriorLabs/
-                tabpfn-time-series#feature-engineering).
+                [TabPFN-TS features](https://github.com/PriorLabs/tabpfn-time-series/
+                tree/main/tabpfn_time_series/features).
             context_length (int, optional): Maximum context length (input window size)
                 for the model. Defaults to 4096. Controls how much history is used for
                 each forecast.
             mode (TabPFNMode, optional): Inference mode for TabPFN. If None, uses LOCAL
-                if a GPU is available, otherwise CLIENT (cloud inference via
-                tabpfn-client). See
-                [TabPFN-TS docs](https://github.com/PriorLabs/
-                tabpfn-time-series#inference-modes).
+                (`"tabpfn-local"`) if a GPU is available, otherwise CLIENT (cloud
+                inference via `"tabpfn-client"`). See
+                [TabPFN-TS docs](https://github.com/PriorLabs/tabpfn-time-series/
+                blob/3cd61ad556466de837edd1c6036744176145c024/tabpfn_time_series/
+                predictor.py#L11) for available modes.
             api_key (str, optional): API key for tabpfn-client cloud inference. Required
                 if using CLIENT mode and not already set in the environment.
             alias (str, optional): Name to use for the model in output DataFrames and
@@ -68,8 +70,8 @@ class TabPFN(Forecaster):
 
         Notes:
             - For LOCAL mode, a CUDA-capable GPU is recommended for best performance.
-            - For more information, see the [TabPFN-TS documentation]
-              (https://github.com/PriorLabs/tabpfn-time-series).
+            - For more information, see the [TabPFN-TS documentation](
+            https://github.com/PriorLabs/tabpfn-time-series).
         """
         if features is None:
             features = [
