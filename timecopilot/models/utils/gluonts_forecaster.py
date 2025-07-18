@@ -162,10 +162,6 @@ class GluonTSForecaster(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        if level is not None and quantiles is not None:
-            raise NotImplementedError(
-                "Level and quantiles are not supported for GluonTSForecaster yet"
-            )
         df = maybe_convert_col_to_float32(df, "y")
         freq = self._maybe_infer_freq(df, freq)
         qc = QuantileConverter(level=level, quantiles=quantiles)

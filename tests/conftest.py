@@ -44,6 +44,8 @@ models.extend(
             context_length=256,
             batch_size=2,
             repo_id="Salesforce/moirai-moe-1.0-R-small",
+            alias="Moirai-MoE",
         ),
     ]
 )
+models = models[-1:]
