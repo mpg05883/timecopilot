@@ -17,7 +17,11 @@ class TimeCopilotForecaster(Forecaster):
     once, passing a list of models, and receive merged results for all models.
     """
 
-    def __init__(self, models: list[Forecaster]):
+    def __init__(
+        self,
+        models: list[Forecaster],
+        fallback_model: Forecaster | None = None,
+    ):
         """
         Initialize the TimeCopilotForecaster with a list of models.
 
@@ -27,8 +31,11 @@ class TimeCopilotForecaster(Forecaster):
                 (foundational, statistical, ML, neural, etc.). Each model must
                 implement the `forecast` and `cross_validation` methods with
                 compatible signatures.
+            fallback_model (Forecaster, optional):
+                Model to use as a fallback when a model fails.
         """
         self.models = models
+        self.fallback_model = fallback_model
 
     def _call_models(
         self,
@@ -45,14 +52,27 @@ class TimeCopilotForecaster(Forecaster):
         freq = self._maybe_infer_freq(df, freq)
         res_df: pd.DataFrame | None = None
         for model in self.models:
-            res_df_model = getattr(model, attr)(
-                df=df,
-                h=h,
-                freq=freq,
-                level=level,
-                quantiles=quantiles,
-                **kwargs,
-            )
+            known_kwargs = {
+                "df": df,
+                "h": h,
+                "freq": freq,
+                "level": level,
+                "quantiles": quantiles,
+            }
+            fn = getattr(model, attr)
+            try:
+                res_df_model = fn(**known_kwargs, **kwargs)
+            except Exception as e:
+                if self.fallback_model is not None:
+                    fn = getattr(self.fallback_model, attr)
+                    res_df_model = fn(**known_kwargs, **kwargs)
+                    cols_map = {
+                        col: col.replace(self.fallback_model.alias, model.alias)
+                        for col in res_df_model.columns
+                    }
+                    res_df_model = res_df_model.rename(columns=cols_map)
+                else:
+                    raise e
             if res_df is None:
                 res_df = res_df_model
             else:
