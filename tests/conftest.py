@@ -1,13 +1,9 @@
 import sys
 
-from dotenv import load_dotenv
-
 from timecopilot.agent import MODELS
 from timecopilot.models.foundational.chronos import Chronos
 from timecopilot.models.foundational.moirai import Moirai
 from timecopilot.models.foundational.toto import Toto
-
-load_dotenv()
 
 benchmark_models = [
     "AutoARIMA",
