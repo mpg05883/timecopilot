@@ -166,7 +166,7 @@ class GluonTSForecaster(Forecaster):
         freq = self._maybe_infer_freq(df, freq)
         qc = QuantileConverter(level=level, quantiles=quantiles)
         gluonts_dataset = PandasDataset.from_long_dataframe(
-            df,
+            df.copy(),
             target="y",
             item_id="unique_id",
             timestamp="ds",
