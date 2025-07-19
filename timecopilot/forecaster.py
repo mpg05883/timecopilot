@@ -27,8 +27,33 @@ class TimeCopilotForecaster(Forecaster):
                 (foundational, statistical, ML, neural, etc.). Each model must
                 implement the `forecast` and `cross_validation` methods with
                 compatible signatures.
+        
+        Raises:
+            ValueError: If duplicate model aliases are found in the models list.
         """
+        self._validate_unique_aliases(models)
         self.models = models
+
+    def _validate_unique_aliases(self, models: list[Forecaster]) -> None:
+        """
+        Validate that all models have unique aliases.
+        
+        Args:
+            models (list[Forecaster]): List of model instances to validate.
+            
+        Raises:
+            ValueError: If duplicate aliases are found.
+        """
+        aliases = [model.alias for model in models]
+        duplicates = set([alias for alias in aliases if aliases.count(alias) > 1])
+        
+        if duplicates:
+            raise ValueError(
+                f"Duplicate model aliases found: {sorted(duplicates)}. "
+                f"Each model must have a unique alias to avoid column name conflicts. "
+                f"Please provide different aliases when instantiating models of the "
+                f"same class."
+            )
 
     def _call_models(
         self,
