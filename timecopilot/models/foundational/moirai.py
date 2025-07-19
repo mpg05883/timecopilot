@@ -1,3 +1,6 @@
+from contextlib import contextmanager
+
+import torch
 from gluonts.torch.model.predictor import PyTorchPredictor
 from uni2ts.model.moirai import MoiraiForecast, MoiraiModule
 from uni2ts.model.moirai_moe import MoiraiMoEForecast, MoiraiMoEModule
@@ -82,6 +85,7 @@ class Moirai(GluonTSForecaster):
         self.past_feat_dynamic_real_dim = past_feat_dynamic_real_dim
         self.batch_size = batch_size
 
+    @contextmanager
     def get_predictor(self, prediction_length: int) -> PyTorchPredictor:
         if "moe" in self.repo_id:
             model_cls, model_module = MoiraiMoEForecast, MoiraiMoEModule
@@ -98,4 +102,9 @@ class Moirai(GluonTSForecaster):
             past_feat_dynamic_real_dim=self.past_feat_dynamic_real_dim,
         )
         predictor = model.create_predictor(batch_size=self.batch_size)
-        return predictor
+
+        try:
+            yield predictor
+        finally:
+            del predictor, model
+            torch.cuda.empty_cache()

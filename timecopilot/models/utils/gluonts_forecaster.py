@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from contextlib import contextmanager
 from typing import Any
 
 import pandas as pd
@@ -58,6 +59,7 @@ class GluonTSForecaster(Forecaster):
             map_location=self.map_location,
         )
 
+    @contextmanager
     def get_predictor(self, prediction_length: int) -> PyTorchPredictor:
         raise NotImplementedError
 
@@ -172,11 +174,11 @@ class GluonTSForecaster(Forecaster):
             timestamp="ds",
             freq=fix_freq(freq),
         )
-        predictor = self.get_predictor(prediction_length=h)
-        fcsts = predictor.predict(
-            gluonts_dataset,
-            num_samples=self.num_samples,
-        )
+        with self.get_predictor(prediction_length=h) as predictor:
+            fcsts = predictor.predict(
+                gluonts_dataset,
+                num_samples=self.num_samples,
+            )
         fcst_df = self.gluonts_fcsts_to_df(
             fcsts,
             freq=freq,
