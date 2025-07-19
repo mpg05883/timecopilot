@@ -50,16 +50,16 @@ class Toto(Forecaster):
 
         Notes:
             **Academic Reference:**
-            
+
             - Paper: [Building a Foundation Model for Time Series](https://arxiv.org/abs/2505.14766)
-            
+
             **Resources:**
-            
+
             - GitHub: [DataDog/toto](https://github.com/DataDog/toto)
             - HuggingFace: [Datadog Models](https://huggingface.co/Datadog)
-            
+
             **Technical Details:**
-            
+
             - The model is loaded onto the best available device (GPU if available,
               otherwise CPU).
             - For best performance, a CUDA-capable GPU is recommended.

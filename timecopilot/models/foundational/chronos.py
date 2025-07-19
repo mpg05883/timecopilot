@@ -42,16 +42,16 @@ class Chronos(Forecaster):
 
         Notes:
             **Academic Reference:**
-            
+
             - Paper: [Chronos: Learning the Language of Time Series](https://arxiv.org/abs/2403.07815)
-            
+
             **Resources:**
-            
+
             - GitHub: [amazon-science/chronos-forecasting](https://github.com/amazon-science/chronos-forecasting)
             - HuggingFace: [amazon/chronos-models](https://huggingface.co/collections/amazon/chronos-models-65f1791d630a8d57cb718444)
-            
+
             **Technical Details:**
-            
+
             - The model is loaded onto the best available device (GPU if
               available, otherwise CPU).
             - For best performance with large models (e.g., "chronos-t5-large"),

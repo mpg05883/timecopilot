@@ -41,18 +41,19 @@ class TimeGPT(Forecaster):
 
         Notes:
             **Academic Reference:**
-            
+
             - Paper: [TimeGPT-1](https://arxiv.org/abs/2310.03589)
-            
+
             **Resources:**
-            
+
             - GitHub: [Nixtla/nixtla](https://github.com/Nixtla/nixtla)
-            
+
             **Technical Details:**
-            
-            - TimeGPT is a foundation model for time series forecasting designed for 
+
+            - TimeGPT is a foundation model for time series forecasting designed for
               production-ready forecasting with minimal setup.
-            - Provides zero-shot forecasting capabilities across various domains and frequencies.
+            - Provides zero-shot forecasting capabilities across various
+              domains and frequencies.
             - Requires a valid API key from Nixtla to use.
             - For more information, see the
               [TimeGPT documentation](https://www.nixtla.io/docs).
