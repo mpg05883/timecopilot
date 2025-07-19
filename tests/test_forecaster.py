@@ -85,6 +85,7 @@ def test_forecaster_forecast_with_quantiles(models):
         for q in quantiles:
             assert f"{model.alias}-q-{int(100 * q)}" in fcst_df.columns
 
+
 def test_forecaster_fallback_model():
     from timecopilot.models.utils.forecaster import Forecaster
 
@@ -136,6 +137,7 @@ def test_forecaster_no_fallback_raises():
     forecaster = TimeCopilotForecaster(models=[FailingModel()])
     with pytest.raises(RuntimeError, match="Intentional failure"):
         forecaster.forecast(df=df, h=2, freq="D")
+
 
 def test_duplicate_aliases_raises_error():
     """Test that TimeCopilotForecaster raises error with duplicate aliases."""
