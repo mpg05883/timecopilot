@@ -69,9 +69,18 @@ class TabPFN(Forecaster):
                 logs. Defaults to "TabPFN".
 
         Notes:
+            **Academic Reference:**
+
+            - Paper: [From Tables to Time: How TabPFN-v2 Outperforms
+            Specialized Time Series Forecasting Models](https://arxiv.org/abs/2501.02945)
+
+            **Resources:**
+
+            - GitHub: [PriorLabs/tabpfn-time-series](https://github.com/PriorLabs/tabpfn-time-series)
+
+            **Technical Details:**
+
             - For LOCAL mode, a CUDA-capable GPU is recommended for best performance.
-            - For more information, see the [TabPFN-TS documentation](
-            https://github.com/PriorLabs/tabpfn-time-series).
         """
         if features is None:
             features = [
