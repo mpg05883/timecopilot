@@ -26,11 +26,6 @@
         members:
             - TiRex
 
-::: timecopilot.models.foundational.lagllama
-    options:
-        members:
-            - LagLlama
-
 ::: timecopilot.models.foundational.tabpfn
     options:
         members:

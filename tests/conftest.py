@@ -48,4 +48,3 @@ models.extend(
         ),
     ]
 )
-models = models[-1:]
