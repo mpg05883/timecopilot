@@ -91,7 +91,7 @@ def test_duplicate_aliases_raises_error():
     # Create two models with the same alias
     model1 = Moirai(repo_id="Salesforce/moirai-1.0-R-small", alias="Moirai")
     model2 = Moirai(repo_id="Salesforce/moirai-1.0-R-large", alias="Moirai")
-    
+
     with pytest.raises(
         ValueError, match="Duplicate model aliases found: \\['Moirai'\\]"
     ):
@@ -103,7 +103,7 @@ def test_unique_aliases_works():
     # Create two models with different aliases
     model1 = Moirai(repo_id="Salesforce/moirai-1.0-R-small", alias="MoiraiSmall")
     model2 = Moirai(repo_id="Salesforce/moirai-1.0-R-large", alias="MoiraiLarge")
-    
+
     # This should not raise an error
     forecaster = TimeCopilotForecaster(models=[model1, model2])
     assert len(forecaster.models) == 2
@@ -114,9 +114,9 @@ def test_unique_aliases_works():
 def test_mixed_models_unique_aliases():
     """Test that different model classes with unique aliases work together."""
     model1 = SeasonalNaive()
-    model2 = ZeroModel()  
+    model2 = ZeroModel()
     model3 = Moirai(repo_id="Salesforce/moirai-1.0-R-small", alias="MoiraiTest")
-    
+
     # This should not raise an error
     forecaster = TimeCopilotForecaster(models=[model1, model2, model3])
     assert len(forecaster.models) == 3
