@@ -66,13 +66,34 @@ def test_freq_inferred_correctly(model, freq):
 
 
 @pytest.mark.parametrize("model", models)
-@pytest.mark.parametrize("freq", ["H", "D", "W-MON", "MS"])
+@pytest.mark.parametrize(
+    "freq",
+    [
+        # gift eval freqs
+        "10S",
+        "10T",
+        "15T",
+        "5T",
+        "A-DEC",
+        "D",
+        "H",
+        "M",
+        "MS",
+        "Q-DEC",
+        "W-FRI",
+        "W-SUN",
+        "W-THU",
+        "W-TUE",
+        "W-WED",
+    ],
+)
 @pytest.mark.parametrize("h", [1, 12])
 def test_correct_forecast_dates(model, freq, h):
     n_series = 5
     df = generate_series(
         n_series,
         freq=freq,
+        max_length=50,
     )
     df_test = df.groupby("unique_id").tail(h)
     df_train = df.drop(df_test.index)
