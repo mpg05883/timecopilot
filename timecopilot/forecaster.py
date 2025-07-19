@@ -90,12 +90,15 @@ class TimeCopilotForecaster(Forecaster):
             except (ValueError, RuntimeError) as e:
                 if self.fallback_model is not None:
                     fn = getattr(self.fallback_model, attr)
-                    res_df_model = fn(**known_kwargs, **kwargs)
-                    cols_map = {
-                        col: col.replace(self.fallback_model.alias, model.alias)
-                        for col in res_df_model.columns
-                    }
-                    res_df_model = res_df_model.rename(columns=cols_map)
+                    try:
+                        res_df_model = fn(**known_kwargs, **kwargs)
+                        cols_map = {
+                            col: col.replace(self.fallback_model.alias, model.alias)
+                            for col in res_df_model.columns
+                        }
+                        res_df_model = res_df_model.rename(columns=cols_map)
+                    except Exception:
+                        raise e
                 else:
                     raise e
             if res_df is None:
