@@ -66,11 +66,19 @@ class Moirai(GluonTSForecaster):
                 logs. Defaults to "Moirai".
 
         Notes:
+            **Academic Reference:**
+
+            - Paper: [Unified Training of Universal Time Series Forecasting Transformers](https://arxiv.org/abs/2402.02592)
+
+            **Resources:**
+
+            - GitHub: [SalesforceAIResearch/uni2ts](https://github.com/SalesforceAIResearch/uni2ts)
+            - HuggingFace: [Salesforce/moirai-r-models](https://huggingface.co/collections/Salesforce/moirai-r-models-65c8d3a94c51428c300e0742)
+
+            **Technical Details:**
+
             - The model is loaded onto the best available device (GPU if available,
               otherwise CPU).
-            - For more information, see the
-              [Moirai documentation](https://github.com/SalesforceAIResearch/uni2ts) and
-              [arXiv:2402.02592](https://arxiv.org/abs/2402.02592).
         """
         super().__init__(
             repo_id=repo_id,
