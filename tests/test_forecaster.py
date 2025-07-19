@@ -86,6 +86,59 @@ def test_forecaster_forecast_with_quantiles(models):
             assert f"{model.alias}-q-{int(100 * q)}" in fcst_df.columns
 
 
+def test_forecaster_fallback_model():
+    from timecopilot.models.utils.forecaster import Forecaster
+
+    class FailingModel(Forecaster):
+        alias = "FailingModel"
+
+        def forecast(self, df, h, freq=None, level=None, quantiles=None):
+            raise RuntimeError("Intentional failure")
+
+    class DummyModel(Forecaster):
+        alias = "DummyModel"
+
+        def forecast(self, df, h, freq=None, level=None, quantiles=None):
+            # Return a DataFrame with the expected columns
+            import pandas as pd
+
+            n = len(df["unique_id"].unique()) * h
+            return pd.DataFrame(
+                {
+                    "unique_id": ["A"] * n,
+                    "ds": pd.date_range("2020-01-01", periods=n, freq="D"),
+                    "DummyModel": range(n),
+                }
+            )
+
+    df = generate_series(n_series=1, freq="D", min_length=10)
+    forecaster = TimeCopilotForecaster(
+        models=[FailingModel()],
+        fallback_model=DummyModel(),
+    )
+    fcst_df = forecaster.forecast(df=df, h=2, freq="D")
+    # Should use DummyModel's output
+    # and rename the columns to the original model's alias
+    assert "FailingModel" in fcst_df.columns
+    assert "DummyModel" not in fcst_df.columns
+    assert len(fcst_df) == 2
+
+
+def test_forecaster_no_fallback_raises():
+    from timecopilot.models.utils.forecaster import Forecaster
+
+    class FailingModel(Forecaster):
+        alias = "FailingModel"
+
+        def forecast(self, df, h, freq=None, level=None, quantiles=None):
+            raise RuntimeError("Intentional failure")
+
+    df = generate_series(n_series=1, freq="D", min_length=10)
+    forecaster = TimeCopilotForecaster(models=[FailingModel()])
+    with pytest.raises(RuntimeError, match="Intentional failure"):
+        forecaster.forecast(df=df, h=2, freq="D")
+
+
 def test_duplicate_aliases_raises_error():
     """Test that TimeCopilotForecaster raises error with duplicate aliases."""
     # Create two models with the same alias
