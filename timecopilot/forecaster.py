@@ -87,7 +87,7 @@ class TimeCopilotForecaster(Forecaster):
             fn = getattr(model, attr)
             try:
                 res_df_model = fn(**known_kwargs, **kwargs)
-            except Exception as e:
+            except (ValueError, RuntimeError) as e:
                 if self.fallback_model is not None:
                     fn = getattr(self.fallback_model, attr)
                     res_df_model = fn(**known_kwargs, **kwargs)
