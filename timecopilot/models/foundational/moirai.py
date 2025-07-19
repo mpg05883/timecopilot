@@ -11,11 +11,13 @@ class Moirai(GluonTSForecaster):
     handle a wide range of frequencies, multivariate series, and covariates. It uses
     a masked encoder-based transformer architecture with multi-patch size projection
     layers and Any-Variate Attention, enabling zero-shot and probabilistic
-    forecasting. See the [official repo](https://github.com/
-    SalesforceAIResearch/uni2ts),
-    [Hugging Face](https://huggingface.co/collections/
-    Salesforce/moirai-r-models-65c8d3a94c51428c300e0742), and
-    [arXiv:2402.02592](https://arxiv.org/abs/2402.02592) for more details.
+    forecasting.
+
+    **Paper**: [Unified Training of Universal Time Series Forecasting Transformers](https://arxiv.org/abs/2402.02592)
+
+    **GitHub**: [SalesforceAIResearch/uni2ts](https://github.com/SalesforceAIResearch/uni2ts)
+
+    **HuggingFace**: [Salesforce/moirai-r-models](https://huggingface.co/collections/Salesforce/moirai-r-models-65c8d3a94c51428c300e0742)
     """
 
     def __init__(

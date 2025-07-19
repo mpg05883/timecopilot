@@ -10,6 +10,17 @@ load_dotenv()
 
 
 class TimeGPT(Forecaster):
+    """
+    TimeGPT is a foundation model for time series forecasting from Nixtla, designed for 
+    production-ready forecasting with minimal setup. It provides zero-shot forecasting 
+    capabilities across various domains and frequencies.
+
+    **Paper**: [TimeGPT-1](https://arxiv.org/abs/2310.03589)
+
+    **GitHub**: [Nixtla/nixtla](https://github.com/Nixtla/nixtla)
+
+    **HuggingFace**: [Nixtla Models](https://huggingface.co/Nixtla)
+    """
     def __init__(
         self,
         api_key: str | None = None,

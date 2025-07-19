@@ -18,9 +18,15 @@ from .utils import TimeSeriesDataset
 
 class TiRex(Forecaster):
     """
-    TiRex is a zero-shot time series forecasting model based on xLSTM,
+    TiRex is a zero-shot time series forecasting model based on xLSTM architecture,
     supporting both point and quantile predictions for long and short horizons.
-    See the [official repo](https://github.com/NX-AI/tirex) for more details.
+    It leverages extended Long Short-Term Memory for effective time series modeling.
+
+    **Paper**: [TiRex: Zero-shot Time Series Forecasting with xLSTM](https://arxiv.org/abs/2412.11298)
+
+    **GitHub**: [NX-AI/tirex](https://github.com/NX-AI/tirex)
+
+    **HuggingFace**: [NX-AI Models](https://huggingface.co/NX-AI)
     """
 
     def __init__(

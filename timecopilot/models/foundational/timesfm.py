@@ -11,9 +11,15 @@ from ..utils.forecaster import Forecaster, QuantileConverter
 
 class TimesFM(Forecaster):
     """
-    TimesFM is a large time series model for time series forecasting, supporting both
-    probabilistic and point forecasts. See the [official repo](https://github.com/
-    google-research/timesfm) for more details.
+    TimesFM is a decoder-only foundation model for time-series forecasting from Google Research,
+    trained on diverse time series data to enable zero-shot forecasting across various domains
+    and frequencies. It supports both probabilistic and point forecasts.
+
+    **Paper**: [A decoder-only foundation model for time-series forecasting](https://arxiv.org/abs/2310.10688)
+
+    **GitHub**: [google-research/timesfm](https://github.com/google-research/timesfm)
+
+    **HuggingFace**: [google/timesfm-release](https://huggingface.co/collections/google/timesfm-release-66e4be5fdb56e960c1e482a6)
     """
 
     def __init__(

@@ -12,10 +12,15 @@ from .utils import TimeSeriesDataset
 
 class Chronos(Forecaster):
     """
-    Chronos models are large pre-trained models for time series forecasting,
-    supporting both probabilistic and point forecasts. See the
-    [official repo](https://github.com/amazon-science/chronos-forecasting)
-    for more details.
+    Chronos models are large pre-trained transformer models for time series forecasting,
+    supporting both probabilistic and point forecasts. Chronos is trained on a diverse 
+    collection of time series data and can handle various frequencies and patterns.
+
+    **Paper**: [Chronos: Learning the Language of Time Series](https://arxiv.org/abs/2403.07815)
+
+    **GitHub**: [amazon-science/chronos-forecasting](https://github.com/amazon-science/chronos-forecasting)
+
+    **HuggingFace**: [amazon/chronos-models](https://huggingface.co/collections/amazon/chronos-models-65f1791d630a8d57cb718444)
     """
 
     def __init__(
