@@ -16,9 +16,8 @@ from .forecaster import Forecaster, QuantileConverter
 
 def fix_freq(freq: str) -> str:
     # see https://github.com/awslabs/gluonts/pull/2462/files
-    if len(freq) > 1 and freq.endswith("S"):
-        return freq[:-1]
-    return freq
+    replacer = {"MS": "M"}
+    return replacer.get(freq, freq)
 
 
 def maybe_convert_col_to_float32(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
