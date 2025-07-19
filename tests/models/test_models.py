@@ -16,7 +16,7 @@ def generate_series(n_series, freq, **kwargs):
 def test_timegpt_import():
     # we are not testing timegpt
     # since we need to make api calls to the timegpt api
-    pass
+    from timecopilot.models.foundational.timegpt import TimeGPT  # noqa: F401
 
 
 @pytest.mark.skipif(
