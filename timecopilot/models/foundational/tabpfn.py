@@ -71,7 +71,7 @@ class TabPFN(Forecaster):
         Notes:
             **Academic Reference:**
             
-            - Paper: [TabPFN: A Transformer That Solves Small Tabular Classification Problems in a Second](https://arxiv.org/abs/2207.01848)
+            - Paper: [TabPFN: A Transformer That Solves Small Tabular Classification Problems in a Second](https://arxiv.org/abs/2501.02945)
             
             **Resources:**
             

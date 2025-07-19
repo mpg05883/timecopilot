@@ -45,7 +45,7 @@ TimeCopilot provides a unified interface to state-of-the-art foundation models f
 - [Toto](api/models/foundational/models.md#timecopilot.models.foundational.toto) ([arXiv:2505.14766](https://arxiv.org/abs/2505.14766))
 - [TiRex](api/models/foundational/models.md#timecopilot.models.foundational.tirex) ([arXiv:2505.23719](https://arxiv.org/abs/2505.23719))
 - [Moirai](api/models/foundational/models.md#timecopilot.models.foundational.moirai) ([arXiv:2402.02592](https://arxiv.org/abs/2402.02592))
-- [TabPFN](api/models/foundational/models.md#timecopilot.models.foundational.tabpfn) ([arXiv:2207.01848](https://arxiv.org/abs/2207.01848))
+- [TabPFN](api/models/foundational/models.md#timecopilot.models.foundational.tabpfn) ([arXiv:2501.02945](https://arxiv.org/abs/2501.02945))
 
 ---
 
