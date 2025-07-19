@@ -41,9 +41,17 @@ class TiRex(Forecaster):
                 and logs. Defaults to "TiRex".
 
         Notes:
-            - **Paper**: [TiRex: Zero-shot Time Series Forecasting with xLSTM](https://arxiv.org/abs/2412.11298)
-            - **GitHub**: [NX-AI/tirex](https://github.com/NX-AI/tirex)
-            - **HuggingFace**: [NX-AI Models](https://huggingface.co/NX-AI)
+            **Academic Reference:**
+            
+            - Paper: [TiRex: Zero-shot Time Series Forecasting with xLSTM](https://arxiv.org/abs/2505.23719)
+            
+            **Resources:**
+            
+            - GitHub: [NX-AI/tirex](https://github.com/NX-AI/tirex)
+            - HuggingFace: [NX-AI Models](https://huggingface.co/NX-AI)
+            
+            **Technical Details:**
+            
             - The model is loaded onto the best available device (GPU if available,
               otherwise CPU).
             - On CPU, CUDA kernels are disabled automatically. See the

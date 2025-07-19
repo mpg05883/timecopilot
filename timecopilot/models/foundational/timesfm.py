@@ -49,9 +49,17 @@ class TimesFM(Forecaster):
                 logs. Defaults to "TimesFM".
 
         Notes:
-            - **Paper**: [A decoder-only foundation model for time-series forecasting](https://arxiv.org/abs/2310.10688)
-            - **GitHub**: [google-research/timesfm](https://github.com/google-research/timesfm)
-            - **HuggingFace**: [google/timesfm-release](https://huggingface.co/collections/google/timesfm-release-66e4be5fdb56e960c1e482a6)
+            **Academic Reference:**
+            
+            - Paper: [A decoder-only foundation model for time-series forecasting](https://arxiv.org/abs/2310.10688)
+            
+            **Resources:**
+            
+            - GitHub: [google-research/timesfm](https://github.com/google-research/timesfm)
+            - HuggingFace: [google/timesfm-release](https://huggingface.co/collections/google/timesfm-release-66e4be5fdb56e960c1e482a6)
+            
+            **Technical Details:**
+            
             - Only PyTorch checkpoints are currently supported. JAX is not supported.
             - TimesFM 2.0 models are not yet supported. See
               [issue #269](https://github.com/google-research/timesfm/issues/269)

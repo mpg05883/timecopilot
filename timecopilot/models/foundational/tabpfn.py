@@ -69,9 +69,16 @@ class TabPFN(Forecaster):
                 logs. Defaults to "TabPFN".
 
         Notes:
-            - **Paper**: [TabPFN: A Transformer That Solves Small Tabular Classification Problems in a Second](https://arxiv.org/abs/2207.01848)
-            - **GitHub**: [PriorLabs/tabpfn-time-series](https://github.com/PriorLabs/tabpfn-time-series)
-            - **HuggingFace**: [PriorLabs Models](https://huggingface.co/PriorLabs)
+            **Academic Reference:**
+            
+            - Paper: [TabPFN: A Transformer That Solves Small Tabular Classification Problems in a Second](https://arxiv.org/abs/2207.01848)
+            
+            **Resources:**
+            
+            - GitHub: [PriorLabs/tabpfn-time-series](https://github.com/PriorLabs/tabpfn-time-series)
+            
+            **Technical Details:**
+            
             - For LOCAL mode, a CUDA-capable GPU is recommended for best performance.
         """
         if features is None:

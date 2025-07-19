@@ -42,8 +42,8 @@ TimeCopilot provides a unified interface to state-of-the-art foundation models f
 - [Chronos](api/models/foundational/models.md#timecopilot.models.foundational.chronos) ([arXiv:2403.07815](https://arxiv.org/abs/2403.07815))
 - [TimeGPT](api/models/foundational/models.md#timecopilot.models.foundational.timegpt) ([arXiv:2310.03589](https://arxiv.org/abs/2310.03589))
 - [TimesFM](api/models/foundational/models.md#timecopilot.models.foundational.timesfm) ([arXiv:2310.10688](https://arxiv.org/abs/2310.10688))
-- [Toto](api/models/foundational/models.md#timecopilot.models.foundational.toto) ([arXiv:2402.12971](https://arxiv.org/abs/2402.12971))
-- [TiRex](api/models/foundational/models.md#timecopilot.models.foundational.tirex) ([arXiv:2412.11298](https://arxiv.org/abs/2412.11298))
+- [Toto](api/models/foundational/models.md#timecopilot.models.foundational.toto) ([arXiv:2505.14766](https://arxiv.org/abs/2505.14766))
+- [TiRex](api/models/foundational/models.md#timecopilot.models.foundational.tirex) ([arXiv:2505.23719](https://arxiv.org/abs/2505.23719))
 - [Moirai](api/models/foundational/models.md#timecopilot.models.foundational.moirai) ([arXiv:2402.02592](https://arxiv.org/abs/2402.02592))
 - [TabPFN](api/models/foundational/models.md#timecopilot.models.foundational.tabpfn) ([arXiv:2207.01848](https://arxiv.org/abs/2207.01848))
 
