@@ -11,13 +11,11 @@ class Moirai(GluonTSForecaster):
     handle a wide range of frequencies, multivariate series, and covariates. It uses
     a masked encoder-based transformer architecture with multi-patch size projection
     layers and Any-Variate Attention, enabling zero-shot and probabilistic
-    forecasting.
-
-    **Paper**: [Unified Training of Universal Time Series Forecasting Transformers](https://arxiv.org/abs/2402.02592)
-
-    **GitHub**: [SalesforceAIResearch/uni2ts](https://github.com/SalesforceAIResearch/uni2ts)
-
-    **HuggingFace**: [Salesforce/moirai-r-models](https://huggingface.co/collections/Salesforce/moirai-r-models-65c8d3a94c51428c300e0742)
+    forecasting. See the [official repo](https://github.com/
+    SalesforceAIResearch/uni2ts),
+    [Hugging Face](https://huggingface.co/collections/
+    Salesforce/moirai-r-models-65c8d3a94c51428c300e0742), and
+    [arXiv:2402.02592](https://arxiv.org/abs/2402.02592) for more details.
     """
 
     def __init__(
@@ -65,11 +63,11 @@ class Moirai(GluonTSForecaster):
                 logs. Defaults to "Moirai".
 
         Notes:
+            - **Paper**: [Unified Training of Universal Time Series Forecasting Transformers](https://arxiv.org/abs/2402.02592)
+            - **GitHub**: [SalesforceAIResearch/uni2ts](https://github.com/SalesforceAIResearch/uni2ts)
+            - **HuggingFace**: [Salesforce/moirai-r-models](https://huggingface.co/collections/Salesforce/moirai-r-models-65c8d3a94c51428c300e0742)
             - The model is loaded onto the best available device (GPU if available,
               otherwise CPU).
-            - For more information, see the
-              [Moirai documentation](https://github.com/SalesforceAIResearch/uni2ts) and
-              [arXiv:2402.02592](https://arxiv.org/abs/2402.02592).
         """
         super().__init__(
             repo_id=repo_id,

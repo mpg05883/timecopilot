@@ -39,54 +39,13 @@ Here you'll find all the time series forecasting models available in TimeCopilot
 
 TimeCopilot provides a unified interface to state-of-the-art foundation models for time series forecasting. These models are designed to handle a wide range of forecasting tasks, from classical seasonal patterns to complex, high-dimensional data. Below you will find a list of all available foundation models, each with a dedicated section describing its API and usage.
 
-### [Chronos](api/models/foundational/models.md#timecopilot.models.foundational.chronos)
-Large pre-trained transformer models for time series forecasting, supporting both probabilistic and point forecasts.
-
-- **Paper**: [Chronos: Learning the Language of Time Series](https://arxiv.org/abs/2403.07815)
-- **GitHub**: [amazon-science/chronos-forecasting](https://github.com/amazon-science/chronos-forecasting)
-- **HuggingFace**: [amazon/chronos-models](https://huggingface.co/collections/amazon/chronos-models-65f1791d630a8d57cb718444)
-
-### [TimeGPT](api/models/foundational/models.md#timecopilot.models.foundational.timegpt)
-A foundation model for time series forecasting from Nixtla, designed for production-ready forecasting with minimal setup.
-
-- **Paper**: [TimeGPT-1](https://arxiv.org/abs/2310.03589)
-- **GitHub**: [Nixtla/nixtla](https://github.com/Nixtla/nixtla)
-- **HuggingFace**: [Nixtla Models](https://huggingface.co/Nixtla)
-
-### [TimesFM](api/models/foundational/models.md#timecopilot.models.foundational.timesfm)
-A decoder-only foundation model for time-series forecasting from Google Research, trained on diverse time series data.
-
-- **Paper**: [A decoder-only foundation model for time-series forecasting](https://arxiv.org/abs/2310.10688)
-- **GitHub**: [google-research/timesfm](https://github.com/google-research/timesfm)
-- **HuggingFace**: [google/timesfm-release](https://huggingface.co/collections/google/timesfm-release-66e4be5fdb56e960c1e482a6)
-
-### [Toto](api/models/foundational/models.md#timecopilot.models.foundational.toto)
-A foundation model for multivariate time series forecasting from Datadog, optimized for observability and high-dimensional data.
-
-- **Paper**: [Building a Foundation Model for Time Series](https://arxiv.org/abs/2402.12971)
-- **GitHub**: [DataDog/toto](https://github.com/DataDog/toto)
-- **HuggingFace**: [Datadog Models](https://huggingface.co/Datadog)
-
-### [TiRex](api/models/foundational/models.md#timecopilot.models.foundational.tirex)
-A zero-shot time series forecasting model based on xLSTM, supporting both point and quantile predictions for long and short horizons.
-
-- **Paper**: [TiRex: Zero-shot Time Series Forecasting with xLSTM](https://arxiv.org/abs/2412.11298)
-- **GitHub**: [NX-AI/tirex](https://github.com/NX-AI/tirex)
-- **HuggingFace**: [NX-AI Models](https://huggingface.co/NX-AI)
-
-### [Moirai](api/models/foundational/models.md#timecopilot.models.foundational.moirai)
-A universal foundation model for time series forecasting, designed to handle a wide range of frequencies, multivariate series, and covariates.
-
-- **Paper**: [Unified Training of Universal Time Series Forecasting Transformers](https://arxiv.org/abs/2402.02592)
-- **GitHub**: [SalesforceAIResearch/uni2ts](https://github.com/SalesforceAIResearch/uni2ts)
-- **HuggingFace**: [Salesforce/moirai-r-models](https://huggingface.co/collections/Salesforce/moirai-r-models-65c8d3a94c51428c300e0742)
-
-### [TabPFN](api/models/foundational/models.md#timecopilot.models.foundational.tabpfn)
-A zero-shot time series forecasting model that frames univariate forecasting as a tabular regression problem using TabPFNv2.
-
-- **Paper**: [TabPFN: A Transformer That Solves Small Tabular Classification Problems in a Second](https://arxiv.org/abs/2207.01848)
-- **GitHub**: [PriorLabs/tabpfn-time-series](https://github.com/PriorLabs/tabpfn-time-series)
-- **HuggingFace**: [PriorLabs Models](https://huggingface.co/PriorLabs)
+- [Chronos](api/models/foundational/models.md#timecopilot.models.foundational.chronos) ([arXiv:2403.07815](https://arxiv.org/abs/2403.07815))
+- [TimeGPT](api/models/foundational/models.md#timecopilot.models.foundational.timegpt) ([arXiv:2310.03589](https://arxiv.org/abs/2310.03589))
+- [TimesFM](api/models/foundational/models.md#timecopilot.models.foundational.timesfm) ([arXiv:2310.10688](https://arxiv.org/abs/2310.10688))
+- [Toto](api/models/foundational/models.md#timecopilot.models.foundational.toto) ([arXiv:2402.12971](https://arxiv.org/abs/2402.12971))
+- [TiRex](api/models/foundational/models.md#timecopilot.models.foundational.tirex) ([arXiv:2412.11298](https://arxiv.org/abs/2412.11298))
+- [Moirai](api/models/foundational/models.md#timecopilot.models.foundational.moirai) ([arXiv:2402.02592](https://arxiv.org/abs/2402.02592))
+- [TabPFN](api/models/foundational/models.md#timecopilot.models.foundational.tabpfn) ([arXiv:2207.01848](https://arxiv.org/abs/2207.01848))
 
 ---
 

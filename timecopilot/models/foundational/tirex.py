@@ -18,15 +18,9 @@ from .utils import TimeSeriesDataset
 
 class TiRex(Forecaster):
     """
-    TiRex is a zero-shot time series forecasting model based on xLSTM architecture,
+    TiRex is a zero-shot time series forecasting model based on xLSTM,
     supporting both point and quantile predictions for long and short horizons.
-    It leverages extended Long Short-Term Memory for effective time series modeling.
-
-    **Paper**: [TiRex: Zero-shot Time Series Forecasting with xLSTM](https://arxiv.org/abs/2412.11298)
-
-    **GitHub**: [NX-AI/tirex](https://github.com/NX-AI/tirex)
-
-    **HuggingFace**: [NX-AI Models](https://huggingface.co/NX-AI)
+    See the [official repo](https://github.com/NX-AI/tirex) for more details.
     """
 
     def __init__(
@@ -47,6 +41,9 @@ class TiRex(Forecaster):
                 and logs. Defaults to "TiRex".
 
         Notes:
+            - **Paper**: [TiRex: Zero-shot Time Series Forecasting with xLSTM](https://arxiv.org/abs/2412.11298)
+            - **GitHub**: [NX-AI/tirex](https://github.com/NX-AI/tirex)
+            - **HuggingFace**: [NX-AI Models](https://huggingface.co/NX-AI)
             - The model is loaded onto the best available device (GPU if available,
               otherwise CPU).
             - On CPU, CUDA kernels are disabled automatically. See the
@@ -54,8 +51,6 @@ class TiRex(Forecaster):
               for details.
             - For best performance, a CUDA-capable GPU with compute capability >= 8.0
               is recommended.
-            - For more information, see the
-              [TiRex documentation](https://github.com/NX-AI/tirex).
         """
         self.repo_id = repo_id
         self.batch_size = batch_size

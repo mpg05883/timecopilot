@@ -10,17 +10,6 @@ load_dotenv()
 
 
 class TimeGPT(Forecaster):
-    """
-    TimeGPT is a foundation model for time series forecasting from Nixtla, designed for 
-    production-ready forecasting with minimal setup. It provides zero-shot forecasting 
-    capabilities across various domains and frequencies.
-
-    **Paper**: [TimeGPT-1](https://arxiv.org/abs/2310.03589)
-
-    **GitHub**: [Nixtla/nixtla](https://github.com/Nixtla/nixtla)
-
-    **HuggingFace**: [Nixtla Models](https://huggingface.co/Nixtla)
-    """
     def __init__(
         self,
         api_key: str | None = None,
@@ -29,6 +18,26 @@ class TimeGPT(Forecaster):
         model: str = "timegpt-1",
         alias: str = "TimeGPT",
     ):
+        """
+        Args:
+            api_key (str | None, optional): API key for Nixtla TimeGPT. If None, 
+                will use NIXTLA_API_KEY environment variable. Defaults to None.
+            base_url (str | None, optional): Base URL for the API. Defaults to None.
+            max_retries (int, optional): Maximum number of retries for API calls. 
+                Defaults to 1.
+            model (str, optional): Model version to use. Defaults to "timegpt-1".
+            alias (str, optional): Name to use for the model in output DataFrames 
+                and logs. Defaults to "TimeGPT".
+
+        Notes:
+            - **Paper**: [TimeGPT-1](https://arxiv.org/abs/2310.03589)
+            - **GitHub**: [Nixtla/nixtla](https://github.com/Nixtla/nixtla)
+            - **HuggingFace**: [Nixtla Models](https://huggingface.co/Nixtla)
+            - TimeGPT is a foundation model for time series forecasting designed for 
+              production-ready forecasting with minimal setup.
+            - Provides zero-shot forecasting capabilities across various domains and frequencies.
+            - Requires a valid API key from Nixtla to use.
+        """
         self.api_key = api_key
         self.base_url = base_url
         self.max_retries = max_retries

@@ -11,15 +11,9 @@ from ..utils.forecaster import Forecaster, QuantileConverter
 
 class TimesFM(Forecaster):
     """
-    TimesFM is a decoder-only foundation model for time-series forecasting from Google Research,
-    trained on diverse time series data to enable zero-shot forecasting across various domains
-    and frequencies. It supports both probabilistic and point forecasts.
-
-    **Paper**: [A decoder-only foundation model for time-series forecasting](https://arxiv.org/abs/2310.10688)
-
-    **GitHub**: [google-research/timesfm](https://github.com/google-research/timesfm)
-
-    **HuggingFace**: [google/timesfm-release](https://huggingface.co/collections/google/timesfm-release-66e4be5fdb56e960c1e482a6)
+    TimesFM is a large time series model for time series forecasting, supporting both
+    probabilistic and point forecasts. See the [official repo](https://github.com/
+    google-research/timesfm) for more details.
     """
 
     def __init__(
@@ -55,14 +49,15 @@ class TimesFM(Forecaster):
                 logs. Defaults to "TimesFM".
 
         Notes:
+            - **Paper**: [A decoder-only foundation model for time-series forecasting](https://arxiv.org/abs/2310.10688)
+            - **GitHub**: [google-research/timesfm](https://github.com/google-research/timesfm)
+            - **HuggingFace**: [google/timesfm-release](https://huggingface.co/collections/google/timesfm-release-66e4be5fdb56e960c1e482a6)
             - Only PyTorch checkpoints are currently supported. JAX is not supported.
             - TimesFM 2.0 models are not yet supported. See
               [issue #269](https://github.com/google-research/timesfm/issues/269)
               for more details.
             - The model is loaded onto the best available device (GPU if available,
               otherwise CPU).
-            - For more information, see the
-              [TimesFM documentation](https://github.com/google-research/timesfm).
         """
         if "pytorch" not in repo_id:
             raise ValueError(

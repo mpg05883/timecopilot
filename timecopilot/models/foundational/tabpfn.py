@@ -33,13 +33,8 @@ class TabPFN(Forecaster):
     TabPFN is a zero-shot time series forecasting model that frames univariate
     forecasting as a tabular regression problem using TabPFNv2. It supports both
     point and probabilistic forecasts, and can incorporate exogenous variables via
-    feature engineering.
-
-    **Paper**: [TabPFN: A Transformer That Solves Small Tabular Classification Problems in a Second](https://arxiv.org/abs/2207.01848)
-
-    **GitHub**: [PriorLabs/tabpfn-time-series](https://github.com/PriorLabs/tabpfn-time-series)
-
-    **HuggingFace**: [PriorLabs Models](https://huggingface.co/PriorLabs)
+    feature engineering. See the
+    [official repo](https://github.com/PriorLabs/tabpfn-time-series) for more details.
     """
 
     def __init__(
@@ -74,9 +69,10 @@ class TabPFN(Forecaster):
                 logs. Defaults to "TabPFN".
 
         Notes:
+            - **Paper**: [TabPFN: A Transformer That Solves Small Tabular Classification Problems in a Second](https://arxiv.org/abs/2207.01848)
+            - **GitHub**: [PriorLabs/tabpfn-time-series](https://github.com/PriorLabs/tabpfn-time-series)
+            - **HuggingFace**: [PriorLabs Models](https://huggingface.co/PriorLabs)
             - For LOCAL mode, a CUDA-capable GPU is recommended for best performance.
-            - For more information, see the [TabPFN-TS documentation](
-            https://github.com/PriorLabs/tabpfn-time-series).
         """
         if features is None:
             features = [

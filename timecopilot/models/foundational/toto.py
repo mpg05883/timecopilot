@@ -14,15 +14,9 @@ from .utils import TimeSeriesDataset
 
 class Toto(Forecaster):
     """
-    Toto is a foundation model for multivariate time series forecasting from Datadog,
-    optimized for observability and high-dimensional data. It's designed to handle
-    complex, multivariate time series with strong performance on operational data.
-
-    **Paper**: [Building a Foundation Model for Time Series](https://arxiv.org/abs/2402.12971)
-
-    **GitHub**: [DataDog/toto](https://github.com/DataDog/toto)
-
-    **HuggingFace**: [Datadog Models](https://huggingface.co/Datadog)
+    Toto is a foundation model for multivariate time series forecasting, optimized
+    for observability and high-dimensional data. See the
+    [official repo](https://github.com/DataDog/toto) for more details.
     """
 
     def __init__(
@@ -55,11 +49,12 @@ class Toto(Forecaster):
                 logs. Defaults to "Toto".
 
         Notes:
+            - **Paper**: [Building a Foundation Model for Time Series](https://arxiv.org/abs/2402.12971)
+            - **GitHub**: [DataDog/toto](https://github.com/DataDog/toto)
+            - **HuggingFace**: [Datadog Models](https://huggingface.co/Datadog)
             - The model is loaded onto the best available device (GPU if available,
               otherwise CPU).
             - For best performance, a CUDA-capable GPU is recommended.
-            - For more information, see the
-              [Toto documentation](https://github.com/DataDog/toto).
         """
         self.repo_id = repo_id
         self.context_length = context_length

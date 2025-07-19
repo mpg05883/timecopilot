@@ -12,15 +12,10 @@ from .utils import TimeSeriesDataset
 
 class Chronos(Forecaster):
     """
-    Chronos models are large pre-trained transformer models for time series forecasting,
-    supporting both probabilistic and point forecasts. Chronos is trained on a diverse 
-    collection of time series data and can handle various frequencies and patterns.
-
-    **Paper**: [Chronos: Learning the Language of Time Series](https://arxiv.org/abs/2403.07815)
-
-    **GitHub**: [amazon-science/chronos-forecasting](https://github.com/amazon-science/chronos-forecasting)
-
-    **HuggingFace**: [amazon/chronos-models](https://huggingface.co/collections/amazon/chronos-models-65f1791d630a8d57cb718444)
+    Chronos models are large pre-trained models for time series forecasting,
+    supporting both probabilistic and point forecasts. See the
+    [official repo](https://github.com/amazon-science/chronos-forecasting)
+    for more details.
     """
 
     def __init__(
@@ -46,15 +41,15 @@ class Chronos(Forecaster):
                 DataFrames and logs. Defaults to "Chronos".
 
         Notes:
+            - **Paper**: [Chronos: Learning the Language of Time Series](https://arxiv.org/abs/2403.07815)
+            - **GitHub**: [amazon-science/chronos-forecasting](https://github.com/amazon-science/chronos-forecasting)
+            - **HuggingFace**: [amazon/chronos-models](https://huggingface.co/collections/amazon/chronos-models-65f1791d630a8d57cb718444)
             - The model is loaded onto the best available device (GPU if
               available, otherwise CPU).
             - For best performance with large models (e.g., "chronos-t5-large"),
               a CUDA-compatible GPU is recommended.
             - The model weights are loaded with torch_dtype=torch.bfloat16 for
               efficiency on supported hardware.
-            - For more information, see the
-              [Chronos documentation](
-              https://github.com/amazon-science/chronos-forecasting)
 
         """
         self.repo_id = repo_id
