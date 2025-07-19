@@ -1,15 +1,21 @@
 import os
 
 import pandas as pd
-from dotenv import load_dotenv
 from nixtla import NixtlaClient
 
 from ..utils.forecaster import Forecaster
 
-load_dotenv()
-
 
 class TimeGPT(Forecaster):
+    """
+    TimeGPT is a pre-trained foundation model for time series forecasting and anomaly
+    detection, developed by Nixtla. It is based on a large encoder-decoder transformer
+    architecture trained on over 100 billion data points from diverse domains.
+    See the [official repo](https://github.com/nixtla/nixtla),
+    [docs](https://www.nixtla.io/docs),
+    and [arXiv:2310.03589](https://arxiv.org/abs/2310.03589) for more details.
+    """
+
     def __init__(
         self,
         api_key: str | None = None,
@@ -20,14 +26,18 @@ class TimeGPT(Forecaster):
     ):
         """
         Args:
-            api_key (str | None, optional): API key for Nixtla TimeGPT. If None, 
-                will use NIXTLA_API_KEY environment variable. Defaults to None.
-            base_url (str | None, optional): Base URL for the API. Defaults to None.
-            max_retries (int, optional): Maximum number of retries for API calls. 
+            api_key (str, optional): API key for authenticating with the Nixtla TimeGPT
+                API. If not provided, will use the `NIXTLA_API_KEY`
+                environment variable.
+            base_url (str, optional): Base URL for the TimeGPT API. Defaults to the
+                official Nixtla endpoint.
+            max_retries (int, optional): Maximum number of retries for API requests.
                 Defaults to 1.
-            model (str, optional): Model version to use. Defaults to "timegpt-1".
-            alias (str, optional): Name to use for the model in output DataFrames 
-                and logs. Defaults to "TimeGPT".
+            model (str, optional): Model name or version to use. Defaults to
+                "timegpt-1". See the [Nixtla docs](https://www.nixtla.io/docs) for
+                available models.
+            alias (str, optional): Name to use for the model in output DataFrames and
+                logs. Defaults to "TimeGPT".
 
         Notes:
             - **Paper**: [TimeGPT-1](https://arxiv.org/abs/2310.03589)
@@ -37,6 +47,8 @@ class TimeGPT(Forecaster):
               production-ready forecasting with minimal setup.
             - Provides zero-shot forecasting capabilities across various domains and frequencies.
             - Requires a valid API key from Nixtla to use.
+            - For more information, see the
+              [TimeGPT documentation](https://www.nixtla.io/docs).
         """
         self.api_key = api_key
         self.base_url = base_url
@@ -120,5 +132,6 @@ class TimeGPT(Forecaster):
             quantiles=quantiles,
         )
         fcst_df["ds"] = pd.to_datetime(fcst_df["ds"])
-        fcst_df = fcst_df.rename(columns={"TimeGPT": self.alias})
+        cols = [col.replace("TimeGPT", self.alias) for col in fcst_df.columns]
+        fcst_df.columns = cols
         return fcst_df
