@@ -43,8 +43,9 @@ dependencies = [
   "tabpfn-time-series>=1.0.3 ; python_full_version < '3.13'",
   "timecopilot-timesfm>=0.1.0",
   "timecopilot-tirex>=0.1.0 ; python_full_version >= '3.11'",
-  "timecopilot-toto>=0.1.1",
+  "timecopilot-toto>=0.1.2",
   "timecopilot-uni2ts>=0.1.0",
+  "transformers==4.40.1",
   "tsfeatures",
   "utilsforecast",
 ]
@@ -111,3 +112,6 @@ ignore = [
 [tool.ruff.lint.isort]
 known-local-folder = ["timecopilot"]
 no-lines-before = ["local-folder"]
+
+[tool.uv.sources]
+chronos-forecasting = { git = "https://github.com/AzulGarza/chronos-forecasting.git", branch = "fix/relax-transformers-dep" }
