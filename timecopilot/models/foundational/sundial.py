@@ -105,7 +105,7 @@ class Sundial(Forecaster):
             context = context[..., -self.context_length :]
         context = self._maybe_impute_missing(context)
         context = context.to(self.device)
-        with torch.autocast(device_type="auto", dtype=self.dtype):
+        with torch.autocast(device_type=self.device, dtype=self.dtype):
             # (batch_size, num_samples, h)
             samples = model.generate(
                 context,
