@@ -42,7 +42,6 @@ class Sundial(Forecaster):
             self.repo_id,
             torch_dtype=self.dtype,
             trust_remote_code=True,
-            # device_map="auto",
         ).to(self.device)
         try:
             yield model
@@ -105,7 +104,8 @@ class Sundial(Forecaster):
         if context.shape[1] > self.context_length:
             context = context[..., -self.context_length :]
         context = self._maybe_impute_missing(context)
-        with torch.autocast(device_type=self.device, dtype=self.dtype):
+        context = context.to(self.device)
+        with torch.autocast(device_type="auto", dtype=self.dtype):
             # (batch_size, num_samples, h)
             samples = model.generate(
                 context,
