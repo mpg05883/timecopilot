@@ -18,11 +18,9 @@ class TimesFM(Forecaster):
 
     def __init__(
         self,
-        repo_id: str = "google/timesfm-1.0-200m-pytorch",
-        context_length: int = 512,
-        per_core_batch_size: int = 64,
-        num_layers: int = 20,
-        model_dims: int = 1280,
+        repo_id: str = "google/timesfm-2.0-500m-pytorch",
+        context_length: int = 2_048,
+        batch_size: int = 64,
         alias: str = "TimesFM",
     ):
         """
@@ -37,14 +35,8 @@ class TimesFM(Forecaster):
                 for the model. Defaults to 512. For TimesFM 2.0 models, max is 2048
                 (must be a multiple of 32). See [TimesFM docs](https://github.com/google-
                 research/timesfm#loading-the-model) for details.
-            per_core_batch_size (int, optional): Batch size per device/core for
-                inference. Defaults to 64. Adjust based on available memory and model
-                size.
-            num_layers (int, optional): Number of transformer layers in the model.
-                Defaults to 20. Should match the configuration of the pretrained
-                checkpoint.
-            model_dims (int, optional): Model hidden dimension size. Defaults to 1280.
-                Should match the configuration of the pretrained checkpoint.
+            batch_size (int, optional): Batch size for inference. Defaults to 64.
+                Adjust based on available memory and model size.
             alias (str, optional): Name to use for the model in output DataFrames and
                 logs. Defaults to "TimesFM".
 
@@ -75,9 +67,7 @@ class TimesFM(Forecaster):
 
         self.repo_id = repo_id
         self.context_length = context_length
-        self.per_core_batch_size = per_core_batch_size
-        self.num_layers = num_layers
-        self.model_dims = model_dims
+        self.batch_size = batch_size
         self.alias = alias
 
     @contextmanager
@@ -87,14 +77,23 @@ class TimesFM(Forecaster):
         quantiles: list[float] | None = None,
     ) -> timesfm.TimesFm:
         backend = "gpu" if torch.cuda.is_available() else "cpu"
+        num_layers = 20
+        if self.context_length > 512 and "1.0" in self.repo_id:
+            context_len = 512
+        else:
+            context_len = self.context_length
+        use_positional_embedding = True
+        if "2.0" in self.repo_id:
+            num_layers = 50
+            use_positional_embedding = False
         tfm_hparams = timesfm.TimesFmHparams(
             backend=backend,
             horizon_len=prediction_length,
             quantiles=quantiles,
-            context_len=self.context_length,
-            num_layers=self.num_layers,
-            model_dims=self.model_dims,
-            per_core_batch_size=self.per_core_batch_size,
+            context_len=context_len,
+            num_layers=num_layers,
+            use_positional_embedding=use_positional_embedding,
+            per_core_batch_size=self.batch_size,
         )
         tfm_checkpoint = timesfm.TimesFmCheckpoint(huggingface_repo_id=self.repo_id)
         tfm = timesfm.TimesFm(
