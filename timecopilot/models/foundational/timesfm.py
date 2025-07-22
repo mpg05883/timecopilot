@@ -19,7 +19,7 @@ class TimesFM(Forecaster):
     def __init__(
         self,
         repo_id: str = "google/timesfm-2.0-500m-pytorch",
-        context_length: int = 2_048,
+        context_length: int = 2048,
         batch_size: int = 64,
         alias: str = "TimesFM",
     ):
@@ -27,14 +27,15 @@ class TimesFM(Forecaster):
         Args:
             repo_id (str, optional): The Hugging Face Hub model ID or local path to
                 load the TimesFM model from. Examples include
-                "google/timesfm-1.0-200m-pytorch". Defaults to
-                "google/timesfm-1.0-200m-pytorch". See the full list of models at
+                "google/timesfm-2.0-500m-pytorch". Defaults to
+                "google/timesfm-2.0-500m-pytorch". See the full list of models at
                 [Hugging Face](https://huggingface.co/collections/google/timesfm-release-
                 66e4be5fdb56e960c1e482a6).
             context_length (int, optional): Maximum context length (input window size)
-                for the model. Defaults to 512. For TimesFM 2.0 models, max is 2048
-                (must be a multiple of 32). See [TimesFM docs](https://github.com/google-
-                research/timesfm#loading-the-model) for details.
+                for the model. Defaults to 2048. For TimesFM 2.0 models, max is 2048
+                (must be a multiple of 32). For TimesFM 1.0 models, max is 512. See
+                [TimesFM docs](https://github.com/google-research/timesfm#loading-the-
+                model) for details.
             batch_size (int, optional): Batch size for inference. Defaults to 64.
                 Adjust based on available memory and model size.
             alias (str, optional): Name to use for the model in output DataFrames and
@@ -53,9 +54,6 @@ class TimesFM(Forecaster):
             **Technical Details:**
 
             - Only PyTorch checkpoints are currently supported. JAX is not supported.
-            - TimesFM 2.0 models are not yet supported. See
-              [issue #269](https://github.com/google-research/timesfm/issues/269)
-              for more details.
             - The model is loaded onto the best available device (GPU if available,
               otherwise CPU).
         """
@@ -77,15 +75,15 @@ class TimesFM(Forecaster):
         quantiles: list[float] | None = None,
     ) -> timesfm.TimesFm:
         backend = "gpu" if torch.cuda.is_available() else "cpu"
-        num_layers = 20
-        if self.context_length > 512 and "1.0" in self.repo_id:
-            context_len = 512
-        else:
-            context_len = self.context_length
-        use_positional_embedding = True
-        if "2.0" in self.repo_id:
-            num_layers = 50
-            use_positional_embedding = False
+        # these values are based on
+        # https://github.com/google-research/timesfm/blob/ba034ae71c2fc88eaf59f80b4a778cc2c0dca7d6/experiments/extended_benchmarks/run_timesfm.py#L91
+        v2_version = "2.0" in self.repo_id
+        context_len = (
+            min(self.context_length, 512) if not v2_version else self.context_length
+        )
+        num_layers = 50 if v2_version else 20
+        use_positional_embedding = not v2_version
+
         tfm_hparams = timesfm.TimesFmHparams(
             backend=backend,
             horizon_len=prediction_length,
