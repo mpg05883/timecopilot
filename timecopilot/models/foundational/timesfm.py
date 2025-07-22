@@ -73,13 +73,6 @@ class TimesFM(Forecaster):
                 "if you'd like to use jax, please open an issue"
             )
 
-        if "2.0" in repo_id:
-            raise ValueError(
-                "TimesFM 2.0 is not supported yet, "
-                "see https://github.com/google-research/timesfm/issues/269"
-                "please use TimesFM 1.0"
-            )
-
         self.repo_id = repo_id
         self.context_length = context_length
         self.per_core_batch_size = per_core_batch_size
