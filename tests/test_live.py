@@ -39,6 +39,7 @@ def test_forecast_returns_expected_output(n_series):
     assert result.output.reason_for_selection is not None
 
 
+@pytest.mark.live
 def test_is_queryable():
     h = 2
     df = generate_series(
