@@ -255,6 +255,46 @@ class ForecastAgentOutput(BaseModel):
         console.print("\n")
 
 
+def _transform_time_series_to_text(df: pd.DataFrame) -> str:
+    df_agg = df.groupby("unique_id").agg(list)
+    output = (
+        "these are the time series in json format where the key is the "
+        "identifier of the time series and the values is also a json "
+        "of two elements: "
+        "the first element is the date column and the second element is the "
+        "value column."
+        f"{df_agg.to_json(orient='index')}"
+    )
+    return output
+
+
+def _transform_features_to_text(features_df: pd.DataFrame) -> str:
+    output = (
+        "these are the time series features in json format where the key is "
+        "the identifier of the time series and the values is also a json of "
+        "feature names and their values."
+        f"{features_df.to_json(orient='index')}"
+    )
+    return output
+
+
+def _transform_eval_to_text(eval_df: pd.DataFrame, models: list[str]) -> str:
+    output = ", ".join([f"{model}: {eval_df[model].iloc[0]}" for model in models])
+    return output
+
+
+def _transform_fcst_to_text(fcst_df: pd.DataFrame) -> str:
+    df_agg = fcst_df.groupby("unique_id").agg(list)
+    output = (
+        "these are the forecasted values in json format where the key is the "
+        "identifier of the time series and the values is also a json of two "
+        "elements: the first element is the date column and the second "
+        "element is the value column."
+        f"{df_agg.to_json(orient='index')}"
+    )
+    return output
+
+
 class TimeCopilot:
     def __init__(
         self,
@@ -337,29 +377,68 @@ class TimeCopilot:
                 "model is not allowed to be passed as a keyword argument"
                 "use `llm` instead"
             )
+        self.llm = llm
 
         self.forecasting_agent = Agent(
             deps_type=ExperimentDataset,
             output_type=ForecastAgentOutput,
             system_prompt=self.system_prompt,
-            model=llm,
+            model=self.llm,
             **kwargs,
         )
+
+        self.query_system_prompt = """
+        You are a forecasting assistant. You have access to the following dataframes 
+        from a previous analysis:
+        - fcst_df: Forecasted values for each time series, including dates and 
+          predicted values.
+        - eval_df: Evaluation results for each model. The evaluation metric is always 
+          MASE (Mean Absolute Scaled Error), as established in the main system prompt. 
+          Each value in eval_df represents the MASE score for a model.
+        - features_df: Extracted time series features for each series, such as trend, 
+          seasonality, autocorrelation, and more.
+
+        When the user asks a follow-up question, use these dataframes to provide 
+        detailed, data-driven answers. Reference specific values, trends, or metrics 
+        from the dataframes as needed. If the user asks about model performance, use 
+        eval_df and explain that the metric is MASE. For questions about the forecast, 
+        use fcst_df. For questions about the characteristics of the time series, use 
+        features_df.
+
+        Always explain your reasoning and cite the relevant data when answering. If a 
+        question cannot be answered with the available data, politely explain the 
+        limitation.
+        """
+
+        self.query_agent = Agent(
+            deps_type=ExperimentDataset,
+            output_type=str,
+            system_prompt=self.query_system_prompt,
+            model=self.llm,
+            **kwargs,
+        )
+
+        self.dataset: ExperimentDataset
+        self.fcst_df: pd.DataFrame
+        self.eval_df: pd.DataFrame
+        self.features_df: pd.DataFrame
+        self.models: list[str]
+
+        @self.query_agent.system_prompt
+        async def add_info(
+            ctx: RunContext[ExperimentDataset],
+        ) -> str:
+            output = _transform_time_series_to_text(ctx.deps.df)
+            output += _transform_features_to_text(self.features_df)
+            output += _transform_eval_to_text(self.eval_df, self.models)
+            output += _transform_fcst_to_text(self.fcst_df)
+            return output
 
         @self.forecasting_agent.system_prompt
         async def add_time_series(
             ctx: RunContext[ExperimentDataset],
         ) -> str:
-            df_agg = ctx.deps.df.groupby("unique_id").agg(list)
-            output = (
-                "these are the time series in json format where the key is the "
-                "identifier of the time series and the values is also a json "
-                "of two elements: "
-                "the first element is the date column and the second element is the "
-                "value column."
-                f"{df_agg.to_json(orient='index')}"
-            )
-            return output
+            return _transform_time_series_to_text(ctx.deps.df)
 
         @self.forecasting_agent.tool
         async def tsfeatures_tool(
@@ -388,13 +467,7 @@ class TimeCopilot:
                     features_df = pd.concat([features_df, features_df_uid])
             features_df = features_df.rename_axis("unique_id")  # type: ignore
             self.features_df = features_df
-            output = (
-                "these are the time series features in json format where the key is "
-                "the identifier of the time series and the values is also a json of "
-                "feature names and their values."
-                f"{features_df.to_json(orient='index')}"
-            )
-            return output
+            return _transform_features_to_text(features_df)
 
         @self.forecasting_agent.tool
         async def cross_validation_tool(
@@ -424,12 +497,8 @@ class TimeCopilot:
                 as_index=False,
             ).mean(numeric_only=True)
             self.eval_df = eval_df
-            return ", ".join(
-                [
-                    f"{model.alias}: {eval_df[model.alias].iloc[0]}"
-                    for model in callable_models
-                ]
-            )
+            self.models = models
+            return _transform_eval_to_text(eval_df, models)
 
         @self.forecasting_agent.tool
         async def forecast_tool(
@@ -443,16 +512,8 @@ class TimeCopilot:
                 h=ctx.deps.h,
                 freq=ctx.deps.freq,
             )
-            df_agg = fcst_df.groupby("unique_id").agg(list)
-            output = (
-                "these are the forecasted values in json format where the key is the "
-                "identifier of the time series and the values is also a json of two "
-                "elements: the first element is the date column and the second "
-                "element is the value column."
-                f"{df_agg.to_json(orient='index')}"
-            )
             self.fcst_df = fcst_df
-            return output
+            return _transform_fcst_to_text(fcst_df)
 
         @self.forecasting_agent.output_validator
         async def validate_best_model(
@@ -468,6 +529,16 @@ class TimeCopilot:
                 )
             return output
 
+    def is_queryable(self) -> bool:
+        """
+        Check if the class is queryable.
+        It needs to have `dataset`, `fcst_df`, `eval_df`, `features_df` and `models`.
+        """
+        return all(
+            hasattr(self, attr) and getattr(self, attr) is not None
+            for attr in ["dataset", "fcst_df", "eval_df", "features_df", "models"]
+        )
+
     def forecast(
         self,
         df: pd.DataFrame | str | Path,
@@ -480,7 +551,6 @@ class TimeCopilot:
 
         Args:
             df: The time-series data. Can be one of:
-
                 - a *pandas* `DataFrame` with at least the columns
                   `["unique_id", "ds", "y"]`.
                 - a file path or URL pointing to a CSV / Parquet file with the
@@ -510,7 +580,7 @@ class TimeCopilot:
         experiment_dataset_parser = ExperimentDatasetParser(
             model=self.forecasting_agent.model,
         )
-        dataset = experiment_dataset_parser.parse(
+        self.dataset = experiment_dataset_parser.parse(
             df,
             freq,
             h,
@@ -519,9 +589,26 @@ class TimeCopilot:
         )
         result = self.forecasting_agent.run_sync(
             user_prompt=query,
-            deps=dataset,
+            deps=self.dataset,
         )
         result.fcst_df = self.fcst_df
         result.eval_df = self.eval_df
         result.features_df = self.features_df
+        return result
+
+    def query(
+        self,
+        query: str,
+    ) -> AgentRunResult[str]:
+        """
+        Query the forecasted data.
+        """
+        if not self.is_queryable():
+            raise ValueError(
+                "The class is not queryable. Please forecast first using `forecast`."
+            )
+        result = self.query_agent.run_sync(
+            user_prompt=query,
+            deps=self.dataset,
+        )
         return result
