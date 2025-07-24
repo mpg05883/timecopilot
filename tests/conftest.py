@@ -3,6 +3,7 @@ import sys
 from timecopilot.agent import MODELS
 from timecopilot.models.foundational.chronos import Chronos
 from timecopilot.models.foundational.moirai import Moirai
+from timecopilot.models.foundational.timesfm import TimesFM
 from timecopilot.models.foundational.toto import Toto
 
 benchmark_models = [
@@ -10,7 +11,6 @@ benchmark_models = [
     "SeasonalNaive",
     "ZeroModel",
     "ADIDA",
-    "TimesFM",
     "Prophet",
 ]
 models = [MODELS[str_model] for str_model in benchmark_models]
@@ -41,6 +41,10 @@ models.extend(
             batch_size=2,
             repo_id="Salesforce/moirai-moe-1.0-R-small",
             alias="Moirai-MoE",
+        ),
+        TimesFM(
+            repo_id="google/timesfm-1.0-200m-pytorch",
+            context_length=256,
         ),
     ]
 )
