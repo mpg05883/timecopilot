@@ -11,7 +11,11 @@ from pydantic_ai import Agent
 from utilsforecast.evaluation import evaluate
 from utilsforecast.losses import _zero_to_nan, mae
 
-from ..models.utils.forecaster import get_seasonality, maybe_infer_freq
+from ..models.utils.forecaster import (
+    get_seasonality,
+    maybe_convert_col_to_datetime,
+    maybe_infer_freq,
+)
 
 warnings.simplefilter(
     action="ignore",
@@ -141,6 +145,7 @@ class ExperimentDatasetParser:
             df = self.read_df(df)
         if "unique_id" not in df.columns:
             df["unique_id"] = "series_0"
+        df = maybe_convert_col_to_datetime(df, "ds")
         if query:
             query = f"User query: {query}"
             dataset_params = self.parser_agent.run_sync(user_prompt=query).output

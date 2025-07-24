@@ -37,3 +37,26 @@ def test_forecast_returns_expected_output(n_series):
     assert result.output.is_better_than_seasonal_naive
     assert result.output.forecast_analysis is not None
     assert result.output.reason_for_selection is not None
+
+
+@pytest.mark.live
+def test_is_queryable():
+    h = 2
+    df = generate_series(
+        n_series=2,
+        freq="D",
+        min_length=30,
+        static_as_categorical=False,
+    )
+    tc = TimeCopilot(
+        llm="openai:gpt-4o-mini",
+        retries=3,
+    )
+    assert not tc._is_queryable()
+    result = tc.forecast(
+        df=df,
+        query=f"Please forecast the series with a horizon of {h} and frequency D.",
+    )
+    assert tc._is_queryable()
+    result = tc.query("how much will change the series with id 0?")
+    print(result.output)
