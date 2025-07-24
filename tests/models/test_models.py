@@ -218,13 +218,12 @@ def test_using_level(model):
     )
     exp_lv_cols = []
     for lv in level:
-        if lv == 0:
-            continue
         exp_lv_cols.extend([f"{model.alias}-lo-{lv}", f"{model.alias}-hi-{lv}"])
     assert len(exp_lv_cols) == len(fcst_df.columns) - 3  # 3 is unique_id, ds, point
     assert all(col in fcst_df.columns for col in exp_lv_cols)
     assert not any(("-q-" in col) for col in fcst_df.columns)
     # test monotonicity of levels
+    exp_lv_cols = exp_lv_cols[2:]  # remove level 0
     for c1, c2 in zip(exp_lv_cols[:-1:2], exp_lv_cols[1::2], strict=False):
         if model.alias == "ZeroModel":
             # ZeroModel is a constant model, so all levels should be the same
