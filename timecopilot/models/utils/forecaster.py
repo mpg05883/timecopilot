@@ -356,8 +356,6 @@ class QuantileConverter:
                     if model not in out_cols:
                         out_cols.append(model)
             for lv in self.level:
-                if lv == 0:
-                    continue
                 q_lo, q_hi = self._level_to_quantiles(lv)
                 lo_src = f"{model}-q-{int(q_lo * 100)}"
                 hi_src = f"{model}-q-{int(q_hi * 100)}"
