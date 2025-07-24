@@ -156,8 +156,6 @@ def test_maybe_convert_quantiles_to_level(n_models, level):
         models=models,
     )
     exp_n_cols = 3 + (1 + len(level) * 2) * n_models
-    if 0 in level:
-        exp_n_cols -= n_models * 2
     assert result_df.shape[1] == exp_n_cols
     for model in models:
         for lv in level:

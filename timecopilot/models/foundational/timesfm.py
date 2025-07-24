@@ -3,7 +3,6 @@ from contextlib import contextmanager
 import pandas as pd
 import timesfm
 import torch
-import utilsforecast.processing as ufp
 from timesfm.timesfm_base import DEFAULT_QUANTILES as DEFAULT_QUANTILES_TFM
 
 from ..utils.forecaster import Forecaster, QuantileConverter
@@ -178,12 +177,11 @@ class TimesFM(Forecaster):
                 num_jobs=1,
             )
         if qc.quantiles is not None:
-            for q in qc.quantiles:
-                fcst_df = ufp.assign_columns(
-                    fcst_df,
-                    f"{self.alias}-q-{int(q * 100)}",
-                    fcst_df[f"{self.alias}-q-{q}"],
-                )
+            renamer = {
+                f"{self.alias}-q-{q}": f"{self.alias}-q-{int(q * 100)}"
+                for q in qc.quantiles
+            }
+            fcst_df = fcst_df.rename(columns=renamer)
             fcst_df = qc.maybe_convert_quantiles_to_level(
                 fcst_df,
                 models=[self.alias],
