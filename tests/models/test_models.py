@@ -182,6 +182,7 @@ def test_using_quantiles(model):
         quantiles=qs,
     )
     exp_qs_cols = [f"{model.alias}-q-{int(100 * q)}" for q in qs]
+    assert len(exp_qs_cols) == len(fcst_df.columns) - 3  # 3 is unique_id, ds, point
     assert all(col in fcst_df.columns for col in exp_qs_cols)
     assert not any(("-lo-" in col or "-hi-" in col) for col in fcst_df.columns)
     # test monotonicity of quantiles
@@ -220,6 +221,7 @@ def test_using_level(model):
         if lv == 0:
             continue
         exp_lv_cols.extend([f"{model.alias}-lo-{lv}", f"{model.alias}-hi-{lv}"])
+    assert len(exp_lv_cols) == len(fcst_df.columns) - 3  # 3 is unique_id, ds, point
     assert all(col in fcst_df.columns for col in exp_lv_cols)
     assert not any(("-q-" in col) for col in fcst_df.columns)
     # test monotonicity of levels
