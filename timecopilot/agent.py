@@ -428,10 +428,12 @@ class TimeCopilot:
         async def add_info(
             ctx: RunContext[ExperimentDataset],
         ) -> str:
-            output = _transform_time_series_to_text(ctx.deps.df)
-            output += _transform_features_to_text(self.features_df)
-            output += _transform_eval_to_text(self.eval_df, self.models)
-            output += _transform_fcst_to_text(self.fcst_df)
+            output = "\n".join([
+                _transform_time_series_to_text(ctx.deps.df),
+                _transform_features_to_text(self.features_df),
+                _transform_eval_to_text(self.eval_df, self.models),
+                _transform_fcst_to_text(self.fcst_df),
+            ])
             return output
 
         @self.forecasting_agent.system_prompt
