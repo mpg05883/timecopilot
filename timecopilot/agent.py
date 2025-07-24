@@ -529,7 +529,7 @@ class TimeCopilot:
                 )
             return output
 
-    def is_queryable(self) -> bool:
+    def _is_queryable(self) -> bool:
         """
         Check if the class is queryable.
         It needs to have `dataset`, `fcst_df`, `eval_df`, `features_df` and `models`.
@@ -600,10 +600,42 @@ class TimeCopilot:
         self,
         query: str,
     ) -> AgentRunResult[str]:
+        # fmt: off
         """
-        Query the forecasted data.
+        Ask a follow-up question about the forecast, model evaluation, or time
+        series features.
+
+        This method enables chat-like, interactive querying after a forecast
+        has been run. The agent will use the stored dataframes (`fcst_df`,
+        `eval_df`, `features_df`) and the original dataset to answer the user's
+        question in a data-driven manner. Typical queries include asking about
+        the best model, forecasted values, or time series characteristics.
+
+        Args:
+            query (str): The user's follow-up question. This can be about model
+                performance, forecast results, or time series features.
+
+        Returns:
+            AgentRunResult[str]: The agent's answer as a string. Use
+                `result.output` to access the answer.
+
+        Raises:
+            ValueError: If the class is not ready for querying (i.e., forecast
+                has not been run and required dataframes are missing).
+
+        Example:
+            ```python
+            tc = TimeCopilot(llm="openai:gpt-4o")
+            tc.forecast(df, h=12)
+            answer = tc.query("Which model performed best?")
+            print(answer.output)
+            ```
+        Note:
+            The class is not queryable until the `forecast` method has been
+            called.
         """
-        if not self.is_queryable():
+        # fmt: on
+        if not self._is_queryable():
             raise ValueError(
                 "The class is not queryable. Please forecast first using `forecast`."
             )
