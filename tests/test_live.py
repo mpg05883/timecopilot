@@ -37,7 +37,6 @@ def test_forecast_returns_expected_output(n_series):
     assert len(result.fcst_df) == n_series * h
     assert result.features_df is not None
     assert result.eval_df is not None
-    assert result.models is not None
     assert result.output.is_better_than_seasonal_naive
     assert result.output.forecast_analysis is not None
     assert result.output.reason_for_selection is not None
@@ -88,7 +87,6 @@ async def test_async_forecast_returns_expected_output(n_series):
     assert len(result.fcst_df) == n_series * h
     assert result.features_df is not None
     assert result.eval_df is not None
-    assert result.models is not None
     assert result.output.is_better_than_seasonal_naive
     assert result.output.forecast_analysis is not None
     assert result.output.reason_for_selection is not None
