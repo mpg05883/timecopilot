@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -533,7 +534,7 @@ class TimeCopilot:
                 )
             return output
 
-    def _is_queryable(self) -> bool:
+    def is_queryable(self) -> bool:
         """
         Check if the class is queryable.
         It needs to have `dataset`, `fcst_df`, `eval_df`, `features_df` and `models`.
@@ -600,6 +601,12 @@ class TimeCopilot:
         result.features_df = self.features_df
         return result
 
+    def _maybe_raise_if_not_queryable(self):
+        if not self.is_queryable():
+            raise ValueError(
+                "The class is not queryable. Please forecast first using `forecast`."
+            )
+
     def query(
         self,
         query: str,
@@ -639,12 +646,51 @@ class TimeCopilot:
             called.
         """
         # fmt: on
-        if not self._is_queryable():
-            raise ValueError(
-                "The class is not queryable. Please forecast first using `forecast`."
-            )
+        self._maybe_raise_if_not_queryable()
         result = self.query_agent.run_sync(
             user_prompt=query,
             deps=self.dataset,
         )
         return result
+
+
+class TimeCopilotAsync(TimeCopilot):
+    def __init__(self, **kwargs: Any):
+        super().__init__(**kwargs)
+
+    async def forecast(
+        self,
+        df: pd.DataFrame | str | Path,
+        h: int | None = None,
+        freq: str | None = None,
+        seasonality: int | None = None,
+        query: str | None = None,
+    ) -> AgentRunResult[ForecastAgentOutput]:
+        query = f"User query: {query}" if query else None
+        experiment_dataset_parser = ExperimentDatasetParser(
+            model=self.forecasting_agent.model,
+        )
+        self.dataset = await experiment_dataset_parser.parse_async(
+            df,
+            freq,
+            h,
+            seasonality,
+            query,
+        )
+        result = await self.forecasting_agent.run(
+            user_prompt=query,
+            deps=self.dataset,
+        )
+        result.fcst_df = self.fcst_df
+        result.eval_df = self.eval_df
+        result.features_df = self.features_df
+        return result
+
+    @asynccontextmanager
+    async def query_stream(self, query: str):
+        self._maybe_raise_if_not_queryable()
+        async with self.query_agent.run_stream(
+            user_prompt=query,
+            deps=self.dataset,
+        ) as result:
+            yield result
