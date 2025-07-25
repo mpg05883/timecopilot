@@ -8,6 +8,7 @@ from typing import Any
 import pandas as pd
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
+from pydantic_ai.agent import AgentRunResult
 from utilsforecast.evaluation import evaluate
 from utilsforecast.losses import _zero_to_nan, mae
 
@@ -133,40 +134,74 @@ class ExperimentDatasetParser:
             df = read_fn(path_str, **read_kwargs)
         return df
 
-    def parse(
-        self,
+    @staticmethod
+    def _validate_df(df: pd.DataFrame | str | Path) -> pd.DataFrame:
+        if isinstance(df, str | Path):
+            df = ExperimentDatasetParser.read_df(df)
+        if "unique_id" not in df.columns:
+            df["unique_id"] = "series_0"
+        return maybe_convert_col_to_datetime(df, "ds")
+
+    @staticmethod
+    def _finalize_params(
+        params: DatasetParams,
         df: pd.DataFrame,
+    ) -> "ExperimentDataset":
+        params.freq = params.freq or maybe_infer_freq(df, freq=None)
+        params.seasonality = params.seasonality or get_seasonality(params.freq)
+        params.h = params.h or 2 * params.seasonality
+        return ExperimentDataset(df=df, **params.dict())
+
+    @staticmethod
+    def _build_params(
         freq: str | None,
         h: int | None,
         seasonality: int | None,
         query: str | None,
-    ) -> "ExperimentDataset":
-        if isinstance(df, str | Path):
-            df = self.read_df(df)
-        if "unique_id" not in df.columns:
-            df["unique_id"] = "series_0"
-        df = maybe_convert_col_to_datetime(df, "ds")
-        if query:
-            query = f"User query: {query}"
-            dataset_params = self.parser_agent.run_sync(user_prompt=query).output
-            # Use provided non-None parameters if any are None
-            # in the inferred dataset_params
-            dataset_params.freq = dataset_params.freq or freq
-            dataset_params.seasonality = dataset_params.seasonality or seasonality
-            dataset_params.h = dataset_params.h or h
+        agent_result: AgentRunResult[DatasetParams] | None,
+    ) -> DatasetParams:
+        if query and agent_result:
+            params = agent_result.output
+            params.freq = params.freq or freq
+            params.seasonality = params.seasonality or seasonality
+            params.h = params.h or h
         else:
-            dataset_params = DatasetParams(
-                freq=freq,
-                h=h,
-                seasonality=seasonality,
-            )
-        # Infer from df if any parameters are still None
-        dataset_params.freq = dataset_params.freq or maybe_infer_freq(df=df, freq=None)
-        dataset_params.seasonality = dataset_params.seasonality or get_seasonality(
-            dataset_params.freq
+            params = DatasetParams(freq=freq, h=h, seasonality=seasonality)
+        return params
+
+    def parse(
+        self,
+        df: pd.DataFrame | str | Path,
+        freq: str | None = None,
+        h: int | None = None,
+        seasonality: int | None = None,
+        query: str | None = None,
+    ) -> "ExperimentDataset":
+        df = self._validate_df(df)
+        agent_result = (
+            self.parser_agent.run_sync(user_prompt=f"User query: {query}")
+            if query
+            else None
         )
-        dataset_params.h = dataset_params.h or 2 * dataset_params.seasonality
-        return ExperimentDataset(df=df, **dataset_params.dict())
+        params = self._build_params(freq, h, seasonality, query, agent_result)
+        return self._finalize_params(params, df)
+
+    async def parse_async(
+        self,
+        df: pd.DataFrame | str | Path,
+        freq: str | None = None,
+        h: int | None = None,
+        seasonality: int | None = None,
+        query: str | None = None,
+    ) -> "ExperimentDataset":
+        df = self._validate_df(df)
+        agent_result = (
+            await self.parser_agent.run(user_prompt=f"User query: {query}")
+            if query
+            else None
+        )
+        params = self._build_params(freq, h, seasonality, query, agent_result)
+        return self._finalize_params(params, df)
 
 
 @dataclass
