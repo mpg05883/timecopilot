@@ -4,4 +4,5 @@
     options:
         members:
             - TimeCopilot
+            - TimeCopilotAsync
             - ForecastAgentOutput

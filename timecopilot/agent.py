@@ -1,4 +1,5 @@
-from collections.abc import Callable
+from collections.abc import AsyncGenerator, Callable
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -533,7 +534,7 @@ class TimeCopilot:
                 )
             return output
 
-    def _is_queryable(self) -> bool:
+    def is_queryable(self) -> bool:
         """
         Check if the class is queryable.
         It needs to have `dataset`, `fcst_df`, `eval_df`, `features_df` and `models`.
@@ -600,6 +601,12 @@ class TimeCopilot:
         result.features_df = self.features_df
         return result
 
+    def _maybe_raise_if_not_queryable(self):
+        if not self.is_queryable():
+            raise ValueError(
+                "The class is not queryable. Please forecast first using `forecast`."
+            )
+
     def query(
         self,
         query: str,
@@ -639,11 +646,171 @@ class TimeCopilot:
             called.
         """
         # fmt: on
-        if not self._is_queryable():
-            raise ValueError(
-                "The class is not queryable. Please forecast first using `forecast`."
-            )
+        self._maybe_raise_if_not_queryable()
         result = self.query_agent.run_sync(
+            user_prompt=query,
+            deps=self.dataset,
+        )
+        return result
+
+
+class TimeCopilotAsync(TimeCopilot):
+    def __init__(self, **kwargs: Any):
+        """
+        Initialize an asynchronous TimeCopilot agent.
+
+        Inherits from TimeCopilot and provides async methods for
+        forecasting and querying.
+        """
+        super().__init__(**kwargs)
+
+    async def forecast(
+        self,
+        df: pd.DataFrame | str | Path,
+        h: int | None = None,
+        freq: str | None = None,
+        seasonality: int | None = None,
+        query: str | None = None,
+    ) -> AgentRunResult[ForecastAgentOutput]:
+        """
+        Asynchronously generate forecast and analysis for the provided
+        time series data.
+
+        Args:
+            df: The time-series data. Can be one of:
+                - a *pandas* `DataFrame` with at least the columns
+                  `["unique_id", "ds", "y"]`.
+                - a file path or URL pointing to a CSV / Parquet file with the
+                  same columns (it will be read automatically).
+            h: Forecast horizon. Number of future periods to predict. If
+                `None` (default), TimeCopilot will try to infer it from
+                `query` or, as a last resort, default to `2 * seasonality`.
+            freq: Pandas frequency string (e.g. `"H"`, `"D"`, `"MS"`).
+                `None` (default), lets TimeCopilot infer it from the data or
+                the query. See [pandas frequency documentation](https://pandas.pydata.org/docs/user_guide/timeseries.html#offset-aliases).
+            seasonality: Length of the dominant seasonal cycle (expressed in
+                `freq` periods). `None` (default), asks TimeCopilot to infer it via
+                [`get_seasonality`][timecopilot.models.utils.forecaster.get_seasonality].
+            query: Optional natural-language prompt that will be shown to the
+                agent. You can embed `freq`, `h` or `seasonality` here in
+                plain English, they take precedence over the keyword
+                arguments.
+
+        Returns:
+            A result object whose `output` attribute is a fully
+                populated [`ForecastAgentOutput`][timecopilot.agent.ForecastAgentOutput]
+                instance. Use `result.output` to access typed fields or
+                `result.output.prettify()` to print a nicely formatted
+                report.
+        """
+        query = f"User query: {query}" if query else None
+        experiment_dataset_parser = ExperimentDatasetParser(
+            model=self.forecasting_agent.model,
+        )
+        self.dataset = await experiment_dataset_parser.parse_async(
+            df,
+            freq,
+            h,
+            seasonality,
+            query,
+        )
+        result = await self.forecasting_agent.run(
+            user_prompt=query,
+            deps=self.dataset,
+        )
+        result.fcst_df = self.fcst_df
+        result.eval_df = self.eval_df
+        result.features_df = self.features_df
+        return result
+
+    @asynccontextmanager
+    async def query_stream(
+        self,
+        query: str,
+    ) -> AsyncGenerator[AgentRunResult[str], None]:
+        # fmt: off
+        """
+        Asynchronously stream the agent's answer to a follow-up question.
+
+        This method enables chat-like, interactive querying after a forecast 
+        has been run.
+        The agent will use the stored dataframes and the original dataset 
+        to answer the user's
+        question, yielding results as they become available (streaming).
+
+        Args:
+            query (str): The user's follow-up question. This can be about model
+                performance, forecast results, or time series features.
+
+        Returns:
+            AgentRunResult[str]: The agent's answer as a string. Use
+                `result.output` to access the answer.
+
+        Raises:
+            ValueError: If the class is not ready for querying (i.e., forecast
+                has not been run and required dataframes are missing).
+
+        Example:
+            ```python
+            tc = TimeCopilotAsync(llm="openai:gpt-4o")
+            await tc.forecast(df, h=12)
+            async with tc.query_stream("Which model performed best?") as result:
+                async for text in result.stream(debounce_by=0.01):
+                    print(text, end="", flush=True)
+            ```
+        Note:
+            The class is not queryable until the `forecast` method has been
+            called.
+        """
+        # fmt: on
+        self._maybe_raise_if_not_queryable()
+        async with self.query_agent.run_stream(
+            user_prompt=query,
+            deps=self.dataset,
+        ) as result:
+            yield result
+
+    async def query(
+        self,
+        query: str,
+    ) -> AgentRunResult[str]:
+        # fmt: off
+        """
+        Asynchronously ask a follow-up question about the forecast, 
+        model evaluation, or time series features.
+
+        This method enables chat-like, interactive querying after a forecast
+        has been run. The agent will use the stored dataframes (`fcst_df`,
+        `eval_df`, `features_df`) and the original dataset to answer the user's
+        question in a data-driven manner. Typical queries include asking about
+        the best model, forecasted values, or time series characteristics.
+
+        Args:
+            query (str): The user's follow-up question. This can be about model
+                performance, forecast results, or time series features.
+
+        Returns:
+            AgentRunResult[str]: The agent's answer as a string. Use
+                `result.output` to access the answer.
+
+        Raises:
+            ValueError: If the class is not ready for querying (i.e., forecast
+                has not been run and required dataframes are missing).
+
+        Example:
+            ```python
+            tc = TimeCopilotAsync(llm="openai:gpt-4o")
+            await tc.forecast(df, h=12)
+            answer = await tc.query("Which model performed best?")
+            print(answer.output)
+            ```
+        Note:
+            The class is not queryable until the `forecast` method has been
+            called.
+        """
+        # fmt: on
+        self._maybe_raise_if_not_queryable()
+        result = await self.query_agent.run(
             user_prompt=query,
             deps=self.dataset,
         )
