@@ -762,7 +762,7 @@ class TimeCopilotAsync(TimeCopilot):
             The class is not queryable until the `forecast` method has been
             called.
         """
-        # fmt: off
+        # fmt: on
         self._maybe_raise_if_not_queryable()
         async with self.query_agent.run_stream(
             user_prompt=query,
