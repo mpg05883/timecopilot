@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from utilsforecast.data import generate_series
 
 from timecopilot import TimeCopilot
+from timecopilot.agent import TimeCopilotAsync
 
 load_dotenv()
 logfire.configure(send_to_logfire="if-token-present")
@@ -52,11 +53,85 @@ def test_is_queryable():
         llm="openai:gpt-4o-mini",
         retries=3,
     )
-    assert not tc._is_queryable()
+    assert not tc.is_queryable()
     result = tc.forecast(
         df=df,
         query=f"Please forecast the series with a horizon of {h} and frequency D.",
     )
-    assert tc._is_queryable()
+    assert tc.is_queryable()
     result = tc.query("how much will change the series with id 0?")
     print(result.output)
+
+
+@pytest.mark.live
+@pytest.mark.asyncio
+@pytest.mark.parametrize("n_series", [1, 2])
+async def test_async_forecast_returns_expected_output(n_series):
+    h = 2
+    df = generate_series(
+        n_series=n_series,
+        freq="D",
+        min_length=30,
+        static_as_categorical=False,
+    )
+    tc = TimeCopilotAsync(
+        llm="openai:gpt-4o-mini",
+        retries=3,
+    )
+    result = await tc.forecast(
+        df=df,
+        query=f"Please forecast the series with a horizon of {h} and frequency D.",
+    )
+    assert len(result.fcst_df) == n_series * h
+    assert result.output.is_better_than_seasonal_naive
+    assert result.output.forecast_analysis is not None
+    assert result.output.reason_for_selection is not None
+
+
+@pytest.mark.live
+@pytest.mark.asyncio
+async def test_async_is_queryable():
+    h = 2
+    df = generate_series(
+        n_series=2,
+        freq="D",
+        min_length=30,
+        static_as_categorical=False,
+    )
+    tc = TimeCopilotAsync(
+        llm="openai:gpt-4o-mini",
+        retries=3,
+    )
+    assert not tc.is_queryable()
+    await tc.forecast(
+        df=df,
+        query=f"Please forecast the series with a horizon of {h} and frequency D.",
+    )
+    assert tc.is_queryable()
+    answer = await tc.query("how much will change the series with id 0?")
+    print(answer.output)
+
+
+@pytest.mark.live
+@pytest.mark.asyncio
+async def test_async_query_stream():
+    h = 2
+    df = generate_series(
+        n_series=1,
+        freq="D",
+        min_length=30,
+        static_as_categorical=False,
+    )
+    tc = TimeCopilotAsync(
+        llm="openai:gpt-4o-mini",
+        retries=3,
+    )
+    await tc.forecast(
+        df=df,
+        query=f"Please forecast the series with a horizon of {h} and frequency D.",
+    )
+    async with tc.query_stream("What is the forecast for the next 2 days?") as result:
+        # This will yield a StreamedRunResult, which can be streamed for text
+        async for text in result.stream(debounce_by=0.01):
+            print(text, end="", flush=True)
+    print()
