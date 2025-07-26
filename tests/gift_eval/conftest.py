@@ -7,7 +7,9 @@ from huggingface_hub import snapshot_download
 
 @pytest.fixture(scope="session")
 def cache_dir() -> Path:
-    return Path(".pytest_cache") / "gift_eval"
+    cache_dir = Path(".pytest_cache") / "gift_eval"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    return cache_dir
 
 
 @pytest.fixture(scope="session")
