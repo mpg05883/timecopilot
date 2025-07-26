@@ -56,6 +56,7 @@ class GIFTEval:
         term: str,
         output_dir: str | Path | None,
     ):
+        # fmt: off
         """
         Initialize a GIFTEval instance for a specific dataset and evaluation term.
 
@@ -64,9 +65,37 @@ class GIFTEval:
             term (str): Evaluation term (e.g., 'medium', 'long').
             output_dir (str | Path | None): Directory to save results CSV, or
                 None to skip saving.
+
+        Example:
+            ```python
+            from timecopilot.gift_eval.eval import GIFTEval, QUANTILE_LEVELS
+            from timecopilot.gift_eval.gluonts_predictor import GluonTSPredictor
+            from timecopilot.models.benchmarks import SeasonalNaive
+
+            gifteval = GIFTEval(
+                dataset_name=dataset_name,
+                term=term,
+                output_dir="./my-dir",
+            )
+            predictor = GluonTSPredictor(
+                forecaster=SeasonalNaive(),
+                h=gifteval.dataset.prediction_length,
+                freq=gifteval.dataset.freq,
+                quantiles=QUANTILE_LEVELS,
+                batch_size=512,
+            )
+            gifteval.evaluate_predictor(
+                predictor,
+                batch_size=512,
+            )
+            eval_df = pd.read_csv("./my-dir/all_results.csv")
+            ```
+
         Raises:
             ValueError: If the dataset is not compatible with the specified term.
+
         """
+        # fmt: on
         res_dataset_properties = requests.get(
             "https://raw.githubusercontent.com/SalesforceAIResearch/gift-eval/refs/heads/main/notebooks/dataset_properties.json"
         )
