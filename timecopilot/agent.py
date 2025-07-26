@@ -654,7 +654,7 @@ class TimeCopilot:
         return result
 
 
-class TimeCopilotAsync(TimeCopilot):
+class AsyncTimeCopilot(TimeCopilot):
     def __init__(self, **kwargs: Any):
         """
         Initialize an asynchronous TimeCopilot agent.

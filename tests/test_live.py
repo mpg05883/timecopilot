@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from utilsforecast.data import generate_series
 
 from timecopilot import TimeCopilot
-from timecopilot.agent import TimeCopilotAsync
+from timecopilot.agent import AsyncTimeCopilot
 
 load_dotenv()
 logfire.configure(send_to_logfire="if-token-present")
@@ -76,7 +76,7 @@ async def test_async_forecast_returns_expected_output(n_series):
         min_length=30,
         static_as_categorical=False,
     )
-    tc = TimeCopilotAsync(
+    tc = AsyncTimeCopilot(
         llm="openai:gpt-4o-mini",
         retries=3,
     )
@@ -102,7 +102,7 @@ async def test_async_is_queryable():
         min_length=30,
         static_as_categorical=False,
     )
-    tc = TimeCopilotAsync(
+    tc = AsyncTimeCopilot(
         llm="openai:gpt-4o-mini",
         retries=3,
     )
@@ -126,7 +126,7 @@ async def test_async_query_stream():
         min_length=30,
         static_as_categorical=False,
     )
-    tc = TimeCopilotAsync(
+    tc = AsyncTimeCopilot(
         llm="openai:gpt-4o-mini",
         retries=3,
     )
