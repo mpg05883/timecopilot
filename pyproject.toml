@@ -89,9 +89,10 @@ disable_error_code = ["no-redef"]  # for fasthtml
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-m 'not live' -n auto"
+addopts = "-m 'not live and not gift_eval' -n auto"
 markers = [
-    "live: marks tests that require calls to llm providers"
+    "live: marks tests that require calls to llm providers",
+    "gift_eval: marks tests related to gift eval"
 ]
 
 [tool.ruff]
