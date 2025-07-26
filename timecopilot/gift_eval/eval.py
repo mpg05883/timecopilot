@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 import pandas as pd
@@ -23,6 +24,8 @@ from .data import Dataset
 from .gluonts_predictor import GluonTSPredictor
 from .utils import MED_LONG_DATASETS
 
+logger = logging.getLogger(__name__)
+
 load_dotenv()
 
 QUANTILE_LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
@@ -39,6 +42,7 @@ METRICS = [
     ND(),
     MeanWeightedSumQuantileLoss(quantile_levels=QUANTILE_LEVELS),
 ]
+DATASET_PROPERTIES_URL = "https://raw.githubusercontent.com/SalesforceAIResearch/gift-eval/refs/heads/main/notebooks/dataset_properties.json"
 
 
 class GIFTEval:
@@ -96,9 +100,7 @@ class GIFTEval:
 
         """
         # fmt: on
-        res_dataset_properties = requests.get(
-            "https://raw.githubusercontent.com/SalesforceAIResearch/gift-eval/refs/heads/main/notebooks/dataset_properties.json"
-        )
+        res_dataset_properties = requests.get(DATASET_PROPERTIES_URL)
         res_dataset_properties.raise_for_status()  # Raise an error for bad responses
         self.dataset_properties_map = res_dataset_properties.json()
         pretty_names = {
@@ -223,6 +225,6 @@ class GIFTEval:
             csv_file_path.parent.mkdir(parents=True, exist_ok=True)
             results_df.to_csv(csv_file_path, index=False)
 
-            print(
+            logger.info(
                 f"Results for {self.dataset_name} have been written to {csv_file_path}"
             )

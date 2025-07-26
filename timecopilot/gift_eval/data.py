@@ -1,4 +1,4 @@
-# Adaptd from https://github.com/SalesforceAIResearch/gift-eval
+# Adapted from https://github.com/SalesforceAIResearch/gift-eval
 
 import math
 import os
