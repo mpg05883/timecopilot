@@ -72,7 +72,7 @@ jobs:
           enable-cache: true
 
       - name: Run tests
-        run: uv run pytest -m gift_eval -n 0
+        run: uv run pytest -m gift_eval -x -n 0
 
   build-docs:
     name: build docs
