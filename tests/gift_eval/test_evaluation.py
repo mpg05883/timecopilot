@@ -47,12 +47,14 @@ def test_evaluation(
     dataset_name: str,
     term: str,
     all_results_df: pd.DataFrame,
+    storage_path: Path,
 ):
     with tempfile.TemporaryDirectory() as temp_dir:
         gifteval = GIFTEval(
             dataset_name=dataset_name,
             term=term,
-            output_dir=temp_dir,
+            output_path=temp_dir,
+            storage_path=storage_path,
         )
         predictor = GluonTSPredictor(
             forecaster=SeasonalNaive(
