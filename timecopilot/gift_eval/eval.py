@@ -19,6 +19,7 @@ from gluonts.ev.metrics import (
 from gluonts.model import evaluate_model
 from gluonts.model.predictor import RepresentablePredictor
 from gluonts.time_feature import get_seasonality
+from huggingface_hub import snapshot_download
 
 from .data import Dataset
 from .gluonts_predictor import GluonTSPredictor
@@ -54,11 +55,26 @@ class GIFTEval:
     desired.
     """
 
+    @staticmethod
+    def download_data(storage_path: Path | str | None = None):
+        """
+        Download the GIFTEval dataset from Hugging Face.
+
+        Args:
+            storage_path (Path | str | None): Path to store the dataset.
+        """
+        snapshot_download(
+            repo_id="Salesforce/GiftEval",
+            repo_type="dataset",
+            local_dir=storage_path,
+        )
+
     def __init__(
         self,
         dataset_name: str,
         term: str,
-        output_path: str | Path | None,
+        output_path: Path | str | None = None,
+        storage_path: Path | str | None = None,
     ):
         # fmt: off
         """
@@ -69,17 +85,23 @@ class GIFTEval:
             term (str): Evaluation term (e.g., 'medium', 'long').
             output_path (str | Path | None): Directory to save results CSV, or
                 None to skip saving.
+            storage_path (Path | str | None): Path where the dataset is stored.
 
         Example:
             ```python
+            import pandas as pd
             from timecopilot.gift_eval.eval import GIFTEval, QUANTILE_LEVELS
             from timecopilot.gift_eval.gluonts_predictor import GluonTSPredictor
             from timecopilot.models.benchmarks import SeasonalNaive
 
+            storage_path = "./gift_eval_data"
+            GIFTEval.download_data(storage_path)
+
             gifteval = GIFTEval(
-                dataset_name=dataset_name,
-                term=term,
-                output_path="./my-dir",
+                dataset_name="m4_weekly",
+                term="short",
+                output_path="./seasonal_naive",
+                storage_path=storage_path,
             )
             predictor = GluonTSPredictor(
                 forecaster=SeasonalNaive(),
@@ -92,7 +114,7 @@ class GIFTEval:
                 predictor,
                 batch_size=512,
             )
-            eval_df = pd.read_csv("./my-dir/all_results.csv")
+            eval_df = pd.read_csv("./seasonal_naive/all_results.csv")
             ```
 
         Raises:
@@ -131,6 +153,7 @@ class GIFTEval:
                 name=dataset_name,
                 term=term,
                 to_univariate=False,
+                storage_path=storage_path,
             ).target_dim
             != 1
         )
@@ -138,6 +161,7 @@ class GIFTEval:
             name=dataset_name,
             term=term,
             to_univariate=to_univariate,
+            storage_path=storage_path,
         )
         self.dataset_name = dataset_name
         self.seasonality = get_seasonality(self.dataset.freq)
