@@ -2930,6 +2930,15 @@ wheels = [
 ]
 
 [[package]]
+name = "mktestdocs"
+version = "0.2.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fd/04/aced274f9ea76dfdb7a36c1b729863ebbf61e94b60a0d1eefa2556a61df5/mktestdocs-0.2.5.tar.gz", hash = "sha256:7935d4e665b34b690cdf14749abb842723652485f67af12dce51099bcb98e105", size = 10519, upload-time = "2025-07-25T12:39:29.073Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4f/eb/3686be82dfeb12eb968f002254464e282722e4ac52c465c2998764583f34/mktestdocs-0.2.5-py3-none-any.whl", hash = "sha256:2b20d2387b2025597f3129773edef16d09b08b1b6d31da6cc51af5b693c10430", size = 9096, upload-time = "2025-07-25T12:39:27.985Z" },
+]
+
+[[package]]
 name = "ml-dtypes"
 version = "0.5.1"
 source = { registry = "https://pypi.org/simple" }
@@ -5927,6 +5936,7 @@ docs = [
     { name = "mkdocs" },
     { name = "mkdocs-material" },
     { name = "mkdocstrings", extra = ["python"] },
+    { name = "mktestdocs" },
     { name = "modal" },
     { name = "ruff" },
 ]
@@ -5963,6 +5973,7 @@ docs = [
     { name = "mkdocs", specifier = ">=1.6.1" },
     { name = "mkdocs-material", specifier = ">=9.6.14" },
     { name = "mkdocstrings", extras = ["python"], specifier = ">=0.29.1" },
+    { name = "mktestdocs", specifier = ">=0.2.5" },
     { name = "modal", specifier = ">=1.0.4" },
     { name = "ruff", specifier = ">=0.12.1" },
 ]
