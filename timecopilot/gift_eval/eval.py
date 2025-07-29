@@ -58,7 +58,7 @@ class GIFTEval:
         self,
         dataset_name: str,
         term: str,
-        output_dir: str | Path | None,
+        output_path: str | Path | None,
     ):
         # fmt: off
         """
@@ -67,7 +67,7 @@ class GIFTEval:
         Args:
             dataset_name (str): Name of the dataset to evaluate on.
             term (str): Evaluation term (e.g., 'medium', 'long').
-            output_dir (str | Path | None): Directory to save results CSV, or
+            output_path (str | Path | None): Directory to save results CSV, or
                 None to skip saving.
 
         Example:
@@ -79,7 +79,7 @@ class GIFTEval:
             gifteval = GIFTEval(
                 dataset_name=dataset_name,
                 term=term,
-                output_dir="./my-dir",
+                output_path="./my-dir",
             )
             predictor = GluonTSPredictor(
                 forecaster=SeasonalNaive(),
@@ -141,7 +141,7 @@ class GIFTEval:
         )
         self.dataset_name = dataset_name
         self.seasonality = get_seasonality(self.dataset.freq)
-        self.output_dir = output_dir
+        self.output_path = output_path
 
     def evaluate_predictor(
         self,
@@ -220,8 +220,8 @@ class GIFTEval:
                 "num_variates",
             ],
         )
-        if self.output_dir is not None:
-            csv_file_path = Path(self.output_dir) / "all_results.csv"
+        if self.output_path is not None:
+            csv_file_path = Path(self.output_path) / "all_results.csv"
             csv_file_path.parent.mkdir(parents=True, exist_ok=True)
             results_df.to_csv(csv_file_path, index=False)
 
