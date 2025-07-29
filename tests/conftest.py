@@ -1,6 +1,7 @@
 import sys
 
 from timecopilot.agent import MODELS
+from timecopilot.models.ensembles.median import MedianEnsemble
 from timecopilot.models.foundational.chronos import Chronos
 from timecopilot.models.foundational.moirai import Moirai
 from timecopilot.models.foundational.timesfm import TimesFM
@@ -45,6 +46,13 @@ models.extend(
         TimesFM(
             repo_id="google/timesfm-1.0-200m-pytorch",
             context_length=256,
+        ),
+        MedianEnsemble(
+            models=[
+                Chronos(repo_id="amazon/chronos-t5-tiny", alias="Chronos-T5"),
+                Chronos(repo_id="amazon/chronos-bolt-tiny", alias="Chronos-Bolt"),
+                MODELS["SeasonalNaive"],
+            ],
         ),
     ]
 )
