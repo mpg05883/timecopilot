@@ -2,19 +2,20 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
-from huggingface_hub import snapshot_download
+
+from timecopilot.gift_eval.eval import GIFTEval
 
 
 @pytest.fixture(scope="session")
-def cache_dir() -> Path:
-    cache_dir = Path(".pytest_cache") / "gift_eval"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    return cache_dir
+def cache_path() -> Path:
+    cache_path = Path(".pytest_cache") / "gift_eval"
+    cache_path.mkdir(parents=True, exist_ok=True)
+    return cache_path
 
 
 @pytest.fixture(scope="session")
-def all_results_df(cache_dir: Path) -> pd.DataFrame:
-    all_results_file = cache_dir / "seasonal_naive_all_results.csv"
+def all_results_df(cache_path: Path) -> pd.DataFrame:
+    all_results_file = cache_path / "seasonal_naive_all_results.csv"
     if not all_results_file.exists():
         all_results_df = pd.read_csv(
             "https://huggingface.co/spaces/Salesforce/GIFT-Eval/raw/main/results/seasonal_naive/all_results.csv"
@@ -24,15 +25,6 @@ def all_results_df(cache_dir: Path) -> pd.DataFrame:
 
 
 @pytest.fixture(scope="session")
-def gift_eval_dir(cache_dir: Path) -> Path:
-    snapshot_download(
-        repo_id="Salesforce/GiftEval",
-        repo_type="dataset",
-        local_dir=cache_dir,
-    )
-    return cache_dir
-
-
-@pytest.fixture(autouse=True)
-def gift_eval_env(monkeypatch, gift_eval_dir):
-    monkeypatch.setenv("GIFT_EVAL", gift_eval_dir)
+def storage_path(cache_path: Path) -> Path:
+    GIFTEval.download_data(cache_path)
+    return cache_path

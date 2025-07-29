@@ -107,18 +107,25 @@ class MultivariateToUnivariate(Transformation):
 
 
 class Dataset:
+    def _storage_path_from_env_var(self, env_var: str) -> Path:
+        load_dotenv()
+        env_var_value = os.getenv(env_var)
+        if env_var_value is None:
+            raise ValueError(f"Environment variable {env_var} is not set")
+        return Path(env_var_value)
+
     def __init__(
         self,
         name: str,
         term: Term | str = Term.SHORT,
         to_univariate: bool = False,
+        storage_path: Path | str | None = None,
         storage_env_var: str = "GIFT_EVAL",
     ):
-        load_dotenv()
-        env_var = os.getenv(storage_env_var)
-        if env_var is None:
-            raise ValueError(f"Environment variable {storage_env_var} is not set")
-        storage_path = Path(env_var)
+        if storage_path is None:
+            storage_path = self._storage_path_from_env_var(storage_env_var)
+        else:
+            storage_path = Path(storage_path)
         self.hf_dataset = datasets.load_from_disk(str(storage_path / name)).with_format(
             "numpy"
         )

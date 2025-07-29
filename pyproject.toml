@@ -61,6 +61,7 @@ docs = [
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.6.14",
     "mkdocstrings[python]>=0.29.1",
+    "mktestdocs>=0.2.5",
     "modal>=1.0.4",
     "ruff>=0.12.1",
 ]
