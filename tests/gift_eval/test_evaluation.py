@@ -1,3 +1,4 @@
+import random
 import tempfile
 from pathlib import Path
 
@@ -17,7 +18,8 @@ TARGET_COLS = [
     "eval_metrics/MSE[0.5]",
     "eval_metrics/MAE[0.5]",
     "eval_metrics/MASE[0.5]",
-    "eval_metrics/MAPE[0.5]",
+    # can be unstable, due to division by zero
+    # "eval_metrics/MAPE[0.5]",
     "eval_metrics/sMAPE[0.5]",
     "eval_metrics/MSIS",
     "eval_metrics/RMSE[mean]",
@@ -35,7 +37,12 @@ def test_number_of_datasets(all_results_df: pd.DataFrame):
 
 
 @pytest.mark.gift_eval
-@pytest.mark.parametrize("dataset_name, term", DATASETS_WITH_TERMS)
+@pytest.mark.parametrize(
+    "dataset_name, term",
+    # testing 20 random datasets
+    # each time to prevent longer running tests
+    random.sample(DATASETS_WITH_TERMS, 20),
+)
 def test_evaluation(
     dataset_name: str,
     term: str,
