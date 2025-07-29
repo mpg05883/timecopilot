@@ -4,7 +4,6 @@
     options:
         members:
             - Chronos
-            - TimeGPT
 
 ::: timecopilot.models.foundational.timegpt
     options:
