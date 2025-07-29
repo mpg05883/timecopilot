@@ -56,6 +56,24 @@ jobs:
         env: 
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} 
 
+  test-gift-eval:
+    name: test gift eval
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Run tests
+        run: uv run pytest -m gift_eval -x -n 0
+
   build-docs:
     name: build docs
     runs-on: ubuntu-latest

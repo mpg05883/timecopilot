@@ -28,6 +28,7 @@ nav:
       - api/models/benchmarks/stats.md
       - api/models/benchmarks/prophet.md
       - api/models/utils/forecaster.md
+      - api/gift_eval/gift_eval.md
   - Changelogs:
       - changelogs/index.md
       - changelogs/v0.0.11.md
