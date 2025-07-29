@@ -31,6 +31,7 @@ nav:
       - api/gift_eval/gift_eval.md
   - Changelogs:
       - changelogs/index.md
+      - changelogs/v0.0.12.md
       - changelogs/v0.0.11.md
       - changelogs/v0.0.10.md
 
