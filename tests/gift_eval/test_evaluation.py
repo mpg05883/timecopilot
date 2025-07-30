@@ -4,9 +4,8 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
-from gluonts.time_feature import get_seasonality
 
-from timecopilot.gift_eval.eval import QUANTILE_LEVELS, GIFTEval
+from timecopilot.gift_eval.eval import GIFTEval
 from timecopilot.gift_eval.gluonts_predictor import GluonTSPredictor
 from timecopilot.gift_eval.utils import DATASETS_WITH_TERMS
 from timecopilot.models.benchmarks import SeasonalNaive
@@ -49,22 +48,19 @@ def test_evaluation(
     all_results_df: pd.DataFrame,
     storage_path: Path,
 ):
+    predictor = GluonTSPredictor(
+        forecaster=SeasonalNaive(
+            # alias used by the official evaluation
+            alias="Seasonal_Naive",
+        ),
+        batch_size=512,
+    )
     with tempfile.TemporaryDirectory() as temp_dir:
         gifteval = GIFTEval(
             dataset_name=dataset_name,
             term=term,
             output_path=temp_dir,
             storage_path=storage_path,
-        )
-        predictor = GluonTSPredictor(
-            forecaster=SeasonalNaive(
-                alias="Seasonal_Naive",  # alias used by the official evaluation
-                season_length=get_seasonality(gifteval.dataset.freq),
-            ),
-            h=gifteval.dataset.prediction_length,
-            freq=gifteval.dataset.freq,
-            quantiles=QUANTILE_LEVELS,
-            batch_size=512,
         )
         gifteval.evaluate_predictor(
             predictor,

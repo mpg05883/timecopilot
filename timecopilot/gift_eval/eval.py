@@ -23,13 +23,12 @@ from huggingface_hub import snapshot_download
 
 from .data import Dataset
 from .gluonts_predictor import GluonTSPredictor
-from .utils import MED_LONG_DATASETS
+from .utils import MED_LONG_DATASETS, QUANTILE_LEVELS
 
 logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-QUANTILE_LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 METRICS = [
     MSE(forecast_type="mean"),
     MSE(forecast_type=0.5),
@@ -90,27 +89,27 @@ class GIFTEval:
         Example:
             ```python
             import pandas as pd
-            from timecopilot.gift_eval.eval import GIFTEval, QUANTILE_LEVELS
+            from timecopilot.gift_eval.eval import GIFTEval
             from timecopilot.gift_eval.gluonts_predictor import GluonTSPredictor
             from timecopilot.models.benchmarks import SeasonalNaive
 
             storage_path = "./gift_eval_data"
             GIFTEval.download_data(storage_path)
 
-            gifteval = GIFTEval(
+            predictor = GluonTSPredictor(
+                # you can use any forecaster from TimeCopilot
+                # and create your own forecaster by subclassing 
+                # [Forecaster][timecopilot.models.utils.forecaster.Forecaster]
+                forecaster=SeasonalNaive(),
+                batch_size=512,
+            )
+            gift_eval = GIFTEval(
                 dataset_name="m4_weekly",
                 term="short",
                 output_path="./seasonal_naive",
                 storage_path=storage_path,
             )
-            predictor = GluonTSPredictor(
-                forecaster=SeasonalNaive(),
-                h=gifteval.dataset.prediction_length,
-                freq=gifteval.dataset.freq,
-                quantiles=QUANTILE_LEVELS,
-                batch_size=512,
-            )
-            gifteval.evaluate_predictor(
+            gift_eval.evaluate_predictor(
                 predictor,
                 batch_size=512,
             )

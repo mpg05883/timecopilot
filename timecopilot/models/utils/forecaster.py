@@ -17,8 +17,37 @@ from utilsforecast.processing import (
 )
 
 
-def get_seasonality(freq: str) -> int:
-    return _get_seasonality(freq, seasonalities=DEFAULT_SEASONALITIES | {"D": 7})
+def get_seasonality(
+    freq: str,
+    custom_seasonalities: dict[str, int] | None = None,
+) -> int:
+    # fmt: off
+    """
+    Get the seasonality of a frequency.
+
+    Args:
+        freq (str): The frequency to get the seasonality of.
+        custom_seasonalities (dict[str, int] | None): Custom seasonalities to use.
+            If None, the default seasonalities are used.
+
+    Returns:
+        int: The seasonality of the frequency.
+
+    Example:
+        ```python
+        get_seasonality("D", custom_seasonalities={"D": 7})
+        # 7
+        get_seasonality("D") # default seasonalities are used
+        # 1
+        ```
+    """
+    # fmt: on
+    if custom_seasonalities is None:
+        custom_seasonalities = dict()
+    return _get_seasonality(
+        freq,
+        seasonalities=DEFAULT_SEASONALITIES | custom_seasonalities,
+    )
 
 
 def maybe_infer_freq(df: pd.DataFrame, freq: str | None) -> str:
