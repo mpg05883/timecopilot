@@ -1,5 +1,7 @@
 from itertools import product
 
+QUANTILE_LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+
 SHORT_DATASETS = [
     "m4_yearly",
     "m4_quarterly",

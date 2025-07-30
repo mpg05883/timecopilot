@@ -11,7 +11,8 @@ from gluonts.model.forecast import QuantileForecast
 from gluonts.model.predictor import RepresentablePredictor
 from gluonts.transform.feature import LastValueImputation, MissingValueImputation
 
-from timecopilot.models.utils.forecaster import Forecaster
+from ..models.utils.forecaster import Forecaster
+from .utils import QUANTILE_LEVELS
 
 
 class GluonTSPredictor(RepresentablePredictor):
@@ -25,8 +26,8 @@ class GluonTSPredictor(RepresentablePredictor):
     def __init__(
         self,
         forecaster: Forecaster,
-        h: int,
-        freq: str,
+        h: int | None = None,
+        freq: str | None = None,
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
         max_length: int | None = None,
@@ -38,13 +39,20 @@ class GluonTSPredictor(RepresentablePredictor):
 
         Args:
             forecaster (Forecaster): The TimeCopilot forecaster to wrap.
-            h (int): Forecast horizon.
-            freq (str): Frequency string (e.g., 'D', 'H').
+                You can use any forecaster from TimeCopilot, and create your own
+                forecaster by subclassing
+                [Forecaster][timecopilot.models.utils.forecaster.Forecaster].
+            h (int | None): Forecast horizon. If None (default), the horizon is
+                inferred from the dataset.
+            freq (str | None): Frequency string (e.g., 'D', 'H').
+                If None (default), the frequency is inferred from the dataset.
             level (list[int | float] | None): Not supported; use quantiles instead.
-            quantiles (list[float] | None): Quantiles to forecast, if any.
+            quantiles (list[float] | None): Quantiles to forecast. If None (default),
+                the default quantiles [0.1, 0.2, ..., 0.9] are used.
             max_length (int | None): Maximum length of input series.
             imputation_method (MissingValueImputation | None): Imputation method for
-                missing values.
+                missing values. If None (default), the last value is used
+                with LastValueImputation().
             batch_size (int | None): Batch size for prediction.
 
         Raises:
@@ -54,10 +62,10 @@ class GluonTSPredictor(RepresentablePredictor):
         self.h = h
         self.freq = freq
         self.level = level
-        self.max_length = max_length
         if level is not None:
             raise NotImplementedError("level is not supported, use quantiles instead")
-        self.quantiles = quantiles
+        self.quantiles = quantiles or QUANTILE_LEVELS
+        self.max_length = max_length
         self.imputation_method = imputation_method or LastValueImputation()
         self.batch_size = batch_size
         self.alias = forecaster.alias
@@ -100,11 +108,17 @@ class GluonTSPredictor(RepresentablePredictor):
         df = pd.concat(dfs, ignore_index=True)
         return df, metadata
 
-    def _predict_df(self, df: pd.DataFrame, metadata: dict[str, Any]) -> list[Forecast]:
+    def _predict_df(
+        self,
+        df: pd.DataFrame,
+        metadata: dict[str, Any],
+        h: int,
+        freq: str,
+    ) -> list[Forecast]:
         fcst_df = self.forecaster.forecast(
             df=df,
-            h=self.h,
-            freq=self.freq,
+            h=h,
+            freq=freq,
             level=self.level,
             quantiles=self.quantiles,
         )
@@ -130,9 +144,14 @@ class GluonTSPredictor(RepresentablePredictor):
             fcsts.append(q_fcst)
         return fcsts
 
-    def _predict_batch(self, batch: list[Dataset]) -> list[Forecast]:
+    def _predict_batch(
+        self,
+        batch: list[Dataset],
+        h: int,
+        freq: str,
+    ) -> list[Forecast]:
         df, metadata = self._gluonts_dataset_to_df(batch)
-        return self._predict_df(df, metadata)
+        return self._predict_df(df=df, metadata=metadata, h=h, freq=freq)
 
     def predict(self, dataset: Dataset, **kwargs: Any) -> list[Forecast]:
         """
@@ -147,11 +166,19 @@ class GluonTSPredictor(RepresentablePredictor):
         """
         fcsts: list[Forecast] = []
         batch: list[Dataset] = []
+        h = self.h or dataset.test_data.prediction_length
+        if h is None:
+            raise ValueError("horizon `h` must be provided")
+        freq = self.freq
         for _, entry in tqdm.tqdm(enumerate(dataset), total=len(dataset)):
+            if freq is None:
+                freq = entry["freq"]
             batch.append(entry)
             if len(batch) == self.batch_size:
-                fcsts.extend(self._predict_batch(batch))
+                fcsts.extend(self._predict_batch(batch=batch, h=h, freq=freq))
                 batch = []
         if len(batch) > 0:
-            fcsts.extend(self._predict_batch(batch))
+            if freq is None:
+                raise ValueError("frequency `freq` must be provided")
+            fcsts.extend(self._predict_batch(batch=batch, h=h, freq=freq))
         return fcsts
