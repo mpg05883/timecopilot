@@ -170,6 +170,7 @@ class GIFTEval:
         self,
         predictor: RepresentablePredictor | GluonTSPredictor,
         batch_size: int | None = None,
+        overwrite_results: bool = False,
     ):
         """
         Evaluate a GluonTS predictor on the loaded dataset and save results.
@@ -179,6 +180,8 @@ class GIFTEval:
                 evaluate.
             batch_size (int | None): Batch size for evaluation. If None, uses
                 predictor's default.
+            overwrite_results (bool): Whether to overwrite the existing results CSV
+                file.
         """
         if batch_size is None:
             if isinstance(predictor, GluonTSPredictor):
@@ -246,6 +249,8 @@ class GIFTEval:
         if self.output_path is not None:
             csv_file_path = Path(self.output_path) / "all_results.csv"
             csv_file_path.parent.mkdir(parents=True, exist_ok=True)
+            if csv_file_path.exists() and not overwrite_results:
+                results_df = pd.concat([pd.read_csv(csv_file_path), results_df])
             results_df.to_csv(csv_file_path, index=False)
 
             logger.info(
