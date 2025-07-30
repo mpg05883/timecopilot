@@ -10,6 +10,12 @@ from timecopilot.models.utils.forecaster import (
 )
 
 
+def test_get_seasonality_custom_seasonalities():
+    assert get_seasonality("D", custom_seasonalities={"D": 7}) == 7
+    assert get_seasonality("D", custom_seasonalities={"D": 7}) == 7
+    assert get_seasonality("D") == 1
+
+
 @pytest.mark.parametrize("freq", ["MS", "W-MON", "D"])
 def test_maybe_infer_freq(freq):
     df = generate_series(
