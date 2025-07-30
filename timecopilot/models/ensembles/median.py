@@ -132,26 +132,20 @@ class MedianEnsemble(Forecaster):
         if qc.quantiles is not None:
             qs = sorted(qc.quantiles)
             q_cols = []
-            # x for isotonic regression
-            qs_reg = []
-            # y for isotonic regression
-            models_qs_cols = []
             for q in qs:
                 pct = int(q * 100)
                 models_q_cols = [f"{col}-q-{pct}" for col in model_cols]
                 q_col = f"{self.alias}-q-{pct}"
-                qs_reg.extend([q] * len(model_cols))
-                models_qs_cols.extend(models_q_cols)
+                fcst_df[q_col] = _fcst_df[models_q_cols].median(axis=1)
                 q_cols.append(q_col)
             # enforce monotonicity
-            # using isotonic regression
             ir = IsotonicRegression(increasing=True)
 
             def apply_isotonic(row):
-                return ir.fit(qs_reg, row).predict(qs)
+                return ir.fit_transform(qs, row)
 
             # @Azul: this can be parallelized later
-            vals_monotonic = _fcst_df[models_qs_cols].apply(
+            vals_monotonic = fcst_df[q_cols].apply(
                 apply_isotonic,
                 axis=1,
                 result_type="expand",
