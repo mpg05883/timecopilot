@@ -93,7 +93,7 @@ testpaths = ["tests"]
 addopts = "-m 'not live and not gift_eval' -n auto"
 markers = [
     "live: marks tests that require calls to llm providers",
-    "gift_eval: marks tests related to gift eval"
+    "gift_eval: marks tests related to gift eval results replication"
 ]
 
 [tool.ruff]
