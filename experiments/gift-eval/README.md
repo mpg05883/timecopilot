@@ -21,7 +21,7 @@ This ensemble leverages [**TimeCopilot's MedianEnsemble**](https://timecopilot.d
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/) package manager
 - AWS CLI configured (for distributed evaluation)
-- [Modal](https://modal.com) account (for distributed evaluation)
+- [Modal](https://modal.com/) account (for distributed evaluation)
 
 ### Installation
 
