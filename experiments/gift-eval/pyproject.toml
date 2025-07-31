@@ -1,0 +1,19 @@
+[project]
+name = "timecopilot-gift-eval"
+version = "0.1.0"
+description = "TimeCopilot experiments for GIFTEval"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "modal>=1.0.5",
+    "s3fs>=2023.12.1",
+    "timecopilot>=0.0.12",
+    "transformers<4.54",
+    "typer>=0.16.0",
+]
+
+[tool.uv.sources]
+timecopilot = { git = "https://github.com/AzulGarza/timecopilot.git", branch = "refactor/median-ensemble" }
+
+[dependency-groups]
+docs = []
