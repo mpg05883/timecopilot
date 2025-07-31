@@ -16,4 +16,4 @@ repos:
     rev: v0.24.2
     hooks:
       - id: toml-sort
-        args: ["--all", "--trailing-comma-inline-array"]
+        args: ["--all", "--trailing-comma-inline-array", "--in-place"]
