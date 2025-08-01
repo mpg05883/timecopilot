@@ -31,7 +31,7 @@ from tsfeatures import (
 )
 from tsfeatures.tsfeatures import _get_feats
 
-from .forecaster import TimeCopilotForecaster
+from .forecaster import Forecaster, TimeCopilotForecaster
 from .models.benchmarks import (
     ADIDA,
     IMAPA,
@@ -46,24 +46,22 @@ from .models.benchmarks import (
     ZeroModel,
 )
 from .models.benchmarks.prophet import Prophet
-from .models.foundational.timesfm import TimesFM
 from .utils.experiment_handler import ExperimentDataset, ExperimentDatasetParser
 
-MODELS = {
-    "ADIDA": ADIDA(),
-    "AutoARIMA": AutoARIMA(),
-    "AutoCES": AutoCES(),
-    "AutoETS": AutoETS(),
-    "CrostonClassic": CrostonClassic(),
-    "DynamicOptimizedTheta": DynamicOptimizedTheta(),
-    "HistoricAverage": HistoricAverage(),
-    "IMAPA": IMAPA(),
-    "SeasonalNaive": SeasonalNaive(),
-    "Theta": Theta(),
-    "ZeroModel": ZeroModel(),
-    "TimesFM": TimesFM(),
-    "Prophet": Prophet(),
-}
+DEFAULT_MODELS = [
+    ADIDA(),
+    AutoARIMA(),
+    AutoCES(),
+    AutoETS(),
+    CrostonClassic(),
+    DynamicOptimizedTheta(),
+    HistoricAverage(),
+    IMAPA(),
+    SeasonalNaive(),
+    Theta(),
+    ZeroModel(),
+    Prophet(),
+]
 
 TSFEATURES: dict[str, Callable] = {
     "acf_features": acf_features,
@@ -300,14 +298,22 @@ class TimeCopilot:
     def __init__(
         self,
         llm: str,
+        forecasters: list[Forecaster] | None = None,
         **kwargs: Any,
     ):
         """
         Args:
             llm: The LLM to use.
+            forecasters: A list of forecasters to use. If not provided,
+                TimeCopilot will use the default forecasters.
             **kwargs: Additional keyword arguments to pass to the agent.
         """
 
+        if forecasters is None:
+            forecasters = DEFAULT_MODELS
+        self.forecasters = {forecaster.alias: forecaster for forecaster in forecasters}
+        if "SeasonalNaive" not in self.forecasters:
+            self.forecasters["SeasonalNaive"] = SeasonalNaive()
         self.system_prompt = f"""
         You're a forecasting expert. You will be given a time series 
         as a list of numbers
@@ -320,7 +326,7 @@ class TimeCopilot:
 
         2. cross_validation_tool: Performs cross-validation for one or more models.
         Takes a list of model names and returns their cross-validation results.
-        Available models are: {", ".join(MODELS.keys())}
+        Available models are: {", ".join(self.forecasters.keys())}
 
         3. forecast_tool: Generates forecasts using a selected model.
         Takes a model name and returns forecasted values.
@@ -423,17 +429,17 @@ class TimeCopilot:
         self.fcst_df: pd.DataFrame
         self.eval_df: pd.DataFrame
         self.features_df: pd.DataFrame
-        self.models: list[str]
+        self.eval_forecasters: list[str]
 
         @self.query_agent.system_prompt
-        async def add_info(
+        async def add_experiment_info(
             ctx: RunContext[ExperimentDataset],
         ) -> str:
             output = "\n".join(
                 [
                     _transform_time_series_to_text(ctx.deps.df),
                     _transform_features_to_text(self.features_df),
-                    _transform_eval_to_text(self.eval_df, self.models),
+                    _transform_eval_to_text(self.eval_df, self.eval_forecasters),
                     _transform_fcst_to_text(self.fcst_df),
                 ]
             )
@@ -481,12 +487,12 @@ class TimeCopilot:
         ) -> str:
             callable_models = []
             for str_model in models:
-                if str_model not in MODELS:
+                if str_model not in self.forecasters:
                     raise ModelRetry(
                         f"Model {str_model} is not available. Available models are: "
-                        f"{', '.join(MODELS.keys())}"
+                        f"{', '.join(self.forecasters.keys())}"
                     )
-                callable_models.append(MODELS[str_model])
+                callable_models.append(self.forecasters[str_model])
             forecaster = TimeCopilotForecaster(models=callable_models)
             fcst_cv = forecaster.cross_validation(
                 df=ctx.deps.df,
@@ -502,7 +508,7 @@ class TimeCopilot:
                 as_index=False,
             ).mean(numeric_only=True)
             self.eval_df = eval_df
-            self.models = models
+            self.eval_forecasters = models
             return _transform_eval_to_text(eval_df, models)
 
         @self.forecasting_agent.tool
@@ -510,7 +516,7 @@ class TimeCopilot:
             ctx: RunContext[ExperimentDataset],
             model: str,
         ) -> str:
-            callable_model = MODELS[model]
+            callable_model = self.forecasters[model]
             forecaster = TimeCopilotForecaster(models=[callable_model])
             fcst_df = forecaster.forecast(
                 df=ctx.deps.df,
@@ -530,18 +536,25 @@ class TimeCopilot:
                     "The selected model is not better than the seasonal naive model. "
                     "Please try again with a different model."
                     "The cross-validation results are: "
-                    "{output.cross_validation_results}"
+                    f"{output.model_comparison}"
                 )
             return output
 
     def is_queryable(self) -> bool:
         """
         Check if the class is queryable.
-        It needs to have `dataset`, `fcst_df`, `eval_df`, `features_df` and `models`.
+        It needs to have `dataset`, `fcst_df`, `eval_df`, `features_df`
+        and `eval_forecasters`.
         """
         return all(
             hasattr(self, attr) and getattr(self, attr) is not None
-            for attr in ["dataset", "fcst_df", "eval_df", "features_df", "models"]
+            for attr in [
+                "dataset",
+                "fcst_df",
+                "eval_df",
+                "features_df",
+                "eval_forecasters",
+            ]
         )
 
     def forecast(
@@ -623,7 +636,7 @@ class TimeCopilot:
         the best model, forecasted values, or time series characteristics.
 
         Args:
-            query (str): The user's follow-up question. This can be about model
+            query: The user's follow-up question. This can be about model
                 performance, forecast results, or time series features.
 
         Returns:
@@ -739,7 +752,7 @@ class AsyncTimeCopilot(TimeCopilot):
         question, yielding results as they become available (streaming).
 
         Args:
-            query (str): The user's follow-up question. This can be about model
+            query: The user's follow-up question. This can be about model
                 performance, forecast results, or time series features.
 
         Returns:
@@ -786,7 +799,7 @@ class AsyncTimeCopilot(TimeCopilot):
         the best model, forecasted values, or time series characteristics.
 
         Args:
-            query (str): The user's follow-up question. This can be about model
+            query: The user's follow-up question. This can be about model
                 performance, forecast results, or time series features.
 
         Returns:
