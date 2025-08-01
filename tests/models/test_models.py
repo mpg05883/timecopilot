@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 from utilsforecast.data import generate_series as _generate_series
 
-from ..conftest import models
+from .conftest import models
 
 
 def generate_series(n_series, freq, **kwargs):
