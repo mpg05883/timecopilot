@@ -312,6 +312,8 @@ class TimeCopilot:
         if forecasters is None:
             forecasters = DEFAULT_MODELS
         self.forecasters = {forecaster.alias: forecaster for forecaster in forecasters}
+        if "SeasonalNaive" not in self.forecasters:
+            self.forecasters["SeasonalNaive"] = SeasonalNaive()
         self.system_prompt = f"""
         You're a forecasting expert. You will be given a time series 
         as a list of numbers
@@ -534,7 +536,7 @@ class TimeCopilot:
                     "The selected model is not better than the seasonal naive model. "
                     "Please try again with a different model."
                     "The cross-validation results are: "
-                    "{output.cross_validation_results}"
+                    f"{output.model_comparison}"
                 )
             return output
 
