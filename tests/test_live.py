@@ -10,10 +10,36 @@ from utilsforecast.data import generate_series
 
 from timecopilot import TimeCopilot
 from timecopilot.agent import AsyncTimeCopilot
+from timecopilot.models.benchmarks import ZeroModel
 
 load_dotenv()
 logfire.configure(send_to_logfire="if-token-present")
 logfire.instrument_pydantic_ai()
+
+
+@pytest.mark.live
+def test_forecast_custom_forecasters():
+    h = 2
+    df = generate_series(
+        n_series=1,
+        freq="D",
+        min_length=30,
+        static_as_categorical=False,
+        with_trend=True,
+    )
+    tc = TimeCopilot(
+        llm="openai:gpt-4o-mini",
+        forecasters=[
+            ZeroModel(),
+        ],
+    )
+    result = tc.forecast(
+        df=df,
+        query=f"Please forecast the series with a horizon of {h} and frequency D.",
+    )
+    assert len(result.fcst_df) == h
+    assert result.features_df is not None
+    assert result.eval_df is not None
 
 
 @pytest.mark.live
