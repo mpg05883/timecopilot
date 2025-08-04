@@ -127,7 +127,13 @@ class ForecastAgentOutput(BaseModel):
         )
     )
 
-    def prettify(self, console: Console | None = None) -> None:
+    def prettify(
+        self,
+        console: Console | None = None,
+        features_df: pd.DataFrame | None = None,
+        eval_df: pd.DataFrame | None = None,
+        fcst_df: pd.DataFrame | None = None,
+    ) -> None:
         """Pretty print the forecast results using rich formatting."""
         console = console or Console()
 
@@ -142,7 +148,7 @@ class ForecastAgentOutput(BaseModel):
             style="blue",
         )
 
-        # Time Series Analysis Section
+        # Time Series Analysis Section - check if features_df is available
         ts_features = Table(
             title="Time Series Features",
             show_header=True,
@@ -152,12 +158,14 @@ class ForecastAgentOutput(BaseModel):
         ts_features.add_column("Feature", style="cyan")
         ts_features.add_column("Value", style="magenta")
 
-        # Group features by category for better organization
-        for feature in self.tsfeatures_results:
-            feature_name, feature_value = feature.split(":")
-            ts_features.add_row(
-                feature_name.strip(), f"{float(feature_value.strip()):.3f}"
-            )
+        # Use features_df if available (attached after forecast run)
+        if features_df is not None:
+            for feature_name, feature_value in features_df.iloc[0].items():
+                if pd.notna(feature_value):
+                    ts_features.add_row(feature_name, f"{float(feature_value):.3f}")
+        else:
+            # Fallback: show a note that detailed features are not available
+            ts_features.add_row("Features", "Available in analysis text below")
 
         ts_analysis = Panel(
             f"{self.tsfeatures_analysis}",
@@ -173,22 +181,28 @@ class ForecastAgentOutput(BaseModel):
             style="green",
         )
 
-        # Model Comparison Table
+        # Model Comparison Table - check if eval_df is available
         model_scores = Table(
             title="Model Performance", show_header=True, title_style="bold yellow"
         )
         model_scores.add_column("Model", style="yellow")
         model_scores.add_column("MASE", style="cyan", justify="right")
 
-        # Sort models by performance
-        cv_results = []
-        for result in self.cross_validation_results:
-            model, score = result.split(":")
-            cv_results.append((model.strip(), float(score.strip())))
+        # Use eval_df if available (attached after forecast run)
+        if eval_df is not None:
+            # Get the MASE scores from eval_df
+            model_scores_data = []
+            for col in eval_df.columns:
+                if col != "metric" and pd.notna(eval_df[col].iloc[0]):
+                    model_scores_data.append((col, float(eval_df[col].iloc[0])))
 
-        cv_results.sort(key=lambda x: x[1])  # Sort by score
-        for model, score in cv_results:  # type: ignore
-            model_scores.add_row(model, f"{score:.2f}")
+            # Sort by score (lower MASE is better)
+            model_scores_data.sort(key=lambda x: x[1])
+            for model, score in model_scores_data:
+                model_scores.add_row(model, f"{score:.3f}")
+        else:
+            # Fallback: show a note that detailed scores are not available
+            model_scores.add_row("Scores", "Available in analysis text below")
 
         model_analysis = Panel(
             self.model_comparison,
@@ -196,24 +210,38 @@ class ForecastAgentOutput(BaseModel):
             style="yellow",
         )
 
-        # Forecast Results Section
+        # Forecast Results Section - check if fcst_df is available
         forecast_table = Table(
             title="Forecast Values", show_header=True, title_style="bold magenta"
         )
         forecast_table.add_column("Period", style="magenta")
         forecast_table.add_column("Value", style="cyan", justify="right")
 
-        # Show all individual values with period indicators
-        for fcst in self.forecast:
-            period, value = fcst.split(":")
-            forecast_table.add_row(f"{period}", f"{value}")
+        # Use fcst_df if available (attached after forecast run)
+        if fcst_df is not None:
+            # Show forecast values from fcst_df
+            fcst_data = fcst_df.copy()
+            if "ds" in fcst_data.columns and self.selected_model in fcst_data.columns:
+                for _, row in fcst_data.iterrows():
+                    period = (
+                        row["ds"].strftime("%Y-%m-%d")
+                        if hasattr(row["ds"], "strftime")
+                        else str(row["ds"])
+                    )
+                    value = row[self.selected_model]
+                    forecast_table.add_row(period, f"{value:.2f}")
 
-        # Add note about number of periods if many
-        if len(self.forecast) > 12:
-            forecast_table.caption = (
-                f"[dim]Showing all {len(self.forecast)} forecasted periods. "
-                "Use aggregation functions for summarized views.[/dim]"
-            )
+                # Add note about number of periods if many
+                if len(fcst_data) > 12:
+                    forecast_table.caption = (
+                        f"[dim]Showing all {len(fcst_data)} forecasted periods. "
+                        "Use aggregation functions for summarized views.[/dim]"
+                    )
+            else:
+                forecast_table.add_row("Forecast", "Available in analysis text below")
+        else:
+            # Fallback: show a note that detailed forecast is not available
+            forecast_table.add_row("Forecast", "Available in analysis text below")
 
         forecast_analysis = Panel(
             self.forecast_analysis,
