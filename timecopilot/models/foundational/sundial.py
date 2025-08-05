@@ -13,10 +13,12 @@ from .utils import TimeSeriesDataset
 
 class Sundial(Forecaster):
     """
-    Chronos models are large pre-trained models for time series forecasting,
-    supporting both probabilistic and point forecasts. See the
-    [official repo](https://github.com/amazon-science/chronos-forecasting)
-    for more details.
+    Sundial is a family of generative time series foundation models,
+    pre-trained on TimeBench (10^12 time points). It uses the TimeFlow Loss to
+    predict next-patch distributions, allowing Transformers to be trained without
+    discrete tokenization and make non-deterministic predictions. The model supports
+    both point and probabilistic zero-shot forecasting. See the
+    [official repo](https://github.com/thuml/Sundial) for more details.
     """
 
     def __init__(
@@ -27,7 +29,42 @@ class Sundial(Forecaster):
         batch_size: int = 1_024,
         alias: str = "Sundial",
     ):
-        """ """
+        """
+        Args:
+            repo_id (str, optional): The Hugging Face Hub model ID or local path to
+                load the Sundial model from. Examples include
+                "thuml/sundial-base-128m". Defaults to "thuml/sundial-base-128m".
+                See the full list of models at [Hugging Face](https://huggingface.co/
+                thuml/sundial-base-128m).
+            num_samples (int, optional): Number of samples to generate for
+                probabilistic forecasting. More samples provide better distribution
+                estimates but increase computation time. Defaults to 100.
+            context_length (int, optional): Maximum context length (input window size)
+                for the model. Controls how much history is used for each forecast.
+                Defaults to 2,880. The model supports different lookback lengths.
+            batch_size (int, optional): Batch size for inference. Defaults to 1,024.
+                Adjust based on available memory and model size. Larger batch sizes
+                can improve throughput but require more GPU memory.
+            alias (str, optional): Name to use for the model in output DataFrames and
+                logs. Defaults to "Sundial".
+
+        Notes:
+            **Academic Reference:**
+
+            - Paper: [Sundial: A Family of Highly Capable Time Series Foundation Models](https://arxiv.org/abs/2502.00816)
+
+            **Resources:**
+
+            - GitHub: [thuml/Sundial](https://github.com/thuml/Sundial)
+            - HuggingFace: [thuml/sundial-base-128m](https://huggingface.co/thuml/sundial-base-128m)
+
+            **Technical Details:**
+
+            - The model is loaded onto the best available device (GPU if
+              available, otherwise CPU).
+            - The model weights are loaded with torch_dtype=torch.bfloat16 for
+              efficiency on supported hardware.
+        """
         self.repo_id = repo_id
         self.num_samples = num_samples
         self.context_length = context_length
