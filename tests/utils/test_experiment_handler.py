@@ -16,7 +16,7 @@ from utilsforecast.processing import (
     vertical_concat,
 )
 
-from ..conftest import models
+from ..models.conftest import models
 from timecopilot.models.utils.forecaster import (
     get_seasonality,
     maybe_convert_col_to_datetime,

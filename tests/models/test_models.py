@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 from utilsforecast.data import generate_series as _generate_series
 
-from ..conftest import models
+from .conftest import models
 
 
 def generate_series(n_series, freq, **kwargs):
@@ -182,6 +182,7 @@ def test_using_quantiles(model):
         quantiles=qs,
     )
     exp_qs_cols = [f"{model.alias}-q-{int(100 * q)}" for q in qs]
+    assert len(exp_qs_cols) == len(fcst_df.columns) - 3  # 3 is unique_id, ds, point
     assert all(col in fcst_df.columns for col in exp_qs_cols)
     assert not any(("-lo-" in col or "-hi-" in col) for col in fcst_df.columns)
     # test monotonicity of quantiles
@@ -189,7 +190,7 @@ def test_using_quantiles(model):
         if model.alias == "ZeroModel":
             # ZeroModel is a constant model, so all quantiles should be the same
             assert fcst_df[c1].eq(fcst_df[c2]).all()
-        elif "chronos" in model.alias.lower():
+        elif "chronos" in model.alias.lower() or "median" in model.alias.lower():
             # sometimes it gives this condition
             assert fcst_df[c1].le(fcst_df[c2]).all()
         elif "timesfm" in model.alias.lower():
@@ -217,12 +218,12 @@ def test_using_level(model):
     )
     exp_lv_cols = []
     for lv in level:
-        if lv == 0:
-            continue
         exp_lv_cols.extend([f"{model.alias}-lo-{lv}", f"{model.alias}-hi-{lv}"])
+    assert len(exp_lv_cols) == len(fcst_df.columns) - 3  # 3 is unique_id, ds, point
     assert all(col in fcst_df.columns for col in exp_lv_cols)
     assert not any(("-q-" in col) for col in fcst_df.columns)
     # test monotonicity of levels
+    exp_lv_cols = exp_lv_cols[2:]  # remove level 0
     for c1, c2 in zip(exp_lv_cols[:-1:2], exp_lv_cols[1::2], strict=False):
         if model.alias == "ZeroModel":
             # ZeroModel is a constant model, so all levels should be the same

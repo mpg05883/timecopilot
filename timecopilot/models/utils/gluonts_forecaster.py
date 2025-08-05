@@ -69,7 +69,7 @@ class GluonTSForecaster(Forecaster):
         model_name: str,
         quantiles: list[float] | None,
     ) -> pd.DataFrame:
-        point_forecast = fcst.mean
+        point_forecast = fcst.median
         h = len(point_forecast)
         dates = pd.date_range(
             fcst.start_date.to_timestamp(),

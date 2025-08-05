@@ -1,34 +1,44 @@
 [build-system]
-requires = ["hatchling"]
 build-backend = "hatchling.build"
+requires = ["hatchling"]
 
+[dependency-groups]
+dev = [
+  "pre-commit",
+  "pytest",
+  "pytest-asyncio>=1.1.0",
+  "pytest-cov",
+  "pytest-xdist>=3.8.0",
+]
+docs = [
+  "mkdocs-material>=9.6.14",
+  "mkdocs>=1.6.1",
+  "mkdocstrings[python]>=0.29.1",
+  "mktestdocs>=0.2.5",
+  "modal>=1.0.4",
+  "ruff>=0.12.1",
+]
 
 [project]
-name = "timecopilot"
-version = "0.0.11"
-requires-python = ">=3.10"
-description = "The GenAI Forecasting Agent · LLMs × Foundation Time Series Models"
 authors = [
-    { name = "Azul Garza", email = "azul.garza.r@gmail.com" }
+  {email = "azul.garza.r@gmail.com", name = "Azul Garza"},
 ]
-license = "MIT"
-readme = "README.md"
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Information Technology",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-    "Topic :: Internet",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "Topic :: Software Development :: Libraries :: Python Modules",
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Information Technology",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python",
+  "Topic :: Internet",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
   "chronos-forecasting>=1.5.2",
@@ -43,27 +53,18 @@ dependencies = [
   "tabpfn-time-series>=1.0.3 ; python_full_version < '3.13'",
   "timecopilot-timesfm>=0.1.0",
   "timecopilot-tirex>=0.1.0 ; python_full_version >= '3.11'",
-  "timecopilot-toto>=0.1.2",
+  "timecopilot-toto>=0.1.3",
   "timecopilot-uni2ts>=0.1.0",
-  "transformers==4.40.1",
+  "transformers<4.54",
   "tsfeatures",
   "utilsforecast",
 ]
-
-[dependency-groups]
-dev = [
-    "pre-commit",
-    "pytest",
-    "pytest-cov",
-    "pytest-xdist>=3.8.0",
-]
-docs = [
-    "mkdocs>=1.6.1",
-    "mkdocs-material>=9.6.14",
-    "mkdocstrings[python]>=0.29.1",
-    "modal>=1.0.4",
-    "ruff>=0.12.1",
-]
+description = "The GenAI Forecasting Agent · LLMs × Foundation Time Series Models"
+license = "MIT"
+name = "timecopilot"
+readme = "README.md"
+requires-python = ">=3.10"
+version = "0.0.14"
 
 [project.scripts]
 timecopilot = "timecopilot._cli:main"
@@ -72,27 +73,28 @@ timecopilot = "timecopilot._cli:main"
 branch = true
 source = ["timecopilot"]
 
-[tool.coverage.run]
-omit = [
-    "tests/*",
-]
-
 [tool.coverage.report]
 fail_under = 80
 show_missing = true
+
+[tool.coverage.run]
+omit = [
+  "tests/*",
+]
 
 [tool.hatch.metadata]
 allow-direct-references = true
 
 [tool.mypy]
-disable_error_code = ["no-redef"]  # for fasthtml
+disable_error_code = ["no-redef"] # for fasthtml
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-m 'not live' -n auto"
+addopts = "-m 'not live and not gift_eval' -n auto"
 markers = [
-    "live: marks tests that require calls to llm providers"
+  "gift_eval: marks tests related to gift eval results replication",
+  "live: marks tests that require calls to llm providers",
 ]
+testpaths = ["tests"]
 
 [tool.ruff]
 fix = true
@@ -104,14 +106,14 @@ docstring-code-format = true
 docstring-code-line-length = 20
 
 [tool.ruff.lint]
-select = ["E", "F", "UP", "B", "SIM", "I"]
 ignore = [
   "F811", # redefined function, this is helpful for fasthtml
 ]
+select = ["B", "E", "F", "I", "SIM", "UP"]
 
 [tool.ruff.lint.isort]
 known-local-folder = ["timecopilot"]
 no-lines-before = ["local-folder"]
 
 [tool.uv.sources]
-chronos-forecasting = { git = "https://github.com/AzulGarza/chronos-forecasting.git", branch = "fix/relax-transformers-dep" }
+chronos-forecasting = {branch = "fix/relax-transformers-dep", git = "https://github.com/AzulGarza/chronos-forecasting.git"}

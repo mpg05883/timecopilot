@@ -38,7 +38,12 @@ class TimeCopilot:
                 query=query,
             )
 
-        result.output.prettify(self.console)
+        result.output.prettify(
+            self.console,
+            features_df=result.features_df,
+            eval_df=result.eval_df,
+            fcst_df=result.fcst_df,
+        )
 
 
 def main():
