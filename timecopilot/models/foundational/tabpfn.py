@@ -81,6 +81,7 @@ class TabPFN(Forecaster):
             **Technical Details:**
 
             - For LOCAL mode, a CUDA-capable GPU is recommended for best performance.
+            - The model is only available for Python < 3.13.
         """
         if features is None:
             features = [

@@ -40,12 +40,13 @@ Here you'll find all the time series forecasting models available in TimeCopilot
 TimeCopilot provides a unified interface to state-of-the-art foundation models for time series forecasting. These models are designed to handle a wide range of forecasting tasks, from classical seasonal patterns to complex, high-dimensional data. Below you will find a list of all available foundation models, each with a dedicated section describing its API and usage.
 
 - [Chronos](api/models/foundational/models.md#timecopilot.models.foundational.chronos) ([arXiv:2403.07815](https://arxiv.org/abs/2403.07815))
+- [Moirai](api/models/foundational/models.md#timecopilot.models.foundational.moirai) ([arXiv:2402.02592](https://arxiv.org/abs/2402.02592))
+- [Sundial](api/models/foundational/models.md#timecopilot.models.foundational.sundial) ([arXiv:2502.00816](https://arxiv.org/pdf/2502.00816))
+- [TabPFN](api/models/foundational/models.md#timecopilot.models.foundational.tabpfn) ([arXiv:2501.02945](https://arxiv.org/abs/2501.02945))
+- [TiRex](api/models/foundational/models.md#timecopilot.models.foundational.tirex) ([arXiv:2505.23719](https://arxiv.org/abs/2505.23719))
 - [TimeGPT](api/models/foundational/models.md#timecopilot.models.foundational.timegpt) ([arXiv:2310.03589](https://arxiv.org/abs/2310.03589))
 - [TimesFM](api/models/foundational/models.md#timecopilot.models.foundational.timesfm) ([arXiv:2310.10688](https://arxiv.org/abs/2310.10688))
 - [Toto](api/models/foundational/models.md#timecopilot.models.foundational.toto) ([arXiv:2505.14766](https://arxiv.org/abs/2505.14766))
-- [TiRex](api/models/foundational/models.md#timecopilot.models.foundational.tirex) ([arXiv:2505.23719](https://arxiv.org/abs/2505.23719))
-- [Moirai](api/models/foundational/models.md#timecopilot.models.foundational.moirai) ([arXiv:2402.02592](https://arxiv.org/abs/2402.02592))
-- [TabPFN](api/models/foundational/models.md#timecopilot.models.foundational.tabpfn) ([arXiv:2501.02945](https://arxiv.org/abs/2501.02945))
 
 ---
 

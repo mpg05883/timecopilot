@@ -63,7 +63,6 @@ class Chronos(Forecaster):
         self.repo_id = repo_id
         self.batch_size = batch_size
         self.alias = alias
-        self.repo_id = repo_id
 
     @contextmanager
     def _get_model(self) -> BaseChronosPipeline:

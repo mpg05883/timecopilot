@@ -65,6 +65,12 @@ The datasets utilized in our documentation are hosted on AWS at `https://timecop
 
 TimeCopilot uses some forked Python packages, maintained under custom names on PyPI:
 
+
+- **chronos-forecasting**
+    - Forked from: [amazon-science/chronos-forecasting](https://github.com/amazon-science/chronos-forecasting)
+    - TimeCopilot fork: [AzulGarza/chronos-forecasting](https://github.com/AzulGarza/chronos-forecasting/tree/feat/timecopilot-chronos-forecasting)
+    - Published on PyPI as: [`timecopilot-chronos-forecasting`](https://pypi.org/project/timecopilot-chronos-forecasting/)
+
 - **timesfm**
     - Forked from: [google-research/timesfm](https://github.com/google-research/timesfm)
     - TimeCopilot fork: [AzulGarza/timesfm](https://github.com/AzulGarza/timesfm)
