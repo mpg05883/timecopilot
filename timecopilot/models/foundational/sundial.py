@@ -1,4 +1,8 @@
+import sys
 from contextlib import contextmanager
+
+if sys.version_info >= (3, 13):
+    raise ImportError("Sundial requires Python < 3.13")
 
 import numpy as np
 import pandas as pd
@@ -64,6 +68,7 @@ class Sundial(Forecaster):
               available, otherwise CPU).
             - The model weights are loaded with torch_dtype=torch.bfloat16 for
               efficiency on supported hardware.
+            - The model is only available for Python < 3.13.
         """
         self.repo_id = repo_id
         self.num_samples = num_samples
