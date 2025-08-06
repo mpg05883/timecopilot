@@ -10,7 +10,6 @@ from timecopilot.models.benchmarks import (
 from timecopilot.models.ensembles.median import MedianEnsemble
 from timecopilot.models.foundational.chronos import Chronos
 from timecopilot.models.foundational.moirai import Moirai
-from timecopilot.models.foundational.sundial import Sundial
 from timecopilot.models.foundational.timesfm import TimesFM
 from timecopilot.models.foundational.toto import Toto
 
@@ -29,9 +28,11 @@ if sys.version_info >= (3, 11):
 if sys.version_info < (3, 13):
     from tabpfn_time_series import TabPFNMode
 
+    from timecopilot.models.foundational.sundial import Sundial
     from timecopilot.models.foundational.tabpfn import TabPFN
 
     models.append(TabPFN(mode=TabPFNMode.MOCK))
+    models.append(Sundial(context_length=256))
 
 models.extend(
     [
@@ -60,6 +61,5 @@ models.extend(
                 SeasonalNaive(),
             ],
         ),
-        Sundial(context_length=256),
     ]
 )
