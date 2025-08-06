@@ -59,6 +59,7 @@ class TiRex(Forecaster):
               for details.
             - For best performance, a CUDA-capable GPU with compute capability >= 8.0
               is recommended.
+            - The model is only available for Python >= 3.11.
         """
         self.repo_id = repo_id
         self.batch_size = batch_size
