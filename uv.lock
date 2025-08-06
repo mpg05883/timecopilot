@@ -782,21 +782,6 @@ wheels = [
 ]
 
 [[package]]
-name = "chronos-forecasting"
-version = "1.5.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "accelerate" },
-    { name = "torch" },
-    { name = "transformers", version = "4.40.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
-    { name = "transformers", version = "4.55.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/e8/44/658a98629e009e0a366aedd86c9600e5f737ad843c49cc77d2051821783a/chronos_forecasting-1.5.3.tar.gz", hash = "sha256:77c193e13743f7d5e85fe3105faf2c2c3fa03941e0a315ba69d2961798643aa0", size = 531583, upload-time = "2025-08-05T08:50:58.569Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/2f/67/82047d9b57d3a43de2de785dc2929a6e308459d6df1ccb6c55984e822435/chronos_forecasting-1.5.3-py3-none-any.whl", hash = "sha256:1ed17963a7cb042bbb2bbd927e0f5c26133b09dc77300086832dedd8cf911cd2", size = 29457, upload-time = "2025-08-05T08:50:56.876Z" },
-]
-
-[[package]]
 name = "click"
 version = "8.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -6241,7 +6226,6 @@ name = "timecopilot"
 version = "0.0.14"
 source = { editable = "." }
 dependencies = [
-    { name = "chronos-forecasting" },
     { name = "fire" },
     { name = "gluonts", extra = ["torch"] },
     { name = "nixtla" },
@@ -6251,6 +6235,7 @@ dependencies = [
     { name = "scipy" },
     { name = "statsforecast" },
     { name = "tabpfn-time-series", marker = "python_full_version < '3.13'" },
+    { name = "timecopilot-chronos-forecasting" },
     { name = "timecopilot-timesfm" },
     { name = "timecopilot-tirex", marker = "python_full_version >= '3.11'" },
     { name = "timecopilot-toto" },
@@ -6280,7 +6265,6 @@ docs = [
 
 [package.metadata]
 requires-dist = [
-    { name = "chronos-forecasting", specifier = ">=1.5.2" },
     { name = "fire" },
     { name = "gluonts", extras = ["torch"] },
     { name = "nixtla", specifier = ">=0.6.6" },
@@ -6290,6 +6274,7 @@ requires-dist = [
     { name = "scipy", specifier = "<=1.15.3" },
     { name = "statsforecast" },
     { name = "tabpfn-time-series", marker = "python_full_version < '3.13'", specifier = ">=1.0.3" },
+    { name = "timecopilot-chronos-forecasting", specifier = ">=0.1.0" },
     { name = "timecopilot-timesfm", specifier = ">=0.1.0" },
     { name = "timecopilot-tirex", marker = "python_full_version >= '3.11'", specifier = ">=0.1.0" },
     { name = "timecopilot-toto", specifier = ">=0.1.3" },
@@ -6315,6 +6300,21 @@ docs = [
     { name = "mktestdocs", specifier = ">=0.2.5" },
     { name = "modal", specifier = ">=1.0.4" },
     { name = "ruff", specifier = ">=0.12.1" },
+]
+
+[[package]]
+name = "timecopilot-chronos-forecasting"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "accelerate" },
+    { name = "torch" },
+    { name = "transformers", version = "4.40.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
+    { name = "transformers", version = "4.55.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/44/c1/6ef992112661a1fed5f4260e4537b41a5b5b4d5ace3aac17e770a50c0afd/timecopilot_chronos_forecasting-0.1.0.tar.gz", hash = "sha256:197605fb26762778f4d18baadb06d6d39dba575e79eb361a2643d84cb8fc5926", size = 711305, upload-time = "2025-08-06T01:38:43.71Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/75/60/1daae0232e635d19dd92c194dbf89dd952af9995af0494485ba25b3582ee/timecopilot_chronos_forecasting-0.1.0-py3-none-any.whl", hash = "sha256:d0e7363d686b6f035302042071c9d1247110bd862d1e5f850bf869bfd2fe0b66", size = 29538, upload-time = "2025-08-06T01:38:41.789Z" },
 ]
 
 [[package]]
