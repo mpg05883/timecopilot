@@ -32,7 +32,7 @@ if sys.version_info < (3, 13):
     from timecopilot.models.foundational.tabpfn import TabPFN
 
     models.append(TabPFN(mode=TabPFNMode.MOCK))
-    models.append(Sundial(context_length=256))
+    models.append(Sundial(context_length=256, num_samples=10))
 
 models.extend(
     [
