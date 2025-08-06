@@ -115,5 +115,5 @@ select = ["B", "E", "F", "I", "SIM", "UP"]
 known-local-folder = ["timecopilot"]
 no-lines-before = ["local-folder"]
 
-[tool.uv.sources]
-chronos-forecasting = {branch = "fix/relax-transformers-dep", git = "https://github.com/AzulGarza/chronos-forecasting.git"}
+[tool.uv]
+dependency-metadata = [{name = "chronos-forecasting", requires-dist = ["accelerate>=0.32,<2", "torch>=2.0,<3", "transformers>=4.40.1,<5"], requires-python = ">=3.9"}]
