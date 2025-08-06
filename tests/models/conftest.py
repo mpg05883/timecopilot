@@ -36,19 +36,12 @@ if sys.version_info < (3, 13):
 
 models.extend(
     [
-        Chronos(repo_id="amazon/chronos-t5-tiny", alias="Chronos-T5"),
         Chronos(repo_id="amazon/chronos-bolt-tiny", alias="Chronos-Bolt"),
         Toto(context_length=256, batch_size=2),
         Moirai(
             context_length=256,
             batch_size=2,
             repo_id="Salesforce/moirai-1.1-R-small",
-        ),
-        Moirai(
-            context_length=256,
-            batch_size=2,
-            repo_id="Salesforce/moirai-moe-1.0-R-small",
-            alias="Moirai-MoE",
         ),
         TimesFM(
             repo_id="google/timesfm-1.0-200m-pytorch",
