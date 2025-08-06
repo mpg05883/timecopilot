@@ -30,7 +30,7 @@ def test_tirex_import_fails():
 
 
 @pytest.mark.skipif(
-    sys.version_info >= (3, 13),
+    sys.version_info < (3, 13),
     reason="Sundial requires Python < 3.13",
 )
 def test_sundial_import_fails():
