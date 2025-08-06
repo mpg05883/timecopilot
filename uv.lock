@@ -14,13 +14,6 @@ resolution-markers = [
     "python_full_version < '3.11' and sys_platform != 'linux'",
 ]
 
-[manifest]
-
-[[manifest.dependency-metadata]]
-name = "chronos-forecasting"
-requires-dist = ["accelerate>=0.32,<2", "torch>=2.0,<3", "transformers>=4.40.1,<5"]
-requires-python = ">=3.9"
-
 [[package]]
 name = "absl-py"
 version = "2.3.1"
@@ -6223,7 +6216,7 @@ wheels = [
 
 [[package]]
 name = "timecopilot"
-version = "0.0.14"
+version = "0.0.15"
 source = { editable = "." }
 dependencies = [
     { name = "fire" },
