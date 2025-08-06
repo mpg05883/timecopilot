@@ -6,10 +6,8 @@ import typer
 from timecopilot.gift_eval.eval import GIFTEval
 from timecopilot.gift_eval.gluonts_predictor import GluonTSPredictor
 from timecopilot.models.ensembles.median import MedianEnsemble
-from timecopilot.models.foundational.chronos import Chronos
 from timecopilot.models.foundational.moirai import Moirai
-from timecopilot.models.foundational.timesfm import TimesFM
-from timecopilot.models.foundational.tirex import TiRex
+from timecopilot.models.foundational.sundial import Sundial
 from timecopilot.models.foundational.toto import Toto
 
 logging.basicConfig(level=logging.INFO)
@@ -42,18 +40,13 @@ def run_timecopilot(
     predictor = GluonTSPredictor(
         forecaster=MedianEnsemble(
             models=[
-                Chronos(
-                    repo_id="amazon/chronos-bolt-base",
-                    batch_size=batch_size,
-                ),
                 Moirai(
-                    repo_id="Salesforce/moirai-1.1-R-base",
+                    repo_id="Salesforce/moirai-1.1-R-large",
                     batch_size=batch_size,
                 ),
-                TimesFM(batch_size=batch_size),
-                TiRex(batch_size=batch_size),
+                Sundial(batch_size=batch_size),
                 Toto(
-                    context_length=256,
+                    context_length=1_024,
                     batch_size=batch_size,
                 ),
             ],

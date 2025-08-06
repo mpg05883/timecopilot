@@ -6,12 +6,10 @@ TimeCopilot is an open‑source AI agent for time series forecasting that provid
 
 ## Model Description
 
-This ensemble leverages [**TimeCopilot's MedianEnsemble**](https://timecopilot.dev/api/models/ensembles/#timecopilot.models.ensembles.median.MedianEnsemble) feature, which combines five state-of-the-art foundation models:
+This ensemble leverages [**TimeCopilot's MedianEnsemble**](https://timecopilot.dev/api/models/ensembles/#timecopilot.models.ensembles.median.MedianEnsemble) feature, which combines three state-of-the-art foundation models:
 
-- [**Chronos** (Amazon)](https://timecopilot.dev/api/models/foundational/models/#timecopilot.models.foundational.chronos.Chronos).
-- [**Moirai** (Salesforce)](https://timecopilot.dev/api/models/foundational/models/#timecopilot.models.foundational.moirai.Moirai).
-- [**TimesFM** (Google)](https://timecopilot.dev/api/models/foundational/models/#timecopilot.models.foundational.timesfm.TimesFM).
-- [**TiRex** (NX-AI)](https://timecopilot.dev/api/models/foundational/models/#timecopilot.models.foundational.tirex.TiRex).
+- [**Moirai** (Salesforce AI Research)](https://timecopilot.dev/api/models/foundational/models/#timecopilot.models.foundational.moirai.Moirai).
+- [**Sundial** (THUML @ Tsinghua University)](https://timecopilot.dev/api/models/foundational/models/#timecopilot.models.foundational.sundial.Sundial) 
 - [**Toto** (DataDog)](https://timecopilot.dev/api/models/foundational/models/#timecopilot.models.foundational.toto.Toto).
 
 
@@ -57,7 +55,7 @@ make upload-data-to-s3
 Run evaluation on a single dataset locally:
 
 ```bash
-uv run python -m src.run_timecopilot \
+uv run -m src.run_timecopilot \
   --dataset-name "m4_weekly" \
   --term "short" \
   --output-path "./results/timecopilot/" \
@@ -97,3 +95,8 @@ uv run python -m src.download_results
 ```
 
 Results are saved to `results/timecopilot/all_results.csv` in GIFT-Eval format.
+
+
+## Changelog
+
+- **2025-08-05**: GIFT‑Eval recently [enhanced its evaluation dashboard](https://github.com/SalesforceAIResearch/gift-eval/commit/dd4880e24ef2c49fe3a4eb72e601998e4b170b29) with a new flag that identifies models likely affected by data leakage (i.e., having seen parts of the test set during training). While the test set itself hasn’t changed, this new insight helps us better interpret model performance. To keep our results focused on truly unseen data, we’ve excluded any flagged models from this experiment and added the Sundial model to the ensemble. The previous experiment details remain available [here](https://github.com/AzulGarza/timecopilot/tree/v0.0.14/experiments/gift-eval).
