@@ -1,39 +1,49 @@
 Your contributions are highly appreciated!
 
+## Prerequisites 
+Before proceeding, ensure the following tools and credentials are set up:
+
+- Install [uv](https://docs.astral.sh/uv/getting-started/installation/).
+- Install [pre-commit](https://pre-commit.com/#install) .
+    > ⚡ **Tip** Once `uv` is installed, you can easily install `pre-commit` by running:
+        ```
+        uv tool install pre-commit
+        ```
+- Set up `pre-commit` hook:
+    ```
+    pre-commit install --install-hooks
+    ```
+- Generate an OpenAI API Key:
+    1. Create an [openai](https://auth.openai.com/log-in) account.
+    2. Visit the [API key](https://platform.openai.com/api-keys) page.
+    3. Generate a new secret key. \
+    You'll need this key in the setup section below. 
+
 ## Installation and Setup
+To run timecopilot in your local environment:
 
-Clone your fork and cd into the repo directory
-
-```bash
-git clone git@github.com:<your username>/TimeCopilot.git
-cd TimeCopilot
-```
-
-Install `uv`, and `pre-commit`:
-
-* [`uv` install docs](https://docs.astral.sh/uv/getting-started/installation/)
-* [`pre-commit` install docs](https://pre-commit.com/#install)
-
-!!! tip
-    Once `uv` is installed, to install `pre-commit` you can run the following command:
-
-    ```bash
-    uv tool install pre-commit
+1. Fork and clone the repository:
+    ```
+    git clone git@github.com:<your username>/timecopilot.git
+    ```
+2. Navigate into the project folder:
+    ```
+    cd timecopilot
+    ```
+3. Install the required dependencies for local development:
+    ```
+    uv sync --frozen --all-extras --all-packages --group docs
+    ```
+4. Export your OpenAI API key as an environment variable:
+    ```
+    export OPEN_API_KEY="<your-new-secret-key>"
+    ```
+5. Test timecopilot with a sample forecast:
+    ```
+    uvx timecopilot forecast https://otexts.com/fpppy/data/AirPassengers.csv
     ```
 
-Install the required libraries for local development
-
-```bash
-uv sync --frozen --all-extras --all-packages --group docs
-```
-
-Install `pre-commit` hooks
-
-```bash
-pre-commit install --install-hooks
-```
-
-You're ready to start contributing! 
+✅ You're ready to start contributing! 
 
 ## Running Tests
 
