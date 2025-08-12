@@ -18,6 +18,8 @@ nav:
   - Getting Help: help.md
   - Contributing: contributing.md
   - Roadmap: roadmap.md
+  - Examples:
+      - examples/agent-quickstart.ipynb
   - Documentation:
       - Time Series Model Hub: model_hub.md
       - Forecasting Parameters: forecasting_parameters.md
@@ -104,6 +106,7 @@ markdown_extensions:
 plugins:
   - search
   - autorefs
+  - mkdocs-jupyter
   - mkdocstrings:
       handlers:
         python:
