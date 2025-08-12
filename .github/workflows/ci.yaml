@@ -88,3 +88,16 @@ jobs:
 
       - name: Build docs
         run: uv run --group docs mkdocs build
+
+  lint:
+    name: lint and style checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Run pre-commit
+        run: uvx pre-commit run --all-files
