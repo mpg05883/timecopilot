@@ -4,11 +4,14 @@ Your contributions are highly appreciated!
 Before proceeding, ensure the following tools and credentials are set up:
 
 - Install [uv](https://docs.astral.sh/uv/getting-started/installation/).
-- Install [pre-commit](https://pre-commit.com/#install) .
-    > ⚡ **Tip** Once `uv` is installed, you can easily install `pre-commit` by running:
+- Install [pre-commit](https://pre-commit.com/#install).
+
+!!! tip "Tip"
+    Once `uv` is installed, you can easily install `pre-commit` by running:
         ```
         uv tool install pre-commit
         ```
+
 - Set up `pre-commit` hook:
     ```
     pre-commit install --install-hooks
@@ -16,7 +19,7 @@ Before proceeding, ensure the following tools and credentials are set up:
 - Generate an OpenAI API Key:
     1. Create an [openai](https://auth.openai.com/log-in) account.
     2. Visit the [API key](https://platform.openai.com/api-keys) page.
-    3. Generate a new secret key. \
+    3. Generate a new secret key.  
     You'll need this key in the setup section below. 
 
 ## Installation and Setup
@@ -36,7 +39,7 @@ To run timecopilot in your local environment:
     ```
 4. Export your OpenAI API key as an environment variable:
     ```
-    export OPEN_API_KEY="<your-new-secret-key>"
+    export OPENAI_API_KEY="<your-new-secret-key>"
     ```
 5. Test timecopilot with a sample forecast:
     ```
@@ -55,11 +58,12 @@ uv run pytest
 
 ## Documentation Changes
 
-To run the documentation page locally, run:
+To run the documentation page in your local environment, run:
 
 ```bash
 uv run mkdocs serve
 ```
+
 
 ### Documentation Notes
 
