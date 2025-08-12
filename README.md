@@ -21,25 +21,29 @@ Developed with 💙 at [timecopilot.dev](https://timecopilot.dev/).
 
 ---
 
-Want to stay updated on TimeCopilot's latest developments? Have a feature request or interested in testing it for production loads? Fill out [our form](https://docs.google.com/forms/d/e/1FAIpQLSeQWKVHjYKe1ayEso-K2My9nQsoaSWxzht0S6D4yrCln7BECQ/viewform?usp=dialog) or join our [Discord community](https://discord.gg/7GEdHR6Pfg) to be part of the conversation!
+!!! tip "Want the latest on TimeCopilot?"
+    Have ideas or want to test it in real-world use? Fill out [our form](https://docs.google.com/forms/d/e/1FAIpQLSeQWKVHjYKe1ayEso-K2My9nQsoaSWxzht0S6D4yrCln7BECQ/viewform?usp=dialog) or join our [Discord community](https://discord.gg/7GEdHR6Pfg) and help predict the future.
 
+---
 
 ## How It Works
 
-TimeCopilot operates as a generative agent that follows a systematic approach to forecasting:
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/3ae3c8cb-bcc5-46cd-b80b-a606671ba553" alt="Diagram" width="500"/>
-</p>
-
-The agent leverages LLMs to:
+TimeCopilot is a generative agent that applies a systematic forecasting approach using large language models (LLMs) to:
 
 - Interpret statistical features and patterns
 - Guide model selection based on data characteristics
 - Explain technical decisions in natural language
 - Answer domain-specific questions about forecasts
 
-## Quick-start (30 sec)
+Here is an schematic of TimeCopilot's architecture:
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/3ae3c8cb-bcc5-46cd-b80b-a606671ba553" alt="Diagram" width="500"/>
+</p>
+
+--- 
+
+## Quickstart in 30 sec
 
 TimeCopilot can pull a public time series dataset directly from the web and forecast it in one command.  No local files, no Python script, just run it with [uvx](https://docs.astral.sh/uv/):
 
@@ -63,23 +67,41 @@ uvx timecopilot forecast https://otexts.com/fpppy/data/AirPassengers.csv \
   --query "How many air passengers are expected in total in the next 12 months?"
 ```
 
-## Installation
+---
 
-TimeCopilot is available on PyPI as [`timecopilot`](https://pypi.org/project/timecopilot/) for Python development so installation is as simple as:
+## Installation and Setup
 
-```bash
-pip install timecopilot
-```
+TimeCopilot is available on PyPI as [`timecopilot`](https://pypi.org/project/timecopilot/) for Python development. Installation and setup is a simple three-step process:
 
-or 
+1. Install TimeCopilot by running:
+  ```bash
+  pip install timecopilot
+  ```
+  or 
+  ```bash
+  uv add timecopilot
+  ```
+2. Generate an OpenAI API Key:
+    1. Create an [openai](https://auth.openai.com/log-in) account.
+    2. Visit the [API key](https://platform.openai.com/api-keys) page.
+    3. Generate a new secret key.  
+    Make sure to copy it, as you’ll need it in the next step. 
 
-```bash
-uv add timecopilot
-```
+3. Export your OpenAI API key as an environment variable by running:
+    ```
+    export OPENAI_API_KEY="<your-new-secret-key>"
+    ```
 
-(Requires Python 3.10+)
+and that's it!
+
+!!! Important
+    TimeCopilot requires Python 3.10+. Additionally, it currently does not support macOS running on Intel processors (x86_64). If you’re using this setup, you may encounter installation issues with some dependencies like PyTorch. If you need support for this architecture, please create a new issue. 
+
+
+---
 
 ## Hello World Example
+Here is an example to test TimeCopilot:
 
 ```python
 # Import libraries
@@ -124,7 +146,7 @@ result = tc.forecast(df=df)
 # - user_query_response: Response to the user prompt, if any
 print(result.output)
 ```
-<details> <summary>Click to expand full forecast output</summary>
+<details> <summary>Click to expand the full forecast output</summary>
 
 ```python
 """
@@ -173,9 +195,13 @@ accuracy and reliability surpassing basic seasonal models.'
 
 </details>
 
+---
+
 ## Ask about the future
 
-You can ask questions about the forecast in natural language. The agent will analyze the data, generate forecasts, and provide detailed answers to your queries.
+With TimeCopilot, you can ask questions about the forecast in natural language. The agent will analyze the data, generate forecasts, and provide detailed answers to your queries. 
+
+Let's for example ask: **"how many air passengers are expected in the next 12 months?**"
 
 ```python
 # Ask specific questions about the forecast
@@ -195,13 +221,20 @@ The total expected air passengers for the next 12 months is approximately 5,919.
 """
 ```
 
-You can ask various types of questions:
+You can ask other types of questions:
 
-- Trend analysis: "What's the expected passenger growth rate?"
-- Seasonal patterns: "Which months have peak passenger traffic?"
-- Specific periods: "What's the passenger forecast for summer months?"
-- Comparative analysis: "How does passenger volume compare to last year?"
-- Business insights: "Should we increase aircraft capacity next quarter?"
+- **Trend analysis**:  
+"What's the expected passenger growth rate?"
+- **Seasonal patterns**:  
+"Which months have peak passenger traffic?"
+- **Specific periods**:  
+"What's the passenger forecast for summer months?"
+- **Comparative analysis**:  
+"How does passenger volume compare to last year?"
+- **Business insights**:  
+"Should we increase aircraft capacity next quarter?"
+
+---
 
 ## Next Steps
 
