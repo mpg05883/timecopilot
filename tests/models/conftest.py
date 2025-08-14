@@ -54,5 +54,10 @@ models.extend(
                 SeasonalNaive(),
             ],
         ),
+        Moirai(
+            context_length=256,
+            batch_size=2,
+            repo_id="Salesforce/moirai-2.0-R-small",
+        ),
     ]
 )
