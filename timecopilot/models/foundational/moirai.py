@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import torch
 from gluonts.torch.model.predictor import PyTorchPredictor
 from uni2ts.model.moirai import MoiraiForecast, MoiraiModule
+from uni2ts.model.moirai2 import Moirai2Forecast, Moirai2Module
 from uni2ts.model.moirai_moe import MoiraiMoEForecast, MoiraiMoEModule
 
 from ..utils.gluonts_forecaster import GluonTSForecaster
@@ -97,6 +98,8 @@ class Moirai(GluonTSForecaster):
     def get_predictor(self, prediction_length: int) -> PyTorchPredictor:
         if "moe" in self.repo_id:
             model_cls, model_module = MoiraiMoEForecast, MoiraiMoEModule
+        elif "moirai-2.0" in self.repo_id:
+            model_cls, model_module = Moirai2Forecast, Moirai2Module
         else:
             model_cls, model_module = MoiraiForecast, MoiraiModule
         model = model_cls(
