@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import torch
 from gluonts.torch.model.predictor import PyTorchPredictor
 from uni2ts.model.moirai import MoiraiForecast, MoiraiModule
+from uni2ts.model.moirai2 import Moirai2Forecast, Moirai2Module
 from uni2ts.model.moirai_moe import MoiraiMoEForecast, MoiraiMoEModule
 
 from ..utils.gluonts_forecaster import GluonTSForecaster
@@ -50,10 +51,11 @@ class Moirai(GluonTSForecaster):
             patch_size (int, optional): Patch size for patch-based input encoding.
                 Can be set to "auto" or a specific value (e.g., 8, 16, 32, 64, 128).
                 Defaults to 32. See the Moirai paper for recommended values by
-                frequency.
+                frequency. Not used for Moirai-2.0.
             num_samples (int, optional): Number of samples for probabilistic
                 forecasting. Controls the number of forecast samples drawn for
                 uncertainty estimation. Defaults to 100.
+                Not used for Moirai-2.0.
             target_dim (int, optional): Number of target variables (for multivariate
                 forecasting). Defaults to 1.
             feat_dynamic_real_dim (int, optional): Number of dynamic real covariates
@@ -95,19 +97,26 @@ class Moirai(GluonTSForecaster):
 
     @contextmanager
     def get_predictor(self, prediction_length: int) -> PyTorchPredictor:
+        kwargs = {
+            "prediction_length": prediction_length,
+            "context_length": self.context_length,
+            "patch_size": self.patch_size,
+            "num_samples": self.num_samples,
+            "target_dim": self.target_dim,
+            "feat_dynamic_real_dim": self.feat_dynamic_real_dim,
+            "past_feat_dynamic_real_dim": self.past_feat_dynamic_real_dim,
+        }
         if "moe" in self.repo_id:
             model_cls, model_module = MoiraiMoEForecast, MoiraiMoEModule
+        elif "moirai-2.0" in self.repo_id:
+            model_cls, model_module = Moirai2Forecast, Moirai2Module
+            del kwargs["patch_size"]
+            del kwargs["num_samples"]
         else:
             model_cls, model_module = MoiraiForecast, MoiraiModule
         model = model_cls(
             module=model_module.from_pretrained(self.repo_id),
-            prediction_length=prediction_length,
-            context_length=self.context_length,
-            patch_size=self.patch_size,
-            num_samples=self.num_samples,
-            target_dim=self.target_dim,
-            feat_dynamic_real_dim=self.feat_dynamic_real_dim,
-            past_feat_dynamic_real_dim=self.past_feat_dynamic_real_dim,
+            **kwargs,
         )
         predictor = model.create_predictor(batch_size=self.batch_size)
 
