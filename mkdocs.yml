@@ -20,6 +20,8 @@ nav:
   - Roadmap: roadmap.md
   - Examples:
       - examples/agent-quickstart.ipynb
+  - Experiments:
+      - experiments/gift-eval.md
   - Documentation:
       - Time Series Model Hub: model_hub.md
       - Forecasting Parameters: forecasting_parameters.md
@@ -107,6 +109,7 @@ plugins:
   - search
   - autorefs
   - mkdocs-jupyter
+  - include-markdown
   - mkdocstrings:
       handlers:
         python:
