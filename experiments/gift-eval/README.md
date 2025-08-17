@@ -1,13 +1,17 @@
-# TimeCopilot GIFT-Eval Experiments
+# First-Place Results on the GIFT-Eval Benchmark with TimeCopilot
 
-This project demonstrates the evaluation of a foundation model ensemble built using the [TimeCopilot](https://timecopilot.dev) library on the [GIFT-Eval](https://huggingface.co/spaces/Salesforce/GIFT-Eval) benchmark.
+This section documents the evaluation of a foundation model ensemble built using the [TimeCopilot](https://timecopilot.dev) library on the [GIFT-Eval](https://huggingface.co/spaces/Salesforce/GIFT-Eval) benchmark.
+
+!!! success ""
+    With less than $30 in compute cost, TimeCopilot achieved first place in probabilistic accuracy (CRPS) among non-leaking models on this large-scale benchmark, which spans 24 datasets, 144k+ time series, and 177M data points.
+
 
 TimeCopilot is an open‑source AI agent for time series forecasting that provides a unified interface to multiple forecasting approaches, from foundation models to classical statistical, machine learning, and deep learning methods, along with built‑in ensemble capabilities for robust and explainable forecasting.
 
 <img width="1001" height="978" alt="image" src="https://github.com/user-attachments/assets/c6430f0e-4787-4173-a227-c79331c6ec68" />
 
 
-## Model Description
+## Description
 
 This ensemble leverages [**TimeCopilot's MedianEnsemble**](https://timecopilot.dev/api/models/ensembles/#timecopilot.models.ensembles.median.MedianEnsemble) feature, which combines three state-of-the-art foundation models:
 
@@ -19,6 +23,7 @@ This ensemble leverages [**TimeCopilot's MedianEnsemble**](https://timecopilot.d
 ## Setup
 
 ### Prerequisites
+- Clone [TimeCopilot's repo](https://github.com/AzulGarza/timecopilot) and go to `experiments/gift-eval`.
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/) package manager
 - AWS CLI configured (for distributed evaluation)
