@@ -71,6 +71,7 @@ uv run -m src.run_timecopilot \
 ```
 
 **Parameters:**
+
 - `--dataset-name`: GIFT-Eval dataset name (e.g., "m4_weekly", "bizitobs_l2c/H")
 - `--term`: Forecasting horizon ("short", "medium", "long")
 - `--output-path`: Directory to save evaluation results
@@ -88,6 +89,7 @@ uv run modal run --detach -m src.run_modal::main
 This creates one GPU job per dataset configuration, significantly reducing evaluation time.
 
 **Infrastructure:**
+
 - **GPU**: A10G per job
 - **CPU**: 8 cores per job  
 - **Timeout**: 3 hours per job
