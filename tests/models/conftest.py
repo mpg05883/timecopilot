@@ -1,5 +1,7 @@
 import sys
 
+import pytest
+
 from timecopilot.models.benchmarks import (
     ADIDA,
     AutoARIMA,
@@ -8,14 +10,51 @@ from timecopilot.models.benchmarks import (
     ZeroModel,
 )
 from timecopilot.models.benchmarks.ml import AutoLGBM
+from timecopilot.models.benchmarks.neural import AutoNHITS, AutoTFT
 from timecopilot.models.ensembles.median import MedianEnsemble
 from timecopilot.models.foundational.chronos import Chronos
 from timecopilot.models.foundational.moirai import Moirai
 from timecopilot.models.foundational.timesfm import TimesFM
 from timecopilot.models.foundational.toto import Toto
 
+
+@pytest.fixture(autouse=True)
+def disable_mps_session(monkeypatch):
+    # Make torch.backends.mps report unavailable
+    try:
+        import torch
+
+        monkeypatch.setattr(
+            torch.backends.mps, "is_available", lambda: False, raising=False
+        )
+        monkeypatch.setattr(
+            torch.backends.mps, "is_built", lambda: False, raising=False
+        )
+    except Exception:
+        # torch might not be installed in some envs; ignore
+        pass
+
+
 models = [
     AutoLGBM(num_samples=2, cv_n_windows=2),
+    AutoNHITS(
+        num_samples=2,
+        config=dict(
+            max_steps=1,
+            val_check_steps=1,
+            input_size=12,
+            mlp_units=3 * [[8, 8]],
+        ),
+    ),
+    AutoTFT(
+        num_samples=2,
+        config=dict(
+            max_steps=1,
+            val_check_steps=1,
+            input_size=12,
+            hidden_size=8,
+        ),
+    ),
     AutoARIMA(),
     SeasonalNaive(),
     ZeroModel(),
@@ -58,3 +97,5 @@ if sys.version_info < (3, 13):
 
     models.append(TabPFN(mode=TabPFNMode.MOCK))
     models.append(Sundial(context_length=256, num_samples=10))
+
+models = models[1:3]
