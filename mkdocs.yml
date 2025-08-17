@@ -32,6 +32,7 @@ nav:
       - api/models/benchmarks/stats.md
       - api/models/benchmarks/prophet.md
       - api/models/benchmarks/ml.md
+      - api/models/benchmarks/neural.md
       - api/models/ensembles.md
       - api/models/utils/forecaster.md
       - api/gift_eval/gift_eval.md
