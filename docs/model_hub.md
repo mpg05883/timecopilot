@@ -66,11 +66,23 @@ TimeCopilot includes a suite of classical and statistical forecasting models, pr
 - [Theta](api/models/benchmarks/stats.md#timecopilot.models.benchmarks.stats.Theta)
 - [ZeroModel](api/models/benchmarks/stats.md#timecopilot.models.benchmarks.stats.ZeroModel)
 
----
 
-## Prophet Model
+### Prophet Model
 
 TimeCopilot integrates the popular Prophet model for time series forecasting, developed by Facebook. Prophet is well-suited for business time series with strong seasonal effects and several seasons of historical data. Below you will find the API reference for the Prophet model.
 
 
 - [Prophet](api/models/benchmarks/prophet.md/#timecopilot.models.benchmarks.prophet.Prophet)
+
+## Machine Learning Models
+
+TimeCopilot provides access to automated machine learning models for time series forecasting. These models leverage gradient boosting and other ML techniques to automatically select features and optimize hyperparameters for your specific time series data.
+
+- [AutoLGBM](api/models/benchmarks/ml.md#timecopilot.models.benchmarks.ml.AutoLGBM)
+
+## Neural Network Models
+
+TimeCopilot integrates state-of-the-art neural network models for time series forecasting. These models leverage deep learning architectures specifically designed for temporal data, offering powerful capabilities for complex pattern recognition and long-range dependency modeling.
+
+- [AutoNHITS](api/models/benchmarks/neural.md#timecopilot.models.benchmarks.neural.AutoNHITS)
+- [AutoTFT](api/models/benchmarks/neural.md#timecopilot.models.benchmarks.neural.AutoTFT)

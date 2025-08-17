@@ -99,11 +99,19 @@ def test_freq_inferred_correctly(model, freq):
 )
 @pytest.mark.parametrize("h", [1, 12])
 def test_correct_forecast_dates(model, freq, h):
+    if model.alias in ["AutoLGBM", "AutoNHITS", "AutoTFT"]:
+        # AutoLGBM requires a certain minimum length
+        sizes_per_freq = {
+            freq: 1_000 for freq in ["10S", "10T", "15T", "5T", "H", "Q-DEC"]
+        }
+    else:
+        sizes_per_freq = {}
     n_series = 5
     df = generate_series(
         n_series,
         freq=freq,
-        max_length=50,
+        min_length=sizes_per_freq.get(freq, 50),
+        max_length=sizes_per_freq.get(freq, 50),
     )
     df_test = df.groupby("unique_id").tail(h)
     df_train = df.drop(df_test.index)
@@ -185,6 +193,17 @@ def test_passing_both_level_and_quantiles(model):
 def test_using_quantiles(model):
     qs = [round(i * 0.1, 1) for i in range(1, 10)]
     df = generate_series(n_series=3, freq="D")
+    if model.alias in ["AutoLGBM", "AutoNHITS", "AutoTFT"]:
+        # AutoLGBM does not support quantiles yet
+        with pytest.raises(ValueError) as excinfo:
+            model.forecast(
+                df=df,
+                h=2,
+                freq="D",
+                quantiles=qs,
+            )
+        assert "not supported" in str(excinfo.value)
+        return
     fcst_df = model.forecast(
         df=df,
         h=2,
@@ -220,6 +239,17 @@ def test_using_quantiles(model):
 def test_using_level(model):
     level = [0, 20, 40, 60, 80]  # corresponds to qs [0.1, 0.2, ..., 0.9]
     df = generate_series(n_series=2, freq="D")
+    if model.alias in ["AutoLGBM", "AutoNHITS", "AutoTFT"]:
+        # AutoLGBM does not support quantiles yet
+        with pytest.raises(ValueError) as excinfo:
+            model.forecast(
+                df=df,
+                h=2,
+                freq="D",
+                level=level,
+            )
+        assert "not supported" in str(excinfo.value)
+        return
     fcst_df = model.forecast(
         df=df,
         h=2,
