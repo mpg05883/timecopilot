@@ -97,5 +97,3 @@ if sys.version_info < (3, 13):
 
     models.append(TabPFN(mode=TabPFNMode.MOCK))
     models.append(Sundial(context_length=256, num_samples=10))
-
-models = models[1:3]
