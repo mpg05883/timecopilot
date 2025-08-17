@@ -7,6 +7,7 @@ from timecopilot.models.benchmarks import (
     SeasonalNaive,
     ZeroModel,
 )
+from timecopilot.models.benchmarks.ml import AutoLGBM
 from timecopilot.models.ensembles.median import MedianEnsemble
 from timecopilot.models.foundational.chronos import Chronos
 from timecopilot.models.foundational.moirai import Moirai
@@ -14,6 +15,7 @@ from timecopilot.models.foundational.timesfm import TimesFM
 from timecopilot.models.foundational.toto import Toto
 
 models = [
+    AutoLGBM(num_samples=2, cv_n_windows=2),
     AutoARIMA(),
     SeasonalNaive(),
     ZeroModel(),
