@@ -45,6 +45,8 @@ classifiers = [
 dependencies = [
   "fire",
   "gluonts[torch]",
+  "lightgbm>=4.6.0",
+  "mlforecast>=1.0.2",
   "nixtla>=0.6.6",
   "openai>=1.99.7",
   "pandas>=2.2.0 ; python_full_version >= '3.13'",
