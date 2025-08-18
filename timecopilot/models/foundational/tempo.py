@@ -8,8 +8,8 @@ from gluonts.transform import Chain
 from omegaconf import DictConfig
 
 from ..utils.gluonts_forecaster import GluonTSForecaster
-from .tempo.models.lightning_tempo import LightningTEMPO
-from .tempo.utils.gluonts import get_input_transform
+from .src.models.lightning_tempo import LightningTEMPO
+from .src.utils.gluonts import get_input_transform
 
 
 class TEMPOForecaster(GluonTSForecaster):

@@ -1,4 +1,4 @@
-from .tempo import TEMPOForecaster
+from .src import TEMPOForecaster
 from .timesfm import TimesFM
 
 __all__ = [

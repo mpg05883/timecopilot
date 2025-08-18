@@ -11,6 +11,7 @@ from .benchmarks import (
     Theta,
     ZeroModel,
 )
+from .foundational.src import TEMPOForecaster
 
 __all__ = [
     "ADIDA",
@@ -24,4 +25,5 @@ __all__ = [
     "SeasonalNaive",
     "Theta",
     "ZeroModel",
+    "TEMPOForecaster",
 ]

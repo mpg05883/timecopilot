@@ -61,7 +61,7 @@ class Toto(Forecaster):
             **Technical Details:**
 
             - The model is loaded onto the best available device (GPU if available,
-              otherwise CPU).
+                otherwise CPU).
             - For best performance, a CUDA-capable GPU is recommended.
         """
         self.repo_id = repo_id

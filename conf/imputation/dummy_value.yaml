@@ -1,0 +1,2 @@
+_target_: gluonts.transform.feature.DummyValueImputation
+dummy_value: 0.0

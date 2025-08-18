@@ -1,20 +1,22 @@
 # Adapted from https://github.com/SalesforceAIResearch/gift-eval
 
+import json
 import math
 import os
 from collections.abc import Iterable, Iterator
-from enum import Enum
+from enum import StrEnum
 from functools import cached_property
 from pathlib import Path
+from typing import Any
 
-import datasets
 import pyarrow.compute as pc
+from datasets import load_from_disk
 from dotenv import load_dotenv
 from gluonts.dataset import DataEntry
 from gluonts.dataset.common import ProcessDataEntry
 from gluonts.dataset.split import TestData, TrainingDataset, split
 from gluonts.itertools import Map
-from gluonts.time_feature import norm_freq_str
+from gluonts.time_feature import get_seasonality, norm_freq_str
 from gluonts.transform import Transformation
 from pandas.tseries.frequencies import to_offset
 from toolz import compose
@@ -23,36 +25,59 @@ TEST_SPLIT = 0.1
 MAX_WINDOW = 20
 
 M4_PRED_LENGTH_MAP = {
-    "A": 6,
-    "Q": 8,
-    "M": 18,
-    "W": 13,
-    "D": 14,
-    "H": 48,
+    "H": 48,  # Hourly
+    "h": 48,
+    "D": 14,  # Daily
+    "d": 14,
+    "W": 13,  # Weekly
+    "w": 13,
+    "M": 18,  # Monthly
+    "m": 18,
+    "ME": 18,  # End of month
+    "Q": 8,  # Quarterly
+    "q": 8,
+    "QE": 8,  # End of quarter
+    "A": 6,  # Annualy/yearly
+    "y": 6,
+    "YE": 6,  # End of year
 }
 
 PRED_LENGTH_MAP = {
-    "M": 12,
-    "W": 8,
-    "D": 30,
-    "H": 48,
-    "T": 48,
-    "S": 60,
-}
-
-TFB_PRED_LENGTH_MAP = {
+    "S": 60,  # Seconds
+    "s": 60,
+    "T": 48,  # Minutely
+    "min": 48,
+    "H": 48,  # Hourly
+    "h": 48,
+    "D": 30,  # Daily
+    "d": 30,
+    "W": 8,  # Weekly
+    "w": 8,
+    "M": 12,  # Monthly
+    "m": 12,
+    "ME": 12,
+    "Q": 8,  # Quarterly
+    "q": 8,
+    "QE": 8,
+    "y": 6,  # Annualy/yearly
     "A": 6,
-    "H": 48,
-    "Q": 8,
-    "D": 14,
-    "M": 18,
-    "W": 13,
+}
+
+# Prediction lengths from TFB: https://arxiv.org/abs/2403.20150
+TFB_PRED_LENGTH_MAP = {
     "U": 8,
-    "T": 8,
+    "T": 8,  # Minutely
+    "H": 48,  # Hourly
+    "h": 48,
+    "D": 14,  # Daily
+    "W": 13,  # Weekly
+    "M": 18,  # Monthly
+    "Q": 8,  # Quarterly
+    "A": 6,  # Annualy/yearly
 }
 
 
-class Term(Enum):
+class Term(StrEnum):
     SHORT = "short"
     MEDIUM = "medium"
     LONG = "long"
@@ -65,6 +90,38 @@ class Term(Enum):
             return 10
         elif self == Term.LONG:
             return 15
+
+
+class Domain(StrEnum):
+    """
+    Represents the dataset's domain.
+
+    Attributes:
+        CLIMATE: Datasets related to weather, climate, or environmental
+            monitoring.
+        CLOUDOPS: Datasets related to cloud infrastructure and operations.
+        ECON_FIN: Economic and financial datasets.
+        HEALTHCARE: Datasets from the healthcare domain.
+        NATURE: Scientific or biological datasets.
+        SALES: Datasets tracking retail or product sales.
+        TRANSPORT: Datasets involving traffic or transportation.
+        WEB: Datasets from web or online platforms.
+        WEB_CLOUDOPS: A combined or hybrid domain covering both Web and
+            CloudOps.
+        ALL: Represents all domains combined.
+    """
+
+    CLIMATE = "Climate"  # This's only in the pretrain split
+    CLOUDOPS = "CloudOps"  # This's only in the pretrain split
+    ECON_FIN = "Econ/Fin"
+    HEALTHCARE = "Healthcare"
+    NATURE = "Nature"
+    SALES = "Sales"
+    TRANSPORT = "Transport"
+    WEB = "Web"  # This's only in the pretrain split
+    WEB_CLOUDOPS = "Web/CloudOps"  # This's only in the train-test split
+    ENERGY = "Energy"
+    ALL = "All"
 
 
 def itemize_start(data_entry: DataEntry) -> DataEntry:
@@ -118,7 +175,7 @@ class Dataset:
         self,
         name: str,
         term: Term | str = Term.SHORT,
-        to_univariate: bool = False,
+        to_univariate: bool = True,
         storage_path: Path | str | None = None,
         storage_env_var: str = "GIFT_EVAL",
     ):
@@ -126,16 +183,22 @@ class Dataset:
             storage_path = self._storage_path_from_env_var(storage_env_var)
         else:
             storage_path = Path(storage_path)
-        self.hf_dataset = datasets.load_from_disk(str(storage_path / name)).with_format(
-            "numpy"
-        )
+
+        self.dataset_directory = os.getenv(storage_env_var)
+        self.hf_dataset = load_from_disk(self.storage_path).with_format("numpy")
+
         process = ProcessDataEntry(
             self.freq,
             one_dim_target=self.target_dim == 1,
         )
 
-        self.gluonts_dataset = Map(compose(process, itemize_start), self.hf_dataset)
-        if to_univariate:
+        self.gluonts_dataset = Map(
+            compose(process, itemize_start),
+            self.hf_dataset,
+        )
+
+        # Automatically convert multivariate datasets to univariate
+        if to_univariate and self.target_dim > 1:
             self.gluonts_dataset = MultivariateToUnivariate("target").apply(
                 self.gluonts_dataset
             )
@@ -236,3 +299,89 @@ class Dataset:
             distance=self.prediction_length,
         )
         return test_data
+
+    @property
+    def config(self) -> str:
+        """
+        Returns the dataset's configuration formatted as `name`/`freq`/`term`.
+        This's is used for formatting dataset names and terms in results files.
+        - `name` is the dataset's name in lowercase, with some additional
+            formatting for specific datasets.
+            - E.g. "saugeenday" is formatted as "saugeen".
+        - `freq` is the dataset's frequency with the optional dash removed.
+            - E.g. "W-SUN" is formatted as "W".
+        - `term` is the dataset's term (short, medium, long).
+
+        Returns:
+            str: The dataset's configuration formatted as `name`/`freq`/`term`.
+        """
+        pretty_names = {
+            "saugeenday": "saugeen",
+            "temperature_rain_with_missing": "temperature_rain",
+            "kdd_cup_2018_with_missing": "kdd_cup_2018",
+            "car_parts_with_missing": "car_parts",
+        }
+        name = self.name.split("/")[0] if "/" in self.name else self.name
+        cleaned_name = pretty_names.get(name.lower(), name.lower())
+        cleaned_freq = self.freq.split("-")[0]
+        return f"{cleaned_name}/{cleaned_freq}/{self.term}"
+
+    @property
+    def cleaned_config(self) -> str:
+        """
+        Returns the dataset's configuration formatted as `name`_`freq`_`term`
+        for storing things e.g. W&B runs.
+        """
+        pretty_names = {
+            "saugeenday": "saugeen",
+            "temperature_rain_with_missing": "temperature_rain",
+            "kdd_cup_2018_with_missing": "kdd_cup_2018",
+            "car_parts_with_missing": "car_parts",
+        }
+        name = self.name.split("/")[0] if "/" in self.name else self.name
+        cleaned_name = pretty_names.get(name.lower(), name.lower())
+        cleaned_freq = self.freq.split("-")[0]
+        return f"{cleaned_name}_{cleaned_freq}_{self.term}"
+
+    @property
+    def seasonality(self) -> int:
+        """
+        Computes the dataset's seasonality (number of time steps in one
+        seasonal cycle). This's a thin wrapper around GluonTS's
+        `get_seasonality`.
+
+        Returns:
+            int: The dataset's seasonality.
+        """
+        return get_seasonality(self.freq)
+
+    @property
+    def gift_split(self) -> str:
+        """
+        Returns "train_test" if the dataset is in the GIFT-Eval's train-test
+        split. Else, retuns "pretrain".
+        """
+        file_path = Path(self.dataset_directory) / "train_test" / self.name
+        return "train_test" if file_path.exists() else "pretrain"
+
+    @property
+    def storage_path(self) -> str:
+        """
+        Returns a path to where the dataset's stored on disk using the root
+        directory specified by the storage enviornment variable.
+        """
+        return str(Path(self.dataset_directory) / self.gift_split / self.name)
+
+    @cached_property
+    def metadata(self) -> dict[str, Any]:
+        path = Path(__file__) / "meta" / self.gift_split / "metadata.json"
+        with open(path) as file:
+            metadata = json.load(file)
+        return metadata[self.name]
+
+    @property
+    def domain(self) -> Domain:
+        """
+        Returns the dataset's domain.
+        """
+        return Domain(self.metadata["domain"])

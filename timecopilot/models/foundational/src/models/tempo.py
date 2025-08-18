@@ -13,27 +13,27 @@ from gluonts.torch.model.predictor import PyTorchPredictor
 from huggingface_hub import hf_hub_download
 from omegaconf import OmegaConf
 from omegaconf.dictconfig import DictConfig
-from tempo.modules.gpt2 import initialize_gpt2_model
-from tempo.modules.moving_average import MovingAverage
-from tempo.modules.prompt_pool import PromptPool
-from tempo.utils.decomposition import (
+from src.modules.gpt2 import initialize_gpt2_model
+from src.modules.moving_average import MovingAverage
+from src.modules.prompt_pool import PromptPool
+from src.utils.decomposition import (
     compute_decomposition_loss,
     ensure_3d,
     have_all,
 )
-from tempo.utils.interpolate import interpolate
-from tempo.utils.loss_utils import (
+from src.utils.interpolate import interpolate
+from src.utils.loss_utils import (
     get_criterion,
     get_distr_output,
     is_deterministic,
     is_quantile,
 )
-from tempo.utils.patching import compute_num_patches
-from tempo.utils.prompting import (
+from src.utils.patching import compute_num_patches
+from src.utils.prompting import (
     initialize_prompt_tokens,
     remove_prompt_tokens,
 )
-from tempo.utils.scaling import mean_abs_scaling
+from src.utils.scaling import mean_abs_scaling
 from torch import Tensor
 
 
