@@ -53,11 +53,12 @@ class Chronos(Forecaster):
             **Technical Details:**
 
             - The model is loaded onto the best available device (GPU if
-              available, otherwise CPU).
-            - For best performance with large models (e.g., "chronos-t5-large"),
-              a CUDA-compatible GPU is recommended.
+                available, otherwise CPU).
+            - For best performance with large models (e.g.,
+                "chronos-t5-large"),
+                a CUDA-compatible GPU is recommended.
             - The model weights are loaded with torch_dtype=torch.bfloat16 for
-              efficiency on supported hardware.
+                efficiency on supported hardware.
 
         """
         self.repo_id = repo_id

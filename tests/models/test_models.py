@@ -35,7 +35,9 @@ def test_tirex_import_fails():
 )
 def test_sundial_import_fails():
     with pytest.raises(ImportError) as excinfo:
-        from timecopilot.models.foundational.sundial import Sundial  # noqa: F401
+        from timecopilot.models.foundational.sundial import (
+            Sundial,  # noqa: F401
+        )
     assert "requires Python < 3.13" in str(excinfo.value)
 
 
