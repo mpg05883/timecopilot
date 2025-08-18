@@ -1,7 +1,16 @@
 # Import libraries
 import pandas as pd
-
+import logging
+from dotenv import load_dotenv
 from timecopilot import TimeCopilot
+
+logging.basicConfig(
+    level=logging.INFO,
+    format= "[%(asctime)s] %(message)s",
+    datefmt="%b %d, %Y %I:%M:%S%p",
+)
+
+load_dotenv()
 
 # Load the dataset
 # The DataFrame must include at least the following columns:
@@ -13,14 +22,13 @@ from timecopilot import TimeCopilot
 # frequency.
 # If the horizon is not set, it will default to 2 times the inferred
 # seasonality.
+logging.info(f"Loading dataset...")
 df = pd.read_csv("https://timecopilot.s3.amazonaws.com/public/data/air_passengers.csv")
 
 # Initialize the forecasting agent
 # You can use any LLM by specifying the model parameter
-tc = TimeCopilot(
-    llm="openai:gpt-4o",
-    retries=3,
-)
+logging.info(f"Initializing TimeCopilot...")
+tc = TimeCopilot(llm="openai:gpt-4o", retries=3)
 
 # Generate forecast
 # You can optionally specify the following parameters:
@@ -28,6 +36,7 @@ tc = TimeCopilot(
 # - h: The forecast horizon, which is the number of periods to predict
 # - seasonality: The seasonal period of your data, which can be inferred if not
 # provided
+logging.info(f"Generating forecast...")
 result = tc.forecast(df=df)
 
 # The output contains:
@@ -42,4 +51,4 @@ result = tc.forecast(df=df)
 # - forecast: List of future predictions with dates
 # - forecast_analysis: Interpretation of the forecast results
 # - user_query_response: Response to the user prompt, if any
-print(result.output)
+logging.info(f"Forecasting completed. Outputting results...\n{result.output}")
