@@ -16,7 +16,12 @@ from timecopilot.models.foundational.tempo import TEMPOForecaster
 from timecopilot.utils.common import format_elapsed_time, timestamp_info
 from timecopilot.utils.model import find_best_checkpoint
 from timecopilot.utils.results import get_gift_eval_metrics, save_results
-from timecopilot.utils.wandb import get_slurm_config, get_tempo_eval_run_kwargs, get_checkpoint_artifact_kwargs, get_results_artifact_kwargs
+from timecopilot.utils.wandb import (
+    get_checkpoint_artifact_kwargs,
+    get_results_artifact_kwargs,
+    get_slurm_config,
+    get_tempo_eval_run_kwargs,
+)
 
 load_dotenv()
 
@@ -37,10 +42,10 @@ def main(cfg: DictConfig) -> None:
     timestamp_info(f"Loading dataset: {dataset_name} ({term}-term)")
     dataset = Dataset(dataset_name, term)
 
-    # Format checkpoints directory paths as 
-    # results/checkpoints/gift_split/dataset/config/model/type where type 
-    # specifies whether the model was fit on only the test data, training data 
-    # with test data leakage, etc. 
+    # Format checkpoints directory paths as
+    # results/checkpoints/gift_split/dataset/config/model/type where type
+    # specifies whether the model was fit on only the test data, training data
+    # with test data leakage, etc.
     # E.g. checkpoints/gift_split/loop_seattle/5T/short/leak_test_data
     checkpoint_dirpath_parts = [
         cfg.results.checkpoints_dir,
@@ -66,13 +71,11 @@ def main(cfg: DictConfig) -> None:
     checkpoint_artifact.add_file(str(checkpoint_path))
     run.log_artifact(checkpoint_artifact)
 
-    rolling_mean_value_imputation_target = (
-        "gluonts.transform.feature.RollingMeanValueImputation"
-    )
+    rolling_mean_value = "gluonts.transform.feature.RollingMeanValueImputation"
 
-    # If theusing rolling mean value imputation, set the window size to the 
+    # If using rolling mean value imputation, set the window size to the
     # dataset's seasonality
-    if cfg.imputation_method._target_ == (rolling_mean_value_imputation_target):
+    if cfg.imputation_method._target_ == rolling_mean_value:
         with open_dict(cfg.imputation_method):
             cfg.imputation_method.window_size = dataset.seasonality
 
