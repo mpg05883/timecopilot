@@ -1,0 +1,6 @@
+# Directories for storing results
+base_results_dir: results
+checkpoints_dir: ${base_results_dir}/checkpoints
+forecasts_dir: ${base_results_dir}/forecasts
+plots_dir: ${base_results_dir}/plots
+results_dir: ${base_results_dir}/results

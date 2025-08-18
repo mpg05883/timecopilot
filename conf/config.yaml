@@ -1,6 +1,8 @@
 defaults:
-  - data: dataset
+  - seed: seed_42
+  - data: train_test/dataset  
   - imputation_method: dummy_value
+  - model: tempo/leak_test_data
   - _self_
 
 # Hydra
@@ -11,12 +13,7 @@ hydra:
 # Use SLURM_ARRAY_TASK_ID to index `data`
 task_id: ???
 
-# PyTorch Lightning seed configuration
-seed: 42
-workers: true
-verbose: true
-
-# Torch 32-bit floating point precision
+# 32-bit floating point precision for torch 
 precision: medium
 
 # Load list of dataset cfgs and use SLURM_ARRAY_TASK_ID to index the list
@@ -24,36 +21,8 @@ gift_split: train_test
 dataset_name: ${data[${task_id}].name}
 term: ${data[${task_id}].term}
 
-# Model configuration
-model:
-  type: leak_test_data
-  name: tempo_${model.type}
-
-# W&B configuration
-wandb:
-  artifact:
-    checkpoint:
-      name: "${model.name}-${dataset_name}-${term}-checkpoint"
-      type: model
-      description: "Checkpoint for ${model.name} trained on ${dataset_name} (${term}-term)"
-      metadata:
-        dataset: ${dataset_name}
-        term: ${term}
-        model: ${model.name}
-    results:
-      name: "${model.name}-${dataset_name}-${term}-results"
-      type: results
-      description: "Evaluation results for ${model.name}'s test set forecasts on ${dataset_name} (${term}-term)"
-      metadata:
-        dataset: ${dataset_name}
-        term: ${term}
-        model: ${model.name}
-
+# Batch size for evaluation 
 batch_size: 256
 
-# Directories for storing results
-base_results_dir: results
-checkpoints_dir: ${base_results_dir}/checkpoints/${gift_split}
-forecasts_dir: ${base_results_dir}/forecasts
-plots_dir: ${base_results_dir}/plots
-results_dir: ${base_results_dir}/results
+
+

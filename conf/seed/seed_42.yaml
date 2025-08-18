@@ -1,0 +1,4 @@
+# Seed to use for all packages (numpy, torch, etc.)
+seed: 42
+workers: true
+verbose: true

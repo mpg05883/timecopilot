@@ -1,5 +1,5 @@
 from utils.results import get_gift_eval_metrics, save_results
-from utils.wandb import get_slurm_config, get_tempo_eval_run_kwargs
+from utils.wandb import get_slurm_config, get_tempo_eval_run_kwargs, get_checkpoint_artifact_kwargs, get_results_artifact_kwargs    
 from .agent import AsyncTimeCopilot, TimeCopilot
 from .forecaster import TimeCopilotForecaster
 from .gift_eval.data import Dataset
@@ -25,4 +25,7 @@ __all__ = [
     "get_slurm_config",
     "get_gift_eval_metrics",
     "get_tempo_eval_run_kwargs",
+    "get_checkpoint_artifact_kwargs",
+    "get_results_artifact_kwargs",
+    
 ]

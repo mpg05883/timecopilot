@@ -1,0 +1,2 @@
+type: leak_test_data
+name: tempo_${model.type}

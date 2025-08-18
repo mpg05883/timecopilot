@@ -67,44 +67,28 @@ def get_fieldnames() -> list[str]:
 
 
 def save_results(
-    file_path: Path,
+    file_path: str | Path,
     dataset: str,
-    model_name: str,
+    model: str,
     results: pd.DataFrame,
     domain: str,
-    num_variates: int = 1,
+    num_variates: int,
 ) -> None:
     """
-    Appends test set results and relevant metadata to a CSV file.
-
-    The output row includes:
-    - A timestamp for when the results were logged.
-    - Dataset configuration name (e.g., "web_short").
-    - Domain the dataset belongs to.
-    - Model name (e.g., "tempo_prob").
-    - Number of variates (1 for univariate, >1 for multivariate).
-    - Evaluation metrics from the `results` DataFrame.
-    - Optional notes (e.g., hyperparameters, experimental comments).
-
-    If the CSV file does not exist, a header is first written using `write_header`.
-
+    Saves the evaluation results to a CSV file.
+    
     Args:
-        results (DataFrame): Evaluation results (e.g., CRPS, NRMSE) as a
-            single-row DataFrame.
-        file_path (Path): Path to the CSV file where the row should be appended.
-        dataset (str): Identifier of the dataset config used for this
-            experiment.
-        domain (Domain): Enum representing the domain this dataset belongs to.
-        model_name (str, optional): Name of the forecasting model. Defaults to
-            "tempo_prob".
-        num_variates (int, optional): Number of input variates. Defaults to 1.
-        notes (Optional[str], optional): Optional experiment notes. Defaults to
-            None.
-        verbose (bool, optional): Set to True to print the model's MAPE and
-            CRPS.
+        file_path (Path): Path to the CSV file where results will be saved.
+        dataset (str): Name of the dataset used for evaluation.
+        model (str): Name of the model used for evaluation.
+        results (pd.DataFrame): DataFrame containing evaluation metrics.
+        domain (str): Domain of the dataset (e.g., "time_series").
+        num_variates (int, optional): Number of variates in the dataset.
     """
+    file_path = Path(file_path)
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    
     if not file_path.exists():
-        file_path.parent.mkdir(parents=True, exist_ok=True)
         with open(file_path, "w", newline="") as file:
             writer = csv.writer(file)
             writer.writerow(get_fieldnames())
@@ -114,7 +98,7 @@ def save_results(
         writer.writerow(
             [
                 dataset,
-                model_name,
+                model,
                 results["MSE[mean]"].iloc[0],
                 results["MSE[0.5]"].iloc[0],
                 results["MAE[0.5]"].iloc[0],
