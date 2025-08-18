@@ -18,8 +18,9 @@ nav:
   - Getting Help: help.md
   - Contributing: contributing.md
   - Roadmap: roadmap.md
-  - Examples:
+  - Quickstart Examples:
       - examples/agent-quickstart.ipynb
+      - examples/forecaster-quickstart.ipynb
   - Experiments:
       - experiments/gift-eval.md
   - Documentation:
