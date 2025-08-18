@@ -1,4 +1,4 @@
-site_name: TimeCopilot
+site_name: ""
 site_description: The GenAI Forecasting Agent · LLMs x Foundation Time Series Models
 site_author: AzulGarza
 strict: true
@@ -13,7 +13,7 @@ watch:
   - timecopilot
 
 nav:
-  - Introduction: index.md
+  - Home: index.md
   - Installation: installation.md
   - Getting Help: help.md
   - Contributing: contributing.md
@@ -49,6 +49,8 @@ nav:
 
 theme:
   name: "material"
+  logo: https://timecopilot.s3.amazonaws.com/public/logos/logo-white.svg
+  favicon: https://timecopilot.s3.amazonaws.com/public/logos/favicon-white.svg
   palette:
     - media: "(prefers-color-scheme)"
       primary: custom
