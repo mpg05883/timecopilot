@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Union
 
 import torch
 from gluonts.dataset.common import ListDataset
@@ -16,7 +16,7 @@ from gluonts.transform import (
     # TFTInstanceSplitter
 )
 
-from utils.tabpfn_features import DefaultFeatures
+from .tabpfn_features import DefaultFeatures
 
 
 class InferenceSplitter(InstanceSplitter):
@@ -80,10 +80,12 @@ class AddTimestamps(Transformation):
     numpy.datetime64[ns] array and writes it to 'output_field'.
     """
 
-    def __init__(self, start_field: str, target_field: str, output_field: str):
+    def __init__(self, start_field: str, target_field: str, output_field: str, freq: str, prediction_length: int):
         self.start_field = start_field
         self.target_field = target_field
         self.output_field = output_field
+        self.freq = freq
+        self.prediction_length = prediction_length
 
     def _safe_period_to_timestamp(self, length, freq):
         """Convert PeriodIndex to timestamps safely, handling overflows"""
@@ -124,17 +126,16 @@ class AddTimestamps(Transformation):
             return pd.date_range(start=safe_start, periods=safe_length, freq=freq)
 
     def __call__(
-        self, data_it: Iterable[DataEntry], is_train: bool
+        self, data_it: Iterable[DataEntry], is_train: bool,
     ) -> Iterable[DataEntry]:
         for entry in data_it:
             start = entry[self.start_field]
-            length = len(entry[self.target_field])
-            freq = entry.get("freq", entry.get("frequency"))
-
+            length = len(entry[self.target_field]) if is_train else self.prediction_length + len(entry[self.target_field])
+            
             # Use new aliases for frequency strings
-            if "W" not in freq:
-                freq = freq.replace("T", "min")  #
-                freq = freq.replace("H", "h")
+            if "W" not in self.freq:
+                self.freq = self.freq.replace("T", "min")  #
+                self.freq = self.freq.replace("H", "h")
 
             # handle Period vs Timestamp
             if isinstance(start, pd.Period):
@@ -154,11 +155,11 @@ class AddTimestamps(Transformation):
 
             # Handle cases when the length exceeds the max timestamp
             try:
-                idx = pd.date_range(start=start_ts, periods=length, freq=freq)
+                idx = pd.date_range(start=start_ts, periods=length, freq=self.freq)
             except (pd._libs.tslibs.np_datetime.OutOfBoundsDatetime, OverflowError):
                 idx = self._safe_period_to_timestamp(
                     length,
-                    freq,
+                    self.freq,
                 )
 
             times = np.array(idx.values, dtype="datetime64[ns]")
@@ -236,23 +237,23 @@ def create_mask_unobserved_transformation():
         output_field=FieldName.OBSERVED_VALUES,
     )
 
-    # Impute "trend" field
-    mask_unobserved_trend = AddObservedValuesIndicator(
-        target_field="trend",
-        output_field=FieldName.OBSERVED_VALUES,
-    )
+    # # Impute "trend" field
+    # mask_unobserved_trend = AddObservedValuesIndicator(
+    #     target_field="trend",
+    #     output_field=FieldName.OBSERVED_VALUES,
+    # )
 
-    # Impute "seasonal" field
-    mask_unobserved_seasonal = AddObservedValuesIndicator(
-        target_field="seasonal",
-        output_field=FieldName.OBSERVED_VALUES,
-    )
+    # # Impute "seasonal" field
+    # mask_unobserved_seasonal = AddObservedValuesIndicator(
+    #     target_field="seasonal",
+    #     output_field=FieldName.OBSERVED_VALUES,
+    # )
 
-    # Impute "residual" field
-    mask_unobserved_residual = AddObservedValuesIndicator(
-        target_field="residual",
-        output_field=FieldName.OBSERVED_VALUES,
-    )
+    # # Impute "residual" field
+    # mask_unobserved_residual = AddObservedValuesIndicator(
+    #     target_field="residual",
+    #     output_field=FieldName.OBSERVED_VALUES,
+    # )
 
     # mask_unobserved_time_feat = AddObservedValuesIndicator(
     #     target_field=FieldName.FEAT_TIME,
@@ -272,9 +273,9 @@ def create_mask_unobserved_transformation():
     # Combine all the mask transformations into one transformation
     mask_unobserved = (
         mask_unobserved_target
-        + mask_unobserved_trend
-        + mask_unobserved_seasonal
-        + mask_unobserved_residual
+        # + mask_unobserved_trend
+        # + mask_unobserved_seasonal
+        # + mask_unobserved_residual
         # + mask_unobserved_time_feat
         # + mask_unobserved_past_time_feat
         # + mask_unobserved_future_time_feat
@@ -353,7 +354,7 @@ def prepare_dataloader(
     num_batches_per_epoch: int,
     batch_size: int,
     use_time_features: bool = False,
-) -> TrainDataLoader | ValidationDataLoader:
+) -> Union[TrainDataLoader, ValidationDataLoader]:
     # On average, num_instances time points will be sampled per time series
     instance_sampler = ExpectedNumInstanceSampler(
         num_instances=1,
@@ -448,24 +449,18 @@ class PadShortSeries(Transformation):
             entry["target"] = np.concatenate(
                 [np.full(pad_width, self.pad_value, dtype=target.dtype), target]
             )
-            entry["trend"] = np.concatenate(
-                [np.full(pad_width, self.pad_value, dtype=target.dtype), target]
-            )
-            entry["seasonal"] = np.concatenate(
-                [np.full(pad_width, self.pad_value, dtype=target.dtype), target]
-            )
-            # import pdb; pdb.set_trace()
-            # entry["time_feat"] = np.concatenate(
-            #     [np.full(pad_width, self.pad_value, dtype=target.dtype), target]
-            # )
-            entry["residual"] = np.concatenate(
-                [np.full(pad_width, self.pad_value, dtype=target.dtype), target]
-            )
-
-            # # shift the start timestamp back by pad_width steps
-            # start_period = pd.Period(entry["start"], freq=entry["freq"])
-            # entry["start"] = (start_period - pad_width).to_timestamp()
-
+            if "trend" in entry:    
+                entry["trend"] = np.concatenate(
+                    [np.full(pad_width, self.pad_value, dtype=target.dtype), target]
+                )
+            if "seasonal" in entry:
+                entry["seasonal"] = np.concatenate(
+                    [np.full(pad_width, self.pad_value, dtype=target.dtype), target]
+                )
+            if "residual" in entry:
+                entry["residual"] = np.concatenate(
+                    [np.full(pad_width, self.pad_value, dtype=target.dtype), target]
+                )
         return entry
 
 
@@ -630,17 +625,18 @@ def prepare_dataloader_multiple(
         )
 
 
+            
 def get_input_transform(
     context_length: int,
     prediction_length: int,
+    freq: str,
     use_time_features=False,
 ):
-
     pad = PadShortSeries(
         context_length + prediction_length + 1,
         pad_value=np.nan,
     )
-    # add_time_features = AddTimeFeatures(
+    
     mask_unobserved = create_mask_unobserved_transformation()
 
     if not use_time_features:
@@ -657,11 +653,12 @@ def get_input_transform(
 
         return pad + mask_unobserved + prediction_splitter
     else:
-        FieldName.TREND = "trend"
         add_timestamps = AddTimestamps(
             start_field=FieldName.START,
-            target_field=FieldName.TREND,
+            target_field=FieldName.TARGET,
             output_field=FieldName.FEAT_TIME,
+            freq=freq,
+            prediction_length= prediction_length,   
         )
 
         prediction_splitter = InstanceSplitter(
@@ -672,7 +669,7 @@ def get_input_transform(
             instance_sampler=TestSplitSampler(),
             past_length=context_length,
             future_length=prediction_length,
-            time_series_fields=TIME_SERIES_FIELDS + [FieldName.FEAT_TIME],
+            time_series_fields=[FieldName.OBSERVED_VALUES, FieldName.FEAT_TIME],
         )
 
-        return pad + add_timestamps + mask_unobserved + prediction_splitter
+        return pad + add_timestamps + mask_unobserved +  prediction_splitter 

@@ -9,6 +9,7 @@ from .common import timestamp_info
 
 def find_best_checkpoint(
     dirpath: str | Path,
+    metric: str = "val_student_t_loss",
     verbose: bool = True,
 ) -> Path | None:
     """
@@ -17,8 +18,8 @@ def find_best_checkpoint(
 
     Args:
         dirpath (str | Path): The full directory path where the desired
-            checkpoints are stored. Checkpoints must contain 'val_loss' in
-            their name, e.g., 'val_loss=0.123.ckpt'. to be considered valid.
+            checkpoints are stored. Checkpoints must contain 'loss' in
+            their name, e.g., 'loss=0.123.ckpt'. to be considered valid.
         verbose (bool, optional): Whether to display a progress bar while
             searching for the checkpoint and print the found checkpoint.
             Defaults to True.
@@ -38,11 +39,11 @@ def find_best_checkpoint(
         return None
 
     # Search for checkpoints with positive or negative validation losses
-    pattern = re.compile(r"val_loss=([-+]?[0-9]*\.?[0-9]+)")
-    best_checkpoint, lowest_val_loss = None, float("inf")
+    pattern = re.compile(fr"{metric}=([-+]?[0-9]*\.?[0-9]+)")
+    best_checkpoint, lowest_loss = None, float("inf")
 
     kwargs = {
-        "desc": "Comparing val losses",
+        "desc": f"Comparing {metric} values",
         "unit": "ckpt",
         "total": len(checkpoints),
         "disable": not verbose,
@@ -51,20 +52,20 @@ def find_best_checkpoint(
     for checkpoint in tqdm(checkpoints, **kwargs):
         if not (match := pattern.search(checkpoint.name)):
             continue
-        if abs(val_loss := float(match.group(1))) >= lowest_val_loss:
+        if abs(loss := float(match.group(1))) >= lowest_loss:
             continue
-        best_checkpoint, lowest_val_loss = checkpoint, abs(val_loss)
+        best_checkpoint, lowest_loss = checkpoint, abs(loss)
 
     if best_checkpoint is None:
         message = (
             f"No checkpoints found in {dirpath}! Ensure checkpoints include "
-            f"'val_loss' in their name."
+            f"'{metric}' in their name."
         )
         warnings.warn(message, stacklevel=1)
         return None
 
     if verbose:
         timestamp_info(f"Best checkpoint: {best_checkpoint.name}")
-        timestamp_info(f"Lowest val loss: {lowest_val_loss:4f}")
+        timestamp_info(f"Lowest {metric}: {lowest_loss:.4f}")
 
     return best_checkpoint

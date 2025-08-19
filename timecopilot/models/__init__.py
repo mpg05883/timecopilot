@@ -11,7 +11,7 @@ from .benchmarks import (
     Theta,
     ZeroModel,
 )
-from .foundational.src import TEMPOForecaster
+from .foundational.tempo import TEMPOForecaster
 
 __all__ = [
     "ADIDA",

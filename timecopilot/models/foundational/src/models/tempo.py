@@ -13,27 +13,27 @@ from gluonts.torch.model.predictor import PyTorchPredictor
 from huggingface_hub import hf_hub_download
 from omegaconf import OmegaConf
 from omegaconf.dictconfig import DictConfig
-from src.modules.gpt2 import initialize_gpt2_model
-from src.modules.moving_average import MovingAverage
-from src.modules.prompt_pool import PromptPool
-from src.utils.decomposition import (
+from timecopilot.models.foundational.src.modules.gpt2 import initialize_gpt2_model
+from timecopilot.models.foundational.src.modules.moving_average import MovingAverage
+from timecopilot.models.foundational.src.modules.prompt_pool import PromptPool
+from timecopilot.models.foundational.src.utils.decomposition import (
     compute_decomposition_loss,
     ensure_3d,
     have_all,
 )
-from src.utils.interpolate import interpolate
-from src.utils.loss_utils import (
+from timecopilot.models.foundational.src.utils.interpolate import interpolate
+from timecopilot.models.foundational.src.utils.loss_utils import (
     get_criterion,
     get_distr_output,
     is_deterministic,
     is_quantile,
 )
-from src.utils.patching import compute_num_patches
-from src.utils.prompting import (
+from timecopilot.models.foundational.src.utils.patching import compute_num_patches
+from timecopilot.models.foundational.src.utils.prompting import (
     initialize_prompt_tokens,
     remove_prompt_tokens,
 )
-from src.utils.scaling import mean_abs_scaling
+from timecopilot.models.foundational.src.utils.scaling import mean_abs_scaling
 from torch import Tensor
 
 

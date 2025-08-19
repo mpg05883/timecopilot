@@ -8,7 +8,8 @@ from enum import StrEnum
 from functools import cached_property
 from pathlib import Path
 from typing import Any
-
+import numpy as np
+import pickle
 import pyarrow.compute as pc
 from datasets import load_from_disk
 from dotenv import load_dotenv
@@ -20,6 +21,7 @@ from gluonts.time_feature import get_seasonality, norm_freq_str
 from gluonts.transform import Transformation
 from pandas.tseries.frequencies import to_offset
 from toolz import compose
+from gluonts.dataset.common import ListDataset
 
 TEST_SPLIT = 0.1
 MAX_WINDOW = 20
@@ -75,6 +77,8 @@ TFB_PRED_LENGTH_MAP = {
     "Q": 8,  # Quarterly
     "A": 6,  # Annualy/yearly
 }
+
+MIN_LENGTH = int(348 / 0.5)
 
 
 class Term(StrEnum):
@@ -178,7 +182,11 @@ class Dataset:
         to_univariate: bool = True,
         storage_path: Path | str | None = None,
         storage_env_var: str = "GIFT_EVAL",
+        stl_cache: str="stl_cache"  
     ):
+        self.term = Term(term)
+        self.name = name
+        self.stl_cache = stl_cache
         if storage_path is None:
             storage_path = self._storage_path_from_env_var(storage_env_var)
         else:
@@ -202,9 +210,68 @@ class Dataset:
             self.gluonts_dataset = MultivariateToUnivariate("target").apply(
                 self.gluonts_dataset
             )
+        
+        self.stl_gluonts_dataset = self._insert_stl_components() if self.stl_cache else self.gluonts_dataset
+            
 
-        self.term = Term(term)
-        self.name = name
+    def _load_stl_components(self, path: Path) -> list[np.ndarray]:
+        with open(path, "rb") as file:
+            components = pickle.load(file)
+        return [
+            np.array(c) if not isinstance(c, np.ndarray) else c
+            for c in components
+        ]
+        
+    def _insert_stl_components(self) -> ListDataset:
+        trend_list = self._load_stl_components(self.trend_path)
+        seasonal_list = self._load_stl_components(self.seasonal_path)
+        residual_list = self._load_stl_components(self.residual_path)
+        
+        zipped = zip(
+            self.gluonts_dataset, 
+            trend_list, 
+            seasonal_list, 
+            residual_list,
+        )
+        entries = []
+        
+        for entry, trend, seasonal, residual in zipped:
+            if len(trend) < MIN_LENGTH:
+                n_periods = MIN_LENGTH - len(trend)
+
+                # Adjust the start time of the entry
+                entry["start"] = entry["start"] - n_periods  
+
+                entry["target"] = np.pad(
+                    entry["target"], (MIN_LENGTH - len(trend), 0)
+                )
+                trend = np.pad(trend, (MIN_LENGTH - len(trend), 0))
+                seasonal = np.pad(seasonal, (MIN_LENGTH - len(seasonal), 0))
+                residual = np.pad(residual, (MIN_LENGTH - len(residual), 0))
+                
+            entries.append(
+                {
+                    **entry,
+                    "trend": trend,
+                    "seasonal": seasonal,
+                    "residual": residual,
+                }
+            )
+        return ListDataset(entries, freq=self.freq)
+        
+            
+    @property
+    def trend_path(self) -> Path:
+        return (Path(self.stl_cache) / self.config / "trend").with_suffix(".pk")
+    
+    @property
+    def seasonal_path(self) -> Path:
+        return (Path(self.stl_cache) / self.config / "seasonal").with_suffix(".pk")
+    
+    @property
+    def residual_path(self) -> Path:
+        return (Path(self.stl_cache) / self.config / "residual").with_suffix(".pk")
+        
 
     @cached_property
     def prediction_length(self) -> int:
@@ -277,21 +344,21 @@ class Dataset:
     @property
     def training_dataset(self) -> TrainingDataset:
         training_dataset, _ = split(
-            self.gluonts_dataset, offset=-self.prediction_length * (self.windows + 1)
+            self.stl_gluonts_dataset, offset=-self.prediction_length * (self.windows + 1)
         )
         return training_dataset
 
     @property
     def validation_dataset(self) -> TrainingDataset:
         validation_dataset, _ = split(
-            self.gluonts_dataset, offset=-self.prediction_length * self.windows
+            self.stl_gluonts_dataset, offset=-self.prediction_length * self.windows
         )
         return validation_dataset
 
     @property
     def test_data(self) -> TestData:
         _, test_template = split(
-            self.gluonts_dataset, offset=-self.prediction_length * self.windows
+            self.stl_gluonts_dataset, offset=-self.prediction_length * self.windows
         )
         test_data = test_template.generate_instances(
             prediction_length=self.prediction_length,
@@ -374,7 +441,7 @@ class Dataset:
 
     @cached_property
     def metadata(self) -> dict[str, Any]:
-        path = Path(__file__) / "meta" / self.gift_split / "metadata.json"
+        path = Path(__file__).parent / "meta" / self.gift_split / "metadata.json"
         with open(path) as file:
             metadata = json.load(file)
         return metadata[self.name]

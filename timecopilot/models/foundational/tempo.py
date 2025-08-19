@@ -20,6 +20,7 @@ class TEMPOForecaster(GluonTSForecaster):
     def __init__(
         self,
         checkpoint_path: str | Path,
+        freq: str,
         batch_size: int = 256,
         num_samples: int = 100,
         alias: str = "TEMPO",
@@ -45,7 +46,8 @@ class TEMPOForecaster(GluonTSForecaster):
             alias=alias,
             num_samples=num_samples,
         )
-        self.checkpoint_path = Path(checkpoint_path)
+        self._checkpoint_path = Path(checkpoint_path)
+        self.freq = freq
         self.batch_size = batch_size
         self.verbose = verbose
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -54,7 +56,7 @@ class TEMPOForecaster(GluonTSForecaster):
     def lightning_module(self) -> LightningTEMPO:
         """Load the LightningTEMPO model from its checkpoint"""
         return LightningTEMPO.load_from_checkpoint(
-            checkpoint_path=self.checkpoint_path,
+            checkpoint_path=self._checkpoint_path,
             map_location=self.device,
         ).eval()
 
@@ -63,20 +65,18 @@ class TEMPOForecaster(GluonTSForecaster):
         """Get the model's configuration from the checkpoint's hparams"""
         return self.lightning_module.hparams.config
 
-    def get_input_transform(self, prediction_length: int) -> Chain:
-        """Create the input transform for the predictor"""
-        return get_input_transform(
-            context_length=self.config.context_length,
-            prediction_length=prediction_length,
-            use_time_features=self.config.use_time_features,
-        )
 
     @contextmanager
     def get_predictor(self, prediction_length: int) -> PyTorchPredictor:
         """
         Create a GluonTS predictor from your LightningTEMPO model.
         """
-        input_transform = self.get_input_transform(prediction_length)
+        input_transform = get_input_transform(
+            context_length=self.config.context_length,
+            prediction_length=prediction_length,
+            use_time_features=self.config.use_time_features,
+            freq=self.freq,
+        )
 
         predictor = self.lightning_module.get_predictor(
             input_transform=input_transform,

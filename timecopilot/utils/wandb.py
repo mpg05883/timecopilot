@@ -19,18 +19,18 @@ def get_slurm_config() -> dict[str, str]:
     }
 
 
-def get_tempo_eval_run_kwargs(cfg: DictConfig) -> dict[str, str | list[str]]:
+def get_tempo_eval_run_kwargs(cfg: DictConfig, dataset_name: str, term: Literal["short", "medium", "long"],) -> dict[str, str | list[str]]:
     """
     Returns a dictionary with initialization arguments for a TEMPO evaluation
     run.
     """
     return {
-        "name": f"{cfg.model.name}-eval-{cfg.dataset_name}-{cfg.term}",
+        "name": f"{cfg.model.name}-eval-{dataset_name.replace('/', '_')}-{term}",
         "tags": [
             f"model={cfg.model.name.split('_', 1)[0]}",
             cfg.model.type,
-            f"dataset={cfg.dataset_name}",
-            f"term={cfg.term}",
+            f"dataset={dataset_name}",
+            f"term={term}",
         ],
         "job_type": "eval",
         "group": "tempo_eval",
@@ -55,7 +55,7 @@ def get_checkpoint_artifact_kwargs(
             description, and metadata.
     """
     return {
-        "name": f"{model_name}-{dataset_name}-{term}-checkpoint",
+        "name": f"{model_name}-{dataset_name.replace('/', '_')}-{term}-checkpoint",
         "type": "checkpoint",
         "description": f"Checkpoint for {model_name} on {dataset_name} ({term}-term)",
         "metadata": {

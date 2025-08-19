@@ -17,7 +17,7 @@
 #SBATCH --mail-type=BEGIN,END,FAIL
 
 mkdir -p ./output/logs
-source ./cli/utils/utils.sh
+source ./scripts/utils/common.sh
 activate_tempo_env
 log_info "Starting $(get_slurm_message)"
 
@@ -31,11 +31,10 @@ mode=disabled
 export WANDB_NOTES="$notes"
 export WANDB_MODE="$mode"
 
-if python -m scripts.tempo_eval.py ../conf \
-    "data=train_test/data" \
+if python -m pipeline.tempo_eval -cp ../conf \
+    "data=dataset" \
     "imputation_method=${imputation_method}" \
-    "model=tempo/${model_type}" \
-    "task_id=${SLURM_ARRAY_TASK_ID:-0}"; then
+    "model=tempo/${model_type}"; then
     
     log_info "Successfully finished $(get_slurm_message)!"
     log_error "No errors!"

@@ -1,8 +1,9 @@
 defaults:
   - seed: seed_42
-  - data: train_test/dataset  
+  - data: dataset  # Load list of dataset cfgs and use SLURM_ARRAY_TASK_ID to index the list
   - imputation_method: dummy_value
   - model: tempo/leak_test_data
+  - results: default
   - _self_
 
 # Hydra
@@ -10,16 +11,11 @@ hydra:
   run:
     dir: ./output/hydra
 
-# Use SLURM_ARRAY_TASK_ID to index `data`
-task_id: ???
-
 # 32-bit floating point precision for torch 
 precision: medium
 
-# Load list of dataset cfgs and use SLURM_ARRAY_TASK_ID to index the list
+# Which split of GIFT-Eval the checkpoint was trained on 
 gift_split: train_test
-dataset_name: ${data[${task_id}].name}
-term: ${data[${task_id}].term}
 
 # Batch size for evaluation 
 batch_size: 256

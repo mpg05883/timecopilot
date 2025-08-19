@@ -1,5 +1,5 @@
-from utils.results import get_gift_eval_metrics, save_results
-from utils.wandb import (
+from .utils.results import get_gift_eval_metrics, save_results
+from .utils.wandb import (
     get_checkpoint_artifact_kwargs,
     get_results_artifact_kwargs,
     get_slurm_config,

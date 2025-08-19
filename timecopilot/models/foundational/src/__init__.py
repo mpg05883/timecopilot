@@ -1,6 +1,5 @@
-from .models import TEMPO, LightningTEMPO
+from .models.lightning_tempo import LightningTEMPO
 
 __all__ = [
     "LightningTEMPO",
-    "TEMPO",
 ]
