@@ -1,5 +1,5 @@
+import os
 import time
-import os 
 from pathlib import Path
 
 import hydra
@@ -36,14 +36,10 @@ def main(cfg: DictConfig) -> None:
     task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", "0"))
     cfg.data = cfg.data[task_id]
     dataset_name, term = cfg.data.name, cfg.data.term
-    
-    # TODO: Remove after debugging
-    dataset_name = "m4_hourly"
-    term = "short"
-    
+
     timestamp_info(f"Loading dataset: {dataset_name} ({term}-term)")
     dataset = Dataset(dataset_name, term)
-    
+
     config = OmegaConf.to_container(cfg, resolve=True) | get_slurm_config()
     run_kwargs = get_tempo_eval_run_kwargs(cfg, dataset_name, term)
     run = wandb.init(
@@ -66,7 +62,7 @@ def main(cfg: DictConfig) -> None:
 
     timestamp_info(f"Looking for checkpoints in {checkpoint_dirpath}")
     checkpoint_path = find_best_checkpoint(checkpoint_dirpath)
-    
+
     timestamp_info(f"Loading checkpoint from: {checkpoint_path}")
     wandb.summary["checkpoint_path"] = checkpoint_path
     forecaster = TEMPOForecaster(checkpoint_path, dataset.freq, cfg.batch_size)
@@ -95,7 +91,6 @@ def main(cfg: DictConfig) -> None:
         imputation_method=instantiate(cfg.imputation_method),
         batch_size=cfg.batch_size,
     )
-    
 
     timestamp_info("Generating test set forecasts...")
     start_time = time.time()
@@ -152,7 +147,7 @@ def main(cfg: DictConfig) -> None:
         num_variates=dataset.target_dim,
     )
     timestamp_info(f"Results saved to {results_path}")
-    
+
     results_artifact_kwargs = get_results_artifact_kwargs(
         model_name=cfg.model.name,
         dataset_name=dataset_name,
@@ -162,7 +157,6 @@ def main(cfg: DictConfig) -> None:
     table = wandb.Table(dataframe=results_df)
     wandb.log({results_artifact_kwargs["type"]: table})
 
-    
     table_artifact = wandb.Artifact(**results_artifact_kwargs)
     table_artifact.add(table, results_artifact_kwargs["type"])
     run.log_artifact(table_artifact)
