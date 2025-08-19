@@ -9,7 +9,10 @@ from gluonts.dataset.util import forecast_start
 from gluonts.model import Forecast
 from gluonts.model.forecast import QuantileForecast
 from gluonts.model.predictor import RepresentablePredictor
-from gluonts.transform.feature import LastValueImputation, MissingValueImputation
+from gluonts.transform.feature import (
+    LastValueImputation,
+    MissingValueImputation,
+)
 
 from ..models.utils.forecaster import Forecaster
 from .utils import QUANTILE_LEVELS
