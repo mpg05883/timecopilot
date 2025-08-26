@@ -1,10 +1,12 @@
 import re
 from pathlib import Path
 
+import nbformat
 import pytest
 from mktestdocs import check_md_file
+from nbclient import NotebookClient
 
-md_paths = [p for p in Path("docs").glob("**/*.md") if "changelogs" not in p.parts]
+md_paths = [p for p in Path("docs").rglob("*.md") if "changelogs" not in p.parts]
 
 
 @pytest.mark.docs
@@ -41,3 +43,15 @@ def test_latest_changelog():
 )
 def test_py_examples(fpath):
     check_md_file(fpath=fpath, memory=True)
+
+
+@pytest.mark.docs
+@pytest.mark.parametrize(
+    "fpath",
+    Path("docs").rglob("*.ipynb"),
+    ids=str,
+)
+def test_notebooks(fpath):
+    nb = nbformat.read(fpath, as_version=4)
+    client = NotebookClient(nb, timeout=600, kernel_name="python3")
+    client.execute()
