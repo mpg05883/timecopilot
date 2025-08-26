@@ -97,8 +97,9 @@ allow-direct-references = true
 disable_error_code = ["no-redef"] # for fasthtml
 
 [tool.pytest.ini_options]
-addopts = "-m 'not live and not gift_eval' -n auto"
+addopts = "-m 'not docs and not live and not gift_eval' -n auto"
 markers = [
+  "docs: marks tests related to documentation",
   "gift_eval: marks tests related to gift eval results replication",
   "live: marks tests that require calls to llm providers",
 ]
