@@ -76,6 +76,24 @@ jobs:
       - name: Run tests
         run: uv run pytest -m gift_eval -x -n 0
 
+  test-docs:
+    name: test docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+        
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Run tests
+        run: uv run pytest -m docs -x
+        env: 
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} 
+
   build-docs:
     name: build docs
     runs-on: ubuntu-latest
