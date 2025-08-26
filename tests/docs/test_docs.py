@@ -4,11 +4,11 @@ from pathlib import Path
 import pytest
 from mktestdocs import check_md_file
 
-paths = [p for p in Path("docs").glob("**/*.md") if "changelogs" not in p.parts]
+md_paths = [p for p in Path("docs").glob("**/*.md") if "changelogs" not in p.parts]
 
 
 @pytest.mark.docs
-@pytest.mark.parametrize("fpath", paths, ids=str)
+@pytest.mark.parametrize("fpath", md_paths, ids=str)
 def test_docs(fpath):
     check_md_file(fpath=fpath, memory=True)
 
@@ -31,3 +31,13 @@ def test_latest_changelog():
     changelogs = sorted(changelog_dir.glob("v*.md"), key=version_key)
     latest_changelog = changelogs[-1] if changelogs else None
     check_md_file(latest_changelog, memory=True)
+
+
+@pytest.mark.docs
+@pytest.mark.parametrize(
+    "fpath",
+    Path("timecopilot").glob("**/*.py"),
+    ids=str,
+)
+def test_py_examples(fpath):
+    check_md_file(fpath=fpath, memory=True)
