@@ -493,7 +493,7 @@ class TimeCopilot:
                         f"{', '.join(TSFEATURES.keys())}"
                     )
                 callable_features.append(TSFEATURES[feature])
-            features_df: pd.DataFrame | None = None
+            features_dfs = []
             for uid in ctx.deps.df["unique_id"].unique():
                 features_df_uid = _get_feats(
                     index=uid,
@@ -501,10 +501,8 @@ class TimeCopilot:
                     features=callable_features,
                     freq=ctx.deps.seasonality,
                 )
-                if features_df is None:
-                    features_df = features_df_uid
-                else:
-                    features_df = pd.concat([features_df, features_df_uid])
+                features_dfs.append(features_df_uid)
+            features_df = pd.concat(features_dfs) if features_dfs else pd.DataFrame()
             features_df = features_df.rename_axis("unique_id")  # type: ignore
             self.features_df = features_df
             return _transform_features_to_text(features_df)
