@@ -24,17 +24,20 @@ jobs:
             echo "TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
           fi
 
+
       - name: Read changelog
         id: changelog
         env:
           TAG: ${{ env.TAG }}
         run: |
           FILE="docs/changelogs/${TAG}.md"
-          echo "Using FILE=$FILE"
           if [[ -f "$FILE" ]]; then
             echo "found=true" >> "$GITHUB_OUTPUT"
-            CONTENT="$(python -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read()))' < "$FILE")"
-            echo "body=$CONTENT" >> "$GITHUB_OUTPUT"
+            {
+              echo "body<<EOF"
+              cat "$FILE"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
           else
             echo "found=false" >> "$GITHUB_OUTPUT"
             echo "body=" >> "$GITHUB_OUTPUT"
@@ -49,5 +52,4 @@ jobs:
           title: "🚀 New release ${{ env.TAG }}"
           description: "Changelog also available at https://timecopilot.dev/changelogs/${{ env.TAG }}/"
           details: ${{ steps.changelog.outputs.body }}
-          processingOptions: percentDecode
           footer: "pushed via GitHub Actions"
