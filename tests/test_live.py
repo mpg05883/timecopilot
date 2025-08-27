@@ -18,6 +18,7 @@ logfire.instrument_pydantic_ai()
 
 
 @pytest.mark.live
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_forecast_custom_forecasters():
     h = 2
     df = generate_series(
@@ -44,6 +45,7 @@ def test_forecast_custom_forecasters():
 
 @pytest.mark.live
 @pytest.mark.parametrize("n_series", [1, 2])
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_forecast_returns_expected_output(n_series):
     h = 2
     df = generate_series(
@@ -69,6 +71,7 @@ def test_forecast_returns_expected_output(n_series):
 
 
 @pytest.mark.live
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_is_queryable():
     h = 2
     df = generate_series(
@@ -94,6 +97,7 @@ def test_is_queryable():
 @pytest.mark.live
 @pytest.mark.asyncio
 @pytest.mark.parametrize("n_series", [1, 2])
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 async def test_async_forecast_returns_expected_output(n_series):
     h = 2
     df = generate_series(
@@ -120,6 +124,7 @@ async def test_async_forecast_returns_expected_output(n_series):
 
 @pytest.mark.live
 @pytest.mark.asyncio
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 async def test_async_is_queryable():
     h = 2
     df = generate_series(
@@ -144,6 +149,7 @@ async def test_async_is_queryable():
 
 @pytest.mark.live
 @pytest.mark.asyncio
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 async def test_async_query_stream():
     h = 2
     df = generate_series(
@@ -164,4 +170,3 @@ async def test_async_query_stream():
         # This will yield a StreamedRunResult, which can be streamed for text
         async for text in result.stream(debounce_by=0.01):
             print(text, end="", flush=True)
-    print()
