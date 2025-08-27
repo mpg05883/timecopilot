@@ -55,9 +55,9 @@ jobs:
           if [[ -f "$FILE" ]]; then
             echo "found=true" >> "$GITHUB_OUTPUT"
             CONTENT="$(python - <<'PY'
-import sys, urllib.parse
-print(urllib.parse.quote(sys.stdin.read()))
-PY
+              import sys, urllib.parse
+              print(urllib.parse.quote(sys.stdin.read()))
+              PY
             < "$FILE")"
             echo "body=${CONTENT}" >> "$GITHUB_OUTPUT"
           else
