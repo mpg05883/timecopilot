@@ -23,21 +23,18 @@ jobs:
           else
             echo "TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
           fi
-          echo "CHANGELOG_FILE=docs/changelogs/${TAG}.md" >> "$GITHUB_ENV"
 
       - name: Read changelog
         id: changelog
         env:
-          FILE: ${{ env.CHANGELOG_FILE }}
+          TAG: ${{ env.TAG }}
         run: |
+          FILE="docs/changelogs/${TAG}.md"
+          echo "Using FILE=$FILE"
           if [[ -f "$FILE" ]]; then
             echo "found=true" >> "$GITHUB_OUTPUT"
-            CONTENT="$(python - <<'PY'
-              import sys, urllib.parse
-              print(urllib.parse.quote(sys.stdin.read()))
-              PY
-            < "$FILE")"
-            echo "body=${CONTENT}" >> "$GITHUB_OUTPUT"
+            CONTENT="$(python -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read()))' < "$FILE")"
+            echo "body=$CONTENT" >> "$GITHUB_OUTPUT"
           else
             echo "found=false" >> "$GITHUB_OUTPUT"
             echo "body=" >> "$GITHUB_OUTPUT"
