@@ -24,24 +24,11 @@ jobs:
             echo "TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
           fi
 
-
       - name: Read changelog
         id: changelog
-        env:
-          TAG: ${{ env.TAG }}
-        run: |
-          FILE="docs/changelogs/${TAG}.md"
-          if [[ -f "$FILE" ]]; then
-            echo "found=true" >> "$GITHUB_OUTPUT"
-            {
-              echo "body<<EOF"
-              cat "$FILE"
-              echo "EOF"
-            } >> "$GITHUB_OUTPUT"
-          else
-            echo "found=false" >> "$GITHUB_OUTPUT"
-            echo "body=" >> "$GITHUB_OUTPUT"
-          fi
+        uses: andstor/file-reader-action@v1.1.0
+        with:
+          path: 'docs/changelogs/${{ env.TAG }}.md'
 
       - name: Notify Discord
         uses: rjstone/discord-webhook-notify@v2
@@ -51,5 +38,5 @@ jobs:
           severity: info
           title: "🚀 New release ${{ env.TAG }}"
           description: "Changelog also available at https://timecopilot.dev/changelogs/${{ env.TAG }}/"
-          details: ${{ steps.changelog.outputs.body }}
+          details: ${{ steps.changelog.outputs.contents }}
           footer: "pushed via GitHub Actions"
