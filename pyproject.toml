@@ -101,6 +101,7 @@ disable_error_code = ["no-redef"] # for fasthtml
 addopts = "-m 'not docs and not live and not gift_eval' -n auto"
 markers = [
   "docs: marks tests related to documentation",
+  "flaky: rerun failures (provided by pytest-rerunfailures)",
   "gift_eval: marks tests related to gift eval results replication",
   "live: marks tests that require calls to llm providers",
 ]

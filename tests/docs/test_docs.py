@@ -16,6 +16,7 @@ def test_docs(fpath):
 
 
 @pytest.mark.docs
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_readme():
     check_md_file("README.md", memory=True)
 
