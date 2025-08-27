@@ -4,7 +4,21 @@
     options:
         members:
             - Chronos
-            - TimeGPT
+
+::: timecopilot.models.foundational.moirai
+    options:
+        members:
+            - Moirai
+
+::: timecopilot.models.foundational.sundial
+    options:
+        members:
+            - Sundial
+
+::: timecopilot.models.foundational.tabpfn
+    options:
+        members:
+            - TabPFN
 
 ::: timecopilot.models.foundational.timegpt
     options:
@@ -16,22 +30,12 @@
         members:
             - TimesFM
 
-::: timecopilot.models.foundational.toto
-    options:
-        members:
-            - Toto
-
 ::: timecopilot.models.foundational.tirex
     options:
         members:
             - TiRex
 
-::: timecopilot.models.foundational.lagllama
+::: timecopilot.models.foundational.toto
     options:
         members:
-            - LagLlama
-
-::: timecopilot.models.foundational.moirai
-    options:
-        members:
-            - Moirai
+            - Toto

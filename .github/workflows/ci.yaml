@@ -32,6 +32,8 @@ jobs:
 
       - name: Run tests 
         run: uv run pytest
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
 
       - name: Test import class
         run: uv run -- python -c "from timecopilot import TimeCopilot, TimeCopilotForecaster" 
@@ -56,6 +58,42 @@ jobs:
         env: 
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} 
 
+  test-gift-eval:
+    name: test gift eval
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Run tests
+        run: uv run pytest -m gift_eval -x -n 0
+
+  test-docs:
+    name: test docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+        
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Run tests
+        run: uv run pytest -m docs -x -n 0
+        env: 
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} 
+
   build-docs:
     name: build docs
     runs-on: ubuntu-latest
@@ -68,3 +106,16 @@ jobs:
 
       - name: Build docs
         run: uv run --group docs mkdocs build
+
+  lint:
+    name: lint and style checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Run pre-commit
+        run: uvx pre-commit run --all-files

@@ -1,5 +1,6 @@
 import os
 import sys
+from contextlib import contextmanager
 
 if sys.version_info < (3, 11):
     raise ImportError("TiRex requires Python >= 3.11")
@@ -8,6 +9,7 @@ import numpy as np
 import pandas as pd
 import torch
 from tirex import load_model
+from tirex.base import PretrainedModel
 from tqdm import tqdm
 
 from ..utils.forecaster import Forecaster, QuantileConverter
@@ -39,6 +41,17 @@ class TiRex(Forecaster):
                 and logs. Defaults to "TiRex".
 
         Notes:
+            **Academic Reference:**
+
+            - Paper: [TiRex: Zero-shot Time Series Forecasting with xLSTM](https://arxiv.org/abs/2505.23719)
+
+            **Resources:**
+
+            - GitHub: [NX-AI/tirex](https://github.com/NX-AI/tirex)
+            - HuggingFace: [NX-AI Models](https://huggingface.co/NX-AI)
+
+            **Technical Details:**
+
             - The model is loaded onto the best available device (GPU if available,
               otherwise CPU).
             - On CPU, CUDA kernels are disabled automatically. See the
@@ -46,20 +59,28 @@ class TiRex(Forecaster):
               for details.
             - For best performance, a CUDA-capable GPU with compute capability >= 8.0
               is recommended.
-            - For more information, see the
-              [TiRex documentation](https://github.com/NX-AI/tirex).
+            - The model is only available for Python >= 3.11.
         """
         self.repo_id = repo_id
         self.batch_size = batch_size
         self.alias = alias
+
+    @contextmanager
+    def _get_model(self) -> PretrainedModel:
         device = "cuda" if torch.cuda.is_available() else "cpu"
         if device == "cpu":
             # see https://github.com/NX-AI/tirex/tree/main?tab=readme-ov-file#cuda-kernels
             os.environ["TIREX_NO_CUDA"] = "1"
-        self.model = load_model(repo_id, device=device)
+        model = load_model(self.repo_id, device=device)
+        try:
+            yield model
+        finally:
+            del model
+            torch.cuda.empty_cache()
 
     def _forecast(
         self,
+        model: PretrainedModel,
         dataset: TimeSeriesDataset,
         h: int,
         quantiles: list[float] | None,
@@ -67,7 +88,7 @@ class TiRex(Forecaster):
         """handles distinction between quantiles and no quantiles"""
         if quantiles is not None:
             fcsts = [
-                self.model.forecast(
+                model.forecast(
                     batch,
                     prediction_length=h,
                     quantile_levels=quantiles,
@@ -80,7 +101,7 @@ class TiRex(Forecaster):
             fcsts_mean_np = np.concatenate(fcsts_mean)
         else:
             fcsts = [
-                self.model.forecast(
+                model.forecast(
                     batch,
                     prediction_length=h,
                     output_type="numpy",
@@ -150,11 +171,13 @@ class TiRex(Forecaster):
         qc = QuantileConverter(level=level, quantiles=quantiles)
         dataset = TimeSeriesDataset.from_df(df, batch_size=self.batch_size)
         fcst_df = dataset.make_future_dataframe(h=h, freq=freq)
-        fcsts_mean_np, fcsts_quantiles_np = self._forecast(
-            dataset,
-            h,
-            quantiles=qc.quantiles,
-        )
+        with self._get_model() as model:
+            fcsts_mean_np, fcsts_quantiles_np = self._forecast(
+                model,
+                dataset,
+                h,
+                quantiles=qc.quantiles,
+            )
         fcst_df[self.alias] = fcsts_mean_np.reshape(-1, 1)
         if qc.quantiles is not None and fcsts_quantiles_np is not None:
             for i, q in enumerate(qc.quantiles):

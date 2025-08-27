@@ -1,4 +1,7 @@
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+import plotly.graph_objects
 import utilsforecast.processing as ufp
 from gluonts.time_feature.seasonality import (
     DEFAULT_SEASONALITIES,
@@ -7,6 +10,7 @@ from gluonts.time_feature.seasonality import (
     get_seasonality as _get_seasonality,
 )
 from tqdm import tqdm
+from utilsforecast.plotting import plot_series
 from utilsforecast.processing import (
     backtest_splits,
     drop_index_if_pandas,
@@ -15,10 +19,42 @@ from utilsforecast.processing import (
     take_rows,
     vertical_concat,
 )
+from utilsforecast.validation import ensure_time_dtype
 
 
-def get_seasonality(freq: str) -> int:
-    return _get_seasonality(freq, seasonalities=DEFAULT_SEASONALITIES | {"D": 7})
+def get_seasonality(
+    freq: str,
+    custom_seasonalities: dict[str, int] | None = None,
+) -> int:
+    # fmt: off
+    """
+    Get the seasonality of a frequency.
+
+    Args:
+        freq (str): The frequency to get the seasonality of.
+        custom_seasonalities (dict[str, int] | None): Custom seasonalities to use.
+            If None, the default seasonalities are used.
+
+    Returns:
+        int: The seasonality of the frequency.
+
+    Example:
+        ```python
+        from timecopilot.models.utils.forecaster import get_seasonality
+
+        get_seasonality("D", custom_seasonalities={"D": 7})
+        # 7
+        get_seasonality("D") # default seasonalities are used
+        # 1
+        ```
+    """
+    # fmt: on
+    if custom_seasonalities is None:
+        custom_seasonalities = dict()
+    return _get_seasonality(
+        freq,
+        seasonalities=DEFAULT_SEASONALITIES | custom_seasonalities,
+    )
 
 
 def maybe_infer_freq(df: pd.DataFrame, freq: str | None) -> str:
@@ -247,6 +283,78 @@ class Forecaster:
         fcst_cv_df = out[first_out_cols + remaining_cols]
         return fcst_cv_df
 
+    @staticmethod
+    def plot(
+        df: pd.DataFrame | None = None,
+        forecasts_df: pd.DataFrame | None = None,
+        ids: list[str] | None = None,
+        plot_random: bool = True,
+        max_ids: int | None = 8,
+        models: list[str] | None = None,
+        level: list[float] | None = None,
+        max_insample_length: int | None = None,
+        plot_anomalies: bool = False,
+        engine: str = "matplotlib",
+        palette: str | None = None,
+        seed: int | None = None,
+        resampler_kwargs: dict | None = None,
+        ax: plt.Axes | np.ndarray | plotly.graph_objects.Figure | None = None,
+    ):
+        """Plot forecasts and insample values.
+
+        Args:
+            df (pd.DataFrame, optional): DataFrame with columns
+                [`unique_id`, `ds`, `y`]. Defaults to None.
+            forecasts_df (pd.DataFrame, optional): DataFrame with
+                columns [`unique_id`, `ds`] and models. Defaults to None.
+            ids (list[str], optional): Time Series to plot. If None, time series
+                are selected randomly. Defaults to None.
+            plot_random (bool, optional): Select time series to plot randomly.
+                Defaults to True.
+            max_ids (int, optional): Maximum number of ids to plot. Defaults to 8.
+            models (list[str], optional): Models to plot. Defaults to None.
+            level (list[float], optional): Prediction intervals to plot.
+                Defaults to None.
+            max_insample_length (int, optional): Maximum number of train/insample
+                observations to be plotted. Defaults to None.
+            plot_anomalies (bool, optional): Plot anomalies for each prediction
+                interval. Defaults to False.
+            engine (str, optional): Library used to plot. 'plotly', 'plotly-resampler'
+                or 'matplotlib'. Defaults to 'matplotlib'.
+            palette (str, optional): Name of the matplotlib colormap to use for the
+                plots. If None, uses the current style. Defaults to None.
+            seed (int, optional): Seed used for the random number generator. Only
+                used if plot_random is True. Defaults to 0.
+            resampler_kwargs (dict, optional): Keyword arguments to be passed to
+                plotly-resampler constructor. For further custumization ("show_dash")
+                call the method, store the plotting object and add the extra arguments
+                to its `show_dash` method. Defaults to None.
+            ax (matplotlib axes, array of matplotlib axes or plotly Figure, optional):
+                Object where plots will be added. Defaults to None.
+        """
+        df = ensure_time_dtype(df, time_col="ds")
+        if forecasts_df is not None:
+            forecasts_df = ensure_time_dtype(forecasts_df, time_col="ds")
+        return plot_series(
+            df=df,
+            forecasts_df=forecasts_df,
+            ids=ids,
+            plot_random=plot_random,
+            max_ids=max_ids,
+            models=models,
+            level=level,
+            max_insample_length=max_insample_length,
+            plot_anomalies=plot_anomalies,
+            engine=engine,
+            resampler_kwargs=resampler_kwargs,
+            palette=palette,
+            seed=seed,
+            id_col="unique_id",
+            time_col="ds",
+            target_col="y",
+            ax=ax,
+        )
+
 
 class QuantileConverter:
     """Handles inputs and outputs for probabilistic forecasts."""
@@ -356,8 +464,6 @@ class QuantileConverter:
                     if model not in out_cols:
                         out_cols.append(model)
             for lv in self.level:
-                if lv == 0:
-                    continue
                 q_lo, q_hi = self._level_to_quantiles(lv)
                 lo_src = f"{model}-q-{int(q_lo * 100)}"
                 hi_src = f"{model}-q-{int(q_hi * 100)}"

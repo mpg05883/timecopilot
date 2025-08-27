@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 import numpy as np
 import pandas as pd
 import torch
@@ -39,28 +41,45 @@ class Chronos(Forecaster):
                 DataFrames and logs. Defaults to "Chronos".
 
         Notes:
+            **Academic Reference:**
+
+            - Paper: [Chronos: Learning the Language of Time Series](https://arxiv.org/abs/2403.07815)
+
+            **Resources:**
+
+            - GitHub: [amazon-science/chronos-forecasting](https://github.com/amazon-science/chronos-forecasting)
+            - HuggingFace: [amazon/chronos-models](https://huggingface.co/collections/amazon/chronos-models-65f1791d630a8d57cb718444)
+
+            **Technical Details:**
+
             - The model is loaded onto the best available device (GPU if
               available, otherwise CPU).
             - For best performance with large models (e.g., "chronos-t5-large"),
               a CUDA-compatible GPU is recommended.
             - The model weights are loaded with torch_dtype=torch.bfloat16 for
               efficiency on supported hardware.
-            - For more information, see the
-              [Chronos documentation](
-              https://github.com/amazon-science/chronos-forecasting)
 
         """
         self.repo_id = repo_id
         self.batch_size = batch_size
         self.alias = alias
-        self.model = BaseChronosPipeline.from_pretrained(
-            repo_id,
+
+    @contextmanager
+    def _get_model(self) -> BaseChronosPipeline:
+        model = BaseChronosPipeline.from_pretrained(
+            self.repo_id,
             device_map="auto",
             torch_dtype=torch.bfloat16,
         )
+        try:
+            yield model
+        finally:
+            del model
+            torch.cuda.empty_cache()
 
     def _predict(
         self,
+        model: BaseChronosPipeline,
         dataset: TimeSeriesDataset,
         h: int,
         quantiles: list[float] | None,
@@ -68,7 +87,7 @@ class Chronos(Forecaster):
         """handles distinction between predict and predict_quantiles"""
         if quantiles is not None:
             fcsts = [
-                self.model.predict_quantiles(
+                model.predict_quantiles(
                     batch,
                     prediction_length=h,
                     quantile_levels=quantiles,
@@ -80,7 +99,7 @@ class Chronos(Forecaster):
             fcsts_quantiles_np = torch.cat(fcsts_quantiles).numpy()
         else:
             fcsts = [
-                self.model.predict(
+                model.predict(
                     batch,
                     prediction_length=h,
                 )
@@ -105,7 +124,7 @@ class Chronos(Forecaster):
                 # for these models, the median is prefered as mean forecasts
                 # as it can be seen in
                 # https://github.com/amazon-science/chronos-forecasting/blob/6a9c8dadac04eb85befc935043e3e2cce914267f/src/chronos/chronos_bolt.py#L615-L616
-                fcsts_mean = fcsts[:, self.model.quantiles.index(0.5), :]  # type: ignore
+                fcsts_mean = fcsts[:, model.quantiles.index(0.5), :]  # type: ignore
             fcsts_mean_np = fcsts_mean.numpy()  # type: ignore
             fcsts_quantiles_np = None
         return fcsts_mean_np, fcsts_quantiles_np
@@ -168,11 +187,13 @@ class Chronos(Forecaster):
         qc = QuantileConverter(level=level, quantiles=quantiles)
         dataset = TimeSeriesDataset.from_df(df, batch_size=self.batch_size)
         fcst_df = dataset.make_future_dataframe(h=h, freq=freq)
-        fcsts_mean_np, fcsts_quantiles_np = self._predict(
-            dataset,
-            h,
-            quantiles=qc.quantiles,
-        )
+        with self._get_model() as model:
+            fcsts_mean_np, fcsts_quantiles_np = self._predict(
+                model,
+                dataset,
+                h,
+                quantiles=qc.quantiles,
+            )
         fcst_df[self.alias] = fcsts_mean_np.reshape(-1, 1)
         if qc.quantiles is not None and fcsts_quantiles_np is not None:
             for i, q in enumerate(qc.quantiles):

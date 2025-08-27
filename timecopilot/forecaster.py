@@ -17,7 +17,11 @@ class TimeCopilotForecaster(Forecaster):
     once, passing a list of models, and receive merged results for all models.
     """
 
-    def __init__(self, models: list[Forecaster]):
+    def __init__(
+        self,
+        models: list[Forecaster],
+        fallback_model: Forecaster | None = None,
+    ):
         """
         Initialize the TimeCopilotForecaster with a list of models.
 
@@ -27,8 +31,36 @@ class TimeCopilotForecaster(Forecaster):
                 (foundational, statistical, ML, neural, etc.). Each model must
                 implement the `forecast` and `cross_validation` methods with
                 compatible signatures.
+            fallback_model (Forecaster, optional):
+                Model to use as a fallback when a model fails.
+
+        Raises:
+            ValueError: If duplicate model aliases are found in the models list.
         """
+        self._validate_unique_aliases(models)
         self.models = models
+        self.fallback_model = fallback_model
+
+    def _validate_unique_aliases(self, models: list[Forecaster]) -> None:
+        """
+        Validate that all models have unique aliases.
+
+        Args:
+            models (list[Forecaster]): List of model instances to validate.
+
+        Raises:
+            ValueError: If duplicate aliases are found.
+        """
+        aliases = [model.alias for model in models]
+        duplicates = set([alias for alias in aliases if aliases.count(alias) > 1])
+
+        if duplicates:
+            raise ValueError(
+                f"Duplicate model aliases found: {sorted(duplicates)}. "
+                f"Each model must have a unique alias to avoid column name conflicts. "
+                f"Please provide different aliases when instantiating models of the "
+                f"same class."
+            )
 
     def _call_models(
         self,
@@ -45,14 +77,32 @@ class TimeCopilotForecaster(Forecaster):
         freq = self._maybe_infer_freq(df, freq)
         res_df: pd.DataFrame | None = None
         for model in self.models:
-            res_df_model = getattr(model, attr)(
-                df=df,
-                h=h,
-                freq=freq,
-                level=level,
-                quantiles=quantiles,
-                **kwargs,
-            )
+            known_kwargs = {
+                "df": df,
+                "h": h,
+                "freq": freq,
+                "level": level,
+                "quantiles": quantiles,
+            }
+            fn = getattr(model, attr)
+            try:
+                res_df_model = fn(**known_kwargs, **kwargs)
+            except (ValueError, RuntimeError) as e:
+                if self.fallback_model is None:
+                    raise e
+                fn = getattr(self.fallback_model, attr)
+                try:
+                    res_df_model = fn(**known_kwargs, **kwargs)
+                    res_df_model = res_df_model.rename(
+                        columns={
+                            col: col.replace(self.fallback_model.alias, model.alias)
+                            if col.startswith(self.fallback_model.alias)
+                            else col
+                            for col in res_df_model.columns
+                        }
+                    )
+                except (ValueError, RuntimeError) as e:
+                    raise e
             if res_df is None:
                 res_df = res_df_model
             else:

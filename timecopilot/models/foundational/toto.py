@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 import numpy as np
 import pandas as pd
 import torch
@@ -22,8 +24,8 @@ class Toto(Forecaster):
         repo_id: str = "Datadog/Toto-Open-Base-1.0",
         context_length: int = 4096,
         batch_size: int = 16,
-        num_samples: int = 256,
-        samples_per_batch: int = 256,
+        num_samples: int = 128,
+        samples_per_batch: int = 8,
         alias: str = "Toto",
     ):
         """
@@ -40,32 +42,46 @@ class Toto(Forecaster):
                 Adjust based on available memory and model size.
             num_samples (int, optional): Number of samples for probabilistic
                 forecasting. Controls the number of forecast samples drawn for
-                uncertainty estimation. Defaults to 256.
+                uncertainty estimation. Defaults to 128.
             samples_per_batch (int, optional): Number of samples processed per batch
-                during inference. Controls memory usage. Defaults to 256.
+                during inference. Controls memory usage. Defaults to 8.
             alias (str, optional): Name to use for the model in output DataFrames and
                 logs. Defaults to "Toto".
 
         Notes:
+            **Academic Reference:**
+
+            - Paper: [Building a Foundation Model for Time Series](https://arxiv.org/abs/2505.14766)
+
+            **Resources:**
+
+            - GitHub: [DataDog/toto](https://github.com/DataDog/toto)
+            - HuggingFace: [Datadog Models](https://huggingface.co/Datadog)
+
+            **Technical Details:**
+
             - The model is loaded onto the best available device (GPU if available,
               otherwise CPU).
             - For best performance, a CUDA-capable GPU is recommended.
-            - For more information, see the
-              [Toto documentation](https://github.com/DataDog/toto).
         """
         self.repo_id = repo_id
         self.context_length = context_length
         self.batch_size = batch_size
-        self.num_samples = (
-            num_samples  # Number of samples for probabilistic forecasting
-        )
-        self.samples_per_batch = (
-            samples_per_batch  # Control memory usage during inference
-        )
+        # Number of samples for probabilistic forecasting
+        self.num_samples = num_samples
+        # Control memory usage during inference
+        self.samples_per_batch = samples_per_batch
         self.alias = alias
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    @contextmanager
+    def _get_model(self) -> TotoForecaster:
         model = TotoModel.from_pretrained(self.repo_id).to(self.device)
-        self.model = TotoForecaster(model.model)
+        try:
+            yield TotoForecaster(model.model)
+        finally:
+            del model
+            torch.cuda.empty_cache()
 
     def _to_masked_timeseries(self, batch: list[torch.Tensor]) -> MaskedTimeseries:
         batch_size = len(batch)
@@ -106,13 +122,14 @@ class Toto(Forecaster):
 
     def _forecast(
         self,
+        model: TotoForecaster,
         dataset: TimeSeriesDataset,
         h: int,
         quantiles: list[float] | None,
     ) -> tuple[np.ndarray, np.ndarray | None]:
         """handles distinction between quantiles and no quantiles"""
         fcsts = [
-            self.model.forecast(
+            model.forecast(
                 self._to_masked_timeseries(batch),
                 prediction_length=h,
                 num_samples=self.num_samples,
@@ -121,8 +138,9 @@ class Toto(Forecaster):
             )
             for batch in tqdm(dataset)
         ]  # list of fcsts objects
+
         fcsts_mean = [fcst.mean.cpu().numpy() for fcst in fcsts]
-        fcsts_mean_np = np.concatenate(fcsts_mean)
+        fcsts_mean_np = np.concatenate(fcsts_mean, axis=1)
         if fcsts_mean_np.shape[0] != 1:
             raise ValueError(
                 f"fcsts_mean_np.shape[0] != 1: {fcsts_mean_np.shape[0]} != 1, "
@@ -138,7 +156,7 @@ class Toto(Forecaster):
             fcsts_quantiles = [
                 fcst.quantile(quantiles_torch).cpu().numpy() for fcst in fcsts
             ]
-            fcsts_quantiles_np = np.concatenate(fcsts_quantiles)
+            fcsts_quantiles_np = np.concatenate(fcsts_quantiles, axis=2)
             if fcsts_quantiles_np.shape[1] != 1:
                 raise ValueError(
                     "fcsts_quantiles_np.shape[1] != 1: "
@@ -208,11 +226,13 @@ class Toto(Forecaster):
         qc = QuantileConverter(level=level, quantiles=quantiles)
         dataset = TimeSeriesDataset.from_df(df, batch_size=self.batch_size)
         fcst_df = dataset.make_future_dataframe(h=h, freq=freq)
-        fcsts_mean_np, fcsts_quantiles_np = self._forecast(
-            dataset,
-            h,
-            quantiles=qc.quantiles,
-        )
+        with self._get_model() as model:
+            fcsts_mean_np, fcsts_quantiles_np = self._forecast(
+                model,
+                dataset,
+                h,
+                quantiles=qc.quantiles,
+            )
         fcst_df[self.alias] = fcsts_mean_np.reshape(-1, 1)
         if qc.quantiles is not None and fcsts_quantiles_np is not None:
             for i, q in enumerate(qc.quantiles):

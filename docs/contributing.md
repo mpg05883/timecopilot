@@ -1,39 +1,52 @@
 Your contributions are highly appreciated!
 
+## Prerequisites 
+Before proceeding, ensure the following tools and credentials are set up:
+
+- Install [uv](https://docs.astral.sh/uv/getting-started/installation/).
+- Install [pre-commit](https://pre-commit.com/#install).
+
+!!! tip "Tip"
+    Once `uv` is installed, you can easily install `pre-commit` by running:
+        ```
+        uv tool install pre-commit
+        ```
+
+- Set up `pre-commit` hook:
+    ```
+    pre-commit install --install-hooks
+    ```
+- Generate an OpenAI API Key:
+    1. Create an [openai](https://auth.openai.com/log-in) account.
+    2. Visit the [API key](https://platform.openai.com/api-keys) page.
+    3. Generate a new secret key.  
+    You'll need this key in the setup section below. 
+
 ## Installation and Setup
+To run timecopilot in your local environment:
 
-Clone your fork and cd into the repo directory
-
-```bash
-git clone git@github.com:<your username>/TimeCopilot.git
-cd TimeCopilot
-```
-
-Install `uv`, and `pre-commit`:
-
-* [`uv` install docs](https://docs.astral.sh/uv/getting-started/installation/)
-* [`pre-commit` install docs](https://pre-commit.com/#install)
-
-!!! tip
-    Once `uv` is installed, to install `pre-commit` you can run the following command:
-
-    ```bash
-    uv tool install pre-commit
+1. Fork and clone the repository:
+    ```
+    git clone git@github.com:<your username>/timecopilot.git
+    ```
+2. Navigate into the project folder:
+    ```
+    cd timecopilot
+    ```
+3. Install the required dependencies for local development:
+    ```
+    uv sync --frozen --all-extras --all-packages --group docs
+    ```
+4. Export your OpenAI API key as an environment variable:
+    ```
+    export OPENAI_API_KEY="<your-new-secret-key>"
+    ```
+5. Test timecopilot with a sample forecast:
+    ```
+    uvx timecopilot forecast https://otexts.com/fpppy/data/AirPassengers.csv
     ```
 
-Install the required libraries for local development
-
-```bash
-uv sync --frozen --all-extras --all-packages --group docs
-```
-
-Install `pre-commit` hooks
-
-```bash
-pre-commit install --install-hooks
-```
-
-You're ready to start contributing! 
+✅ You're ready to start contributing! 
 
 ## Running Tests
 
@@ -45,11 +58,12 @@ uv run pytest
 
 ## Documentation Changes
 
-To run the documentation page locally, run:
+To run the documentation page in your local environment, run:
 
 ```bash
 uv run mkdocs serve
 ```
+
 
 ### Documentation Notes
 
@@ -65,17 +79,28 @@ The datasets utilized in our documentation are hosted on AWS at `https://timecop
 
 TimeCopilot uses some forked Python packages, maintained under custom names on PyPI:
 
-- **toto**
-    - Forked from: [DataDog/toto](https://github.com/DataDog/toto)
-    - TimeCopilot fork: [AzulGarza/toto](https://github.com/AzulGarza/toto)
-    - Published on PyPI as: [`timecopilot-toto`](https://pypi.org/project/timecopilot-toto/)
+
+- **chronos-forecasting**
+    - Forked from: [amazon-science/chronos-forecasting](https://github.com/amazon-science/chronos-forecasting)
+    - TimeCopilot fork: [AzulGarza/chronos-forecasting](https://github.com/AzulGarza/chronos-forecasting/tree/feat/timecopilot-chronos-forecasting)
+    - Published on PyPI as: [`timecopilot-chronos-forecasting`](https://pypi.org/project/timecopilot-chronos-forecasting/)
+
+- **timesfm**
+    - Forked from: [google-research/timesfm](https://github.com/google-research/timesfm)
+    - TimeCopilot fork: [AzulGarza/timesfm](https://github.com/AzulGarza/timesfm)
+    - Published on PyPI as: [`timecopilot-timesfm`](https://pypi.org/project/timecopilot-timesfm/)
 
 - **tirex**
     - Forked from: [NX-AI/tirex](https://github.com/NX-AI/tirex)
     - TimeCopilot fork: [AzulGarza/tirex](https://github.com/AzulGarza/tirex)
     - Published on PyPI as: [`timecopilot-tirex`](https://pypi.org/project/timecopilot-tirex/)
 
-- **timesfm**
-    - Forked from: [google-research/timesfm](https://github.com/google-research/timesfm)
-    - TimeCopilot fork: [AzulGarza/timesfm](https://github.com/AzulGarza/timesfm)
-    - Published on PyPI as: [`timecopilot-timesfm`](https://pypi.org/project/timecopilot-timesfm/)
+- **toto**
+    - Forked from: [DataDog/toto](https://github.com/DataDog/toto)
+    - TimeCopilot fork: [AzulGarza/toto](https://github.com/AzulGarza/toto)
+    - Published on PyPI as: [`timecopilot-toto`](https://pypi.org/project/timecopilot-toto/)
+
+- **uni2ts**:
+    - Forked from: [SalesforceAIResearch/uni2ts](https://github.com/SalesforceAIResearch/uni2ts)
+    - TimeCopilot fork: [AzulGarza/uni2ts](https://github.com/AzulGarza/uni2ts)
+    - Published on PyPI as: [`timecopilot-uni2ts`](https://pypi.org/project/timecopilot-uni2ts/)

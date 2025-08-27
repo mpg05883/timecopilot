@@ -1,4 +1,4 @@
-site_name: TimeCopilot
+site_name: ""
 site_description: The GenAI Forecasting Agent · LLMs x Foundation Time Series Models
 site_author: AzulGarza
 strict: true
@@ -13,11 +13,16 @@ watch:
   - timecopilot
 
 nav:
-  - Introduction: index.md
+  - Home: index.md
   - Installation: installation.md
   - Getting Help: help.md
   - Contributing: contributing.md
   - Roadmap: roadmap.md
+  - Quickstart Examples:
+      - examples/agent-quickstart.ipynb
+      - examples/forecaster-quickstart.ipynb
+  - Experiments:
+      - experiments/gift-eval.md
   - Documentation:
       - Time Series Model Hub: model_hub.md
       - Forecasting Parameters: forecasting_parameters.md
@@ -27,14 +32,25 @@ nav:
       - api/models/foundational/models.md
       - api/models/benchmarks/stats.md
       - api/models/benchmarks/prophet.md
+      - api/models/benchmarks/ml.md
+      - api/models/benchmarks/neural.md
+      - api/models/ensembles.md
       - api/models/utils/forecaster.md
+      - api/gift_eval/gift_eval.md
   - Changelogs:
       - changelogs/index.md
+      - changelogs/v0.0.16.md
+      - changelogs/v0.0.15.md
+      - changelogs/v0.0.14.md
+      - changelogs/v0.0.13.md
+      - changelogs/v0.0.12.md
       - changelogs/v0.0.11.md
       - changelogs/v0.0.10.md
 
 theme:
   name: "material"
+  logo: https://timecopilot.s3.amazonaws.com/public/logos/logo-white.svg
+  favicon: https://timecopilot.s3.amazonaws.com/public/logos/favicon-white.svg
   palette:
     - media: "(prefers-color-scheme)"
       primary: custom
@@ -97,6 +113,8 @@ markdown_extensions:
 plugins:
   - search
   - autorefs
+  - mkdocs-jupyter
+  - include-markdown
   - mkdocstrings:
       handlers:
         python:

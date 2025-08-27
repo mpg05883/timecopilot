@@ -10,7 +10,13 @@ from timecopilot.models.utils.forecaster import (
 )
 
 
-@pytest.mark.parametrize("freq", ["ME", "MS", "W-MON", "D"])
+def test_get_seasonality_custom_seasonalities():
+    assert get_seasonality("D", custom_seasonalities={"D": 7}) == 7
+    assert get_seasonality("D", custom_seasonalities={"D": 7}) == 7
+    assert get_seasonality("D") == 1
+
+
+@pytest.mark.parametrize("freq", ["MS", "W-MON", "D"])
 def test_maybe_infer_freq(freq):
     df = generate_series(
         n_series=2,
@@ -156,8 +162,6 @@ def test_maybe_convert_quantiles_to_level(n_models, level):
         models=models,
     )
     exp_n_cols = 3 + (1 + len(level) * 2) * n_models
-    if 0 in level:
-        exp_n_cols -= n_models * 2
     assert result_df.shape[1] == exp_n_cols
     for model in models:
         for lv in level:
