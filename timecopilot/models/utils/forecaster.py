@@ -40,6 +40,8 @@ def get_seasonality(
 
     Example:
         ```python
+        from timecopilot.models.utils.forecaster import get_seasonality
+
         get_seasonality("D", custom_seasonalities={"D": 7})
         # 7
         get_seasonality("D") # default seasonalities are used

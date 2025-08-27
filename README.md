@@ -144,7 +144,7 @@ tc = TimeCopilot(
 # - freq: The frequency of your data (e.g., 'D' for daily, 'M' for monthly)
 # - h: The forecast horizon, which is the number of periods to predict
 # - seasonality: The seasonal period of your data, which can be inferred if not provided
-result = tc.forecast(df=df)
+result = tc.forecast(df=df, freq="MS")
 
 # The output contains:
 # - tsfeatures_results: List of calculated time series features
@@ -221,6 +221,7 @@ Let's for example ask: **"how many air passengers are expected in the next 12 mo
 # Ask specific questions about the forecast
 result = tc.forecast(
     df=df,
+    freq="MS",
     query="how many air passengers are expected in the next 12 months?",
 )
 

@@ -359,29 +359,30 @@ class TimeCopilot:
         3. forecast_tool: Generates forecasts using a selected model.
         Takes a model name and returns forecasted values.
 
-        Your task is to provide a comprehensive analysis following these steps:
+        You MUST complete all three steps and use all three tools in order:
 
-        1. Time Series Feature Analysis:
-           - Calculate a focused set of key time series features
-           - Quickly identify the main characteristics (trend, seasonality, 
-                stationarity, etc.)
+        1. Time Series Feature Analysis (REQUIRED - use tsfeatures_tool):
+           - ALWAYS call tsfeatures_tool first with a focused set of key features
+           - Calculate time series features to identify characteristics (trend, 
+                seasonality, stationarity, etc.)
            - Use these insights to guide efficient model selection
-           - Avoid over-analysis - focus on features that directly inform model choice
+           - Focus on features that directly inform model choice
 
-        2. Model Selection and Evaluation:
+        2. Model Selection and Evaluation (REQUIRED - use cross_validation_tool):
+           - ALWAYS call cross_validation_tool with multiple models
            - Start with simple models that can potentially beat seasonal naive
            - Select additional candidate models based on the time series 
                 values and features
            - Document each model's technical details and assumptions
            - Explain why these models are suitable for the identified features
-           - Perform cross-validation to evaluate performance
            - Compare models quantitatively and qualitatively against seasonal naive
            - If initial models don't beat seasonal naive, try more complex models
            - Prioritize finding a model that outperforms seasonal naive benchmark
            - Balance model complexity with forecast accuracy
 
-        3. Final Model Selection and Forecasting:
+        3. Final Model Selection and Forecasting (REQUIRED - use forecast_tool):
            - Choose the best performing model with clear justification
+           - ALWAYS call forecast_tool with the selected model
            - Generate the forecast using just the selected model
            - Interpret trends and patterns in the forecast
            - Discuss reliability and potential uncertainties
@@ -677,8 +678,12 @@ class TimeCopilot:
 
         Example:
             ```python
+            import pandas as pd
+            from timecopilot import TimeCopilot
+
+            df = pd.read_csv("https://timecopilot.s3.amazonaws.com/public/data/air_passengers.csv") 
             tc = TimeCopilot(llm="openai:gpt-4o")
-            tc.forecast(df, h=12)
+            tc.forecast(df, h=12, freq="MS")
             answer = tc.query("Which model performed best?")
             print(answer.output)
             ```
@@ -797,11 +802,21 @@ class AsyncTimeCopilot(TimeCopilot):
 
         Example:
             ```python
-            tc = TimeCopilotAsync(llm="openai:gpt-4o")
-            await tc.forecast(df, h=12)
-            async with tc.query_stream("Which model performed best?") as result:
-                async for text in result.stream(debounce_by=0.01):
-                    print(text, end="", flush=True)
+            import asyncio
+
+            import pandas as pd
+            from timecopilot import AsyncTimeCopilot
+
+            df = pd.read_csv("https://timecopilot.s3.amazonaws.com/public/data/air_passengers.csv") 
+
+            async def example():
+                tc = AsyncTimeCopilot(llm="openai:gpt-4o")
+                await tc.forecast(df, h=12, freq="MS")
+                async with tc.query_stream("Which model performed best?") as result:
+                    async for text in result.stream(debounce_by=0.01):
+                        print(text, end="", flush=True)
+            
+            asyncio.run(example())
             ```
         Note:
             The class is not queryable until the `forecast` method has been
@@ -844,10 +859,20 @@ class AsyncTimeCopilot(TimeCopilot):
 
         Example:
             ```python
-            tc = TimeCopilotAsync(llm="openai:gpt-4o")
-            await tc.forecast(df, h=12)
-            answer = await tc.query("Which model performed best?")
-            print(answer.output)
+            import asyncio
+
+            import pandas as pd
+            from timecopilot import AsyncTimeCopilot
+
+            df = pd.read_csv("https://timecopilot.s3.amazonaws.com/public/data/air_passengers.csv") 
+
+            async def example():
+                tc = AsyncTimeCopilot(llm="openai:gpt-4o")
+                await tc.forecast(df, h=12, freq="MS")
+                answer = await tc.query("Which model performed best?")
+                print(answer.output)
+
+            asyncio.run(example())
             ```
         Note:
             The class is not queryable until the `forecast` method has been
