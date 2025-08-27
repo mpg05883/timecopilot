@@ -9,6 +9,7 @@ dev = [
   "pytest",
   "pytest-asyncio>=1.1.0",
   "pytest-cov",
+  "pytest-rerunfailures>=15.1",
   "pytest-xdist>=3.8.0",
 ]
 docs = [
