@@ -6,9 +6,9 @@ on:
       - v*
   workflow_dispatch:
     inputs:
-    tag:
-      description: "Release tag to simulate"
-      required: true
+      tag:
+        description: "Release tag to simulate"
+        required: true
 
 jobs:
   discord:
