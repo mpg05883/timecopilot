@@ -89,7 +89,7 @@ jobs:
           enable-cache: true
 
       - name: Run tests
-        run: uv run pytest -m docs -x
+        run: uv run pytest -m docs -x -n 0
         env: 
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} 
