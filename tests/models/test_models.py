@@ -16,7 +16,7 @@ def generate_series(n_series, freq, **kwargs):
 def test_timegpt_import():
     # we are not testing timegpt
     # since we need to make api calls to the timegpt api
-    from timecopilot.models.foundational.timegpt import TimeGPT  # noqa: F401
+    from timecopilot.models.foundation.timegpt import TimeGPT  # noqa: F401
 
 
 @pytest.mark.skipif(
@@ -25,7 +25,7 @@ def test_timegpt_import():
 )
 def test_tirex_import_fails():
     with pytest.raises(ImportError) as excinfo:
-        from timecopilot.models.foundational.tirex import TiRex  # noqa: F401
+        from timecopilot.models.foundation.tirex import TiRex  # noqa: F401
     assert "requires Python >= 3.11" in str(excinfo.value)
 
 
@@ -35,7 +35,7 @@ def test_tirex_import_fails():
 )
 def test_sundial_import_fails():
     with pytest.raises(ImportError) as excinfo:
-        from timecopilot.models.foundational.sundial import Sundial  # noqa: F401
+        from timecopilot.models.foundation.sundial import Sundial  # noqa: F401
     assert "requires Python < 3.13" in str(excinfo.value)
 
 
@@ -45,7 +45,7 @@ def test_sundial_import_fails():
 )
 def test_tabpfn_import_fails():
     with pytest.raises(ImportError) as excinfo:
-        from timecopilot.models.foundational.tabpfn import TabPFN  # noqa: F401
+        from timecopilot.models.foundation.tabpfn import TabPFN  # noqa: F401
     assert "requires Python < 3.13" in str(excinfo.value)
 
 
