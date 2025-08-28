@@ -1,7 +1,7 @@
 
-# `timecopilot.models.benchmarks.stats`
+# `timecopilot.models.stats`
 
-::: timecopilot.models.benchmarks.stats
+::: timecopilot.models.stats
     options:
         members:
             - ADIDA
