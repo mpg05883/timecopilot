@@ -30,14 +30,14 @@ nav:
   - API Reference:
       - api/agent.md
       - api/forecaster.md
-      - api/models/foundational/models.md
-      - api/models/benchmarks/stats.md
-      - api/models/benchmarks/prophet.md
-      - api/models/benchmarks/ml.md
-      - api/models/benchmarks/neural.md
+      - api/models/foundation/models.md
+      - api/models/stats.md
+      - api/models/prophet.md
+      - api/models/ml.md
+      - api/models/neural.md
       - api/models/ensembles.md
       - api/models/utils/forecaster.md
-      - api/gift_eval/gift_eval.md
+      - api/gift-eval/gift-eval.md
   - Changelogs:
       - changelogs/index.md
       - changelogs/v0.0.16.md

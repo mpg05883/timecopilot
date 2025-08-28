@@ -3,7 +3,7 @@ import os
 import pandas as pd
 from mlforecast.auto import AutoLightGBM, AutoMLForecast
 
-from ..utils.forecaster import Forecaster, get_seasonality
+from .utils.forecaster import Forecaster, get_seasonality
 
 os.environ["NIXTLA_ID_AS_COL"] = "true"
 

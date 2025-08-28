@@ -91,7 +91,7 @@ class GIFTEval:
             import pandas as pd
             from timecopilot.gift_eval.eval import GIFTEval
             from timecopilot.gift_eval.gluonts_predictor import GluonTSPredictor
-            from timecopilot.models.benchmarks import SeasonalNaive
+            from timecopilot.models.stats import SeasonalNaive
 
             storage_path = "./gift_eval_data"
             GIFTEval.download_data(storage_path)

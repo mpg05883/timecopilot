@@ -1,4 +1,4 @@
-from .benchmarks import (
+from .stats import (
     ADIDA,
     IMAPA,
     AutoARIMA,

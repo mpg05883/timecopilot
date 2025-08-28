@@ -2,20 +2,20 @@ import sys
 
 import pytest
 
-from timecopilot.models.benchmarks import (
+from timecopilot.models.ensembles.median import MedianEnsemble
+from timecopilot.models.foundation.chronos import Chronos
+from timecopilot.models.foundation.moirai import Moirai
+from timecopilot.models.foundation.timesfm import TimesFM
+from timecopilot.models.foundation.toto import Toto
+from timecopilot.models.ml import AutoLGBM
+from timecopilot.models.neural import AutoNHITS, AutoTFT
+from timecopilot.models.prophet import Prophet
+from timecopilot.models.stats import (
     ADIDA,
     AutoARIMA,
-    Prophet,
     SeasonalNaive,
     ZeroModel,
 )
-from timecopilot.models.benchmarks.ml import AutoLGBM
-from timecopilot.models.benchmarks.neural import AutoNHITS, AutoTFT
-from timecopilot.models.ensembles.median import MedianEnsemble
-from timecopilot.models.foundational.chronos import Chronos
-from timecopilot.models.foundational.moirai import Moirai
-from timecopilot.models.foundational.timesfm import TimesFM
-from timecopilot.models.foundational.toto import Toto
 
 
 @pytest.fixture(autouse=True)
@@ -85,15 +85,15 @@ models = [
     ),
 ]
 if sys.version_info >= (3, 11):
-    from timecopilot.models.foundational.tirex import TiRex
+    from timecopilot.models.foundation.tirex import TiRex
 
     models.append(TiRex())
 
 if sys.version_info < (3, 13):
     from tabpfn_time_series import TabPFNMode
 
-    from timecopilot.models.foundational.sundial import Sundial
-    from timecopilot.models.foundational.tabpfn import TabPFN
+    from timecopilot.models.foundation.sundial import Sundial
+    from timecopilot.models.foundation.tabpfn import TabPFN
 
     models.append(TabPFN(mode=TabPFNMode.MOCK))
     models.append(Sundial(context_length=256, num_samples=10))

@@ -11,7 +11,7 @@ from neuralforecast.auto import (
 from neuralforecast.common._base_model import BaseModel as NeuralForecastModel
 from ray import tune
 
-from ..utils.forecaster import Forecaster
+from .utils.forecaster import Forecaster
 
 os.environ["NIXTLA_ID_AS_COL"] = "true"
 
@@ -108,7 +108,7 @@ class AutoNHITS(Forecaster):
         if level is not None or quantiles is not None:
             raise ValueError("Level and quantiles are not supported for AutoNHITS yet.")
 
-        freq = self._maybe_infer_freq(df, freq)
+        inferred_freq = self._maybe_infer_freq(df, freq)
         if self.config is None:
             config = _AutoNHITS.get_default_config(h=h, backend="ray")
             config["scaler_type"] = tune.choice(["robust"])
@@ -126,7 +126,7 @@ class AutoNHITS(Forecaster):
                 config=config,
             ),
             df=df,
-            freq=freq,
+            freq=inferred_freq,
         )
         return fcst_df
 
@@ -209,7 +209,7 @@ class AutoTFT(Forecaster):
         if level is not None or quantiles is not None:
             raise ValueError("Level and quantiles are not supported for AutoTFT yet.")
 
-        freq = self._maybe_infer_freq(df, freq)
+        inferred_freq = self._maybe_infer_freq(df, freq)
         if self.config is None:
             config = _AutoTFT.get_default_config(h=h, backend="ray")
             config["scaler_type"] = tune.choice(["robust"])
@@ -226,6 +226,6 @@ class AutoTFT(Forecaster):
                 config=config,
             ),
             df=df,
-            freq=freq,
+            freq=inferred_freq,
         )
         return fcst_df

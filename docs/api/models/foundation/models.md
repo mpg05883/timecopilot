@@ -1,41 +1,41 @@
-# `timecopilot.models.foundational`
+# `timecopilot.models.foundation`
 
-::: timecopilot.models.foundational.chronos
+::: timecopilot.models.foundation.chronos
     options:
         members:
             - Chronos
 
-::: timecopilot.models.foundational.moirai
+::: timecopilot.models.foundation.moirai
     options:
         members:
             - Moirai
 
-::: timecopilot.models.foundational.sundial
+::: timecopilot.models.foundation.sundial
     options:
         members:
             - Sundial
 
-::: timecopilot.models.foundational.tabpfn
+::: timecopilot.models.foundation.tabpfn
     options:
         members:
             - TabPFN
 
-::: timecopilot.models.foundational.timegpt
+::: timecopilot.models.foundation.timegpt
     options:
         members:
             - TimeGPT
 
-::: timecopilot.models.foundational.timesfm
+::: timecopilot.models.foundation.timesfm
     options:
         members:
             - TimesFM
 
-::: timecopilot.models.foundational.tirex
+::: timecopilot.models.foundation.tirex
     options:
         members:
             - TiRex
 
-::: timecopilot.models.foundational.toto
+::: timecopilot.models.foundation.toto
     options:
         members:
             - Toto

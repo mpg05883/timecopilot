@@ -29,9 +29,9 @@ class MedianEnsemble(Forecaster):
         Example:
             ```python
             import pandas as pd
-            from timecopilot.models.benchmarks import SeasonalNaive
             from timecopilot.models.ensembles.median import MedianEnsemble
-            from timecopilot.models.foundational.chronos import Chronos
+            from timecopilot.models.foundation.chronos import Chronos
+            from timecopilot.models.stats import SeasonalNaive
 
 
             df = pd.read_csv(

@@ -40,7 +40,7 @@ from statsforecast.models import (
 )
 from statsforecast.utils import ConformalIntervals
 
-from ..utils.forecaster import Forecaster, QuantileConverter, get_seasonality
+from .utils.forecaster import Forecaster, QuantileConverter, get_seasonality
 
 os.environ["NIXTLA_ID_AS_COL"] = "true"
 
@@ -144,12 +144,12 @@ class ADIDA(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        freq = self._maybe_infer_freq(df, freq)
+        inferred_freq = self._maybe_infer_freq(df, freq)
         fcst_df = run_statsforecast_model(
             model=_ADIDA(alias=self.alias),
             df=df,
             h=h,
-            freq=freq,
+            freq=inferred_freq,
             level=level,
             quantiles=quantiles,
         )
@@ -329,8 +329,8 @@ class AutoARIMA(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        freq = self._maybe_infer_freq(df, freq)
-        season_length = self._maybe_get_seasonality(freq)
+        inferred_freq = self._maybe_infer_freq(df, freq)
+        season_length = self._maybe_get_seasonality(inferred_freq)
         fcst_df = run_statsforecast_model(
             model=_AutoARIMA(
                 d=self.d,
@@ -368,7 +368,7 @@ class AutoARIMA(Forecaster):
             ),
             df=df,
             h=h,
-            freq=freq,
+            freq=inferred_freq,
             level=level,
             quantiles=quantiles,
         )
@@ -458,8 +458,8 @@ class AutoCES(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        freq = self._maybe_infer_freq(df, freq)
-        season_length = self._maybe_get_seasonality(freq)
+        inferred_freq = self._maybe_infer_freq(df, freq)
+        season_length = self._maybe_get_seasonality(inferred_freq)
         fcst_df = run_statsforecast_model(
             model=_AutoCES(
                 season_length=season_length,
@@ -468,7 +468,7 @@ class AutoCES(Forecaster):
             ),
             df=df,
             h=h,
-            freq=freq,
+            freq=inferred_freq,
             level=level,
             quantiles=quantiles,
         )
@@ -564,8 +564,8 @@ class AutoETS(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        freq = self._maybe_infer_freq(df, freq)
-        season_length = self._maybe_get_seasonality(freq)
+        inferred_freq = self._maybe_infer_freq(df, freq)
+        season_length = self._maybe_get_seasonality(inferred_freq)
         fcst_df = run_statsforecast_model(
             model=_AutoETS(
                 season_length=season_length,
@@ -576,7 +576,7 @@ class AutoETS(Forecaster):
             ),
             df=df,
             h=h,
-            freq=freq,
+            freq=inferred_freq,
             level=level,
             quantiles=quantiles,
         )
@@ -656,14 +656,14 @@ class CrostonClassic(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        freq = self._maybe_infer_freq(df, freq)
+        inferred_freq = self._maybe_infer_freq(df, freq)
         fcst_df = run_statsforecast_model(
             model=_CrostonClassic(
                 alias=self.alias,
             ),
             df=df,
             h=h,
-            freq=freq,
+            freq=inferred_freq,
             level=level,
             quantiles=quantiles,
         )
@@ -744,8 +744,8 @@ class DynamicOptimizedTheta(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        freq = self._maybe_infer_freq(df, freq)
-        season_length = self._maybe_get_seasonality(freq)
+        inferred_freq = self._maybe_infer_freq(df, freq)
+        season_length = self._maybe_get_seasonality(inferred_freq)
         fcst_df = run_statsforecast_model(
             model=_DynamicOptimizedTheta(
                 season_length=season_length,
@@ -753,7 +753,7 @@ class DynamicOptimizedTheta(Forecaster):
             ),
             df=df,
             h=h,
-            freq=freq,
+            freq=inferred_freq,
             level=level,
             quantiles=quantiles,
         )
@@ -833,14 +833,14 @@ class HistoricAverage(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        freq = self._maybe_infer_freq(df, freq)
+        inferred_freq = self._maybe_infer_freq(df, freq)
         fcst_df = run_statsforecast_model(
             model=_HistoricAverage(
                 alias=self.alias,
             ),
             df=df,
             h=h,
-            freq=freq,
+            freq=inferred_freq,
             level=level,
             quantiles=quantiles,
         )
@@ -921,14 +921,14 @@ class IMAPA(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        freq = self._maybe_infer_freq(df, freq)
+        inferred_freq = self._maybe_infer_freq(df, freq)
         fcst_df = run_statsforecast_model(
             model=_IMAPA(
                 alias=self.alias,
             ),
             df=df,
             h=h,
-            freq=freq,
+            freq=inferred_freq,
             level=level,
             quantiles=quantiles,
         )
@@ -1009,8 +1009,8 @@ class SeasonalNaive(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        freq = self._maybe_infer_freq(df, freq)
-        season_length = self._maybe_get_seasonality(freq)
+        inferred_freq = self._maybe_infer_freq(df, freq)
+        season_length = self._maybe_get_seasonality(inferred_freq)
         fcst_df = run_statsforecast_model(
             model=_SeasonalNaive(
                 season_length=season_length,
@@ -1018,7 +1018,7 @@ class SeasonalNaive(Forecaster):
             ),
             df=df,
             h=h,
-            freq=freq,
+            freq=inferred_freq,
             level=level,
             quantiles=quantiles,
         )
@@ -1099,8 +1099,8 @@ class Theta(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        freq = self._maybe_infer_freq(df, freq)
-        season_length = self._maybe_get_seasonality(freq)
+        inferred_freq = self._maybe_infer_freq(df, freq)
+        season_length = self._maybe_get_seasonality(inferred_freq)
         fcst_df = run_statsforecast_model(
             model=_Theta(
                 season_length=season_length,
@@ -1108,7 +1108,7 @@ class Theta(Forecaster):
             ),
             df=df,
             h=h,
-            freq=freq,
+            freq=inferred_freq,
             level=level,
             quantiles=quantiles,
         )
@@ -1188,14 +1188,14 @@ class ZeroModel(Forecaster):
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        freq = self._maybe_infer_freq(df, freq)
+        inferred_freq = self._maybe_infer_freq(df, freq)
         fcst_df = run_statsforecast_model(
             model=_ZeroModel(
                 alias=self.alias,
             ),
             df=df,
             h=h,
-            freq=freq,
+            freq=inferred_freq,
             level=level,
             quantiles=quantiles,
         )
