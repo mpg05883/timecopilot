@@ -32,7 +32,8 @@ from tsfeatures import (
 from tsfeatures.tsfeatures import _get_feats
 
 from .forecaster import Forecaster, TimeCopilotForecaster
-from .models.benchmarks import (
+from .models.prophet import Prophet
+from .models.stats import (
     ADIDA,
     IMAPA,
     AutoARIMA,
@@ -45,10 +46,9 @@ from .models.benchmarks import (
     Theta,
     ZeroModel,
 )
-from .models.benchmarks.prophet import Prophet
 from .utils.experiment_handler import ExperimentDataset, ExperimentDatasetParser
 
-DEFAULT_MODELS = [
+DEFAULT_MODELS: list[Forecaster] = [
     ADIDA(),
     AutoARIMA(),
     AutoCES(),
