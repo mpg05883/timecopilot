@@ -40,6 +40,7 @@ nav:
       - api/gift-eval/gift-eval.md
   - Changelogs:
       - changelogs/index.md
+      - changelogs/v0.0.17.md
       - changelogs/v0.0.16.md
       - changelogs/v0.0.15.md
       - changelogs/v0.0.14.md
