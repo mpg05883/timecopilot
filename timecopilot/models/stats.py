@@ -40,7 +40,7 @@ from statsforecast.models import (
 )
 from statsforecast.utils import ConformalIntervals
 
-from ..utils.forecaster import Forecaster, QuantileConverter, get_seasonality
+from .utils.forecaster import Forecaster, QuantileConverter, get_seasonality
 
 os.environ["NIXTLA_ID_AS_COL"] = "true"
 

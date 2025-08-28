@@ -5,8 +5,8 @@ import pandas as pd
 from prophet import Prophet as ProphetBase
 from threadpoolctl import threadpool_limits
 
-from ..utils.forecaster import QuantileConverter
-from ..utils.parallel_forecaster import ParallelForecaster
+from .utils.forecaster import QuantileConverter
+from .utils.parallel_forecaster import ParallelForecaster
 
 
 class Prophet(ProphetBase, ParallelForecaster):

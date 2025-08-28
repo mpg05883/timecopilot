@@ -11,7 +11,7 @@ from neuralforecast.auto import (
 from neuralforecast.common._base_model import BaseModel as NeuralForecastModel
 from ray import tune
 
-from ..utils.forecaster import Forecaster
+from .utils.forecaster import Forecaster
 
 os.environ["NIXTLA_ID_AS_COL"] = "true"
 
