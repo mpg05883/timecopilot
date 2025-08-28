@@ -1,4 +1,4 @@
-# First-Place Results on the GIFT-Eval Benchmark with TimeCopilot
+# First-Place Results on the GIFT-Eval Benchmark
 
 This section documents the evaluation of a foundation model ensemble built using the [TimeCopilot](https://timecopilot.dev) library on the [GIFT-Eval](https://huggingface.co/spaces/Salesforce/GIFT-Eval) benchmark.
 
