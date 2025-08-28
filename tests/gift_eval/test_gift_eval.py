@@ -5,7 +5,7 @@ import pandas as pd
 
 from timecopilot.gift_eval.eval import GIFTEval
 from timecopilot.gift_eval.gluonts_predictor import GluonTSPredictor
-from timecopilot.models.benchmarks import SeasonalNaive
+from timecopilot.models.stats import SeasonalNaive
 
 
 def test_concat_results(storage_path: Path):

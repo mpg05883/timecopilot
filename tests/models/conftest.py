@@ -2,20 +2,20 @@ import sys
 
 import pytest
 
-from timecopilot.models.benchmarks import (
+from timecopilot.models.ensembles.median import MedianEnsemble
+from timecopilot.models.foundation.chronos import Chronos
+from timecopilot.models.foundation.moirai import Moirai
+from timecopilot.models.foundation.timesfm import TimesFM
+from timecopilot.models.foundation.toto import Toto
+from timecopilot.models.ml import AutoLGBM
+from timecopilot.models.neural import AutoNHITS, AutoTFT
+from timecopilot.models.prophet import Prophet
+from timecopilot.models.stats import (
     ADIDA,
     AutoARIMA,
-    Prophet,
     SeasonalNaive,
     ZeroModel,
 )
-from timecopilot.models.benchmarks.ml import AutoLGBM
-from timecopilot.models.benchmarks.neural import AutoNHITS, AutoTFT
-from timecopilot.models.ensembles.median import MedianEnsemble
-from timecopilot.models.foundational.chronos import Chronos
-from timecopilot.models.foundational.moirai import Moirai
-from timecopilot.models.foundational.timesfm import TimesFM
-from timecopilot.models.foundational.toto import Toto
 
 
 @pytest.fixture(autouse=True)

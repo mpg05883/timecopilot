@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 from utilsforecast.data import generate_series
 
-from timecopilot.models.benchmarks.stats import SeasonalNaive
+from timecopilot.models.stats import SeasonalNaive
 from timecopilot.models.utils.forecaster import (
     QuantileConverter,
     get_seasonality,

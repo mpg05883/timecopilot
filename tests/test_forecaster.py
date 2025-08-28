@@ -3,7 +3,7 @@ from utilsforecast.data import generate_series
 
 from timecopilot.forecaster import TimeCopilotForecaster
 from timecopilot.models import SeasonalNaive, ZeroModel
-from timecopilot.models.foundational.moirai import Moirai
+from timecopilot.models.foundation.moirai import Moirai
 
 
 @pytest.fixture

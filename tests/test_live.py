@@ -10,7 +10,7 @@ from utilsforecast.data import generate_series
 
 from timecopilot import TimeCopilot
 from timecopilot.agent import AsyncTimeCopilot
-from timecopilot.models.benchmarks import ZeroModel
+from timecopilot.models.stats import ZeroModel
 
 load_dotenv()
 logfire.configure(send_to_logfire="if-token-present")
