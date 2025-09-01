@@ -6,9 +6,9 @@ import typer
 from timecopilot.gift_eval.eval import GIFTEval
 from timecopilot.gift_eval.gluonts_predictor import GluonTSPredictor
 from timecopilot.models.ensembles.median import MedianEnsemble
-from timecopilot.models.foundational.moirai import Moirai
-from timecopilot.models.foundational.sundial import Sundial
-from timecopilot.models.foundational.toto import Toto
+from timecopilot.models.foundation.moirai import Moirai
+from timecopilot.models.foundation.sundial import Sundial
+from timecopilot.models.foundation.toto import Toto
 
 logging.basicConfig(level=logging.INFO)
 
