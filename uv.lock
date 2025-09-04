@@ -6056,6 +6056,20 @@ wheels = [
 ]
 
 [[package]]
+name = "s3fs"
+version = "2025.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "aiobotocore" },
+    { name = "aiohttp" },
+    { name = "fsspec" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e4/cd/5dde2fed1699ff48120336249d9857a574e39feb8afaff694568ab1499b3/s3fs-2025.3.0.tar.gz", hash = "sha256:446dd539eb0d0678209723cb7ad1bedbb172185b0d34675b09be1ad81843a644", size = 77153, upload-time = "2025-03-07T21:58:32.114Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3a/3f/35f4041a82a68df89fe4af97c8bb44aa492dad924799cbb02078e9e303e6/s3fs-2025.3.0-py3-none-any.whl", hash = "sha256:88d803615baa04945156ca0e1498009b7acd3132c07198bd81b3e874846e0aa2", size = 30454, upload-time = "2025-03-07T21:58:30.998Z" },
+]
+
+[[package]]
 name = "s3transfer"
 version = "0.13.1"
 source = { registry = "https://pypi.org/simple" }
@@ -6752,6 +6766,7 @@ dev = [
     { name = "pytest-cov" },
     { name = "pytest-rerunfailures" },
     { name = "pytest-xdist" },
+    { name = "s3fs" },
 ]
 docs = [
     { name = "mkdocs" },
@@ -6799,6 +6814,7 @@ dev = [
     { name = "pytest-cov" },
     { name = "pytest-rerunfailures", specifier = ">=15.1" },
     { name = "pytest-xdist", specifier = ">=3.8.0" },
+    { name = "s3fs", specifier = ">=2025.3.0" },
 ]
 docs = [
     { name = "mkdocs", specifier = ">=1.6.1" },
