@@ -16,9 +16,9 @@ TimeCopilot is an open‑source AI agent for time series forecasting that provid
 
 This ensemble leverages [**TimeCopilot's MedianEnsemble**](https://timecopilot.dev/api/models/ensembles/#timecopilot.models.ensembles.median.MedianEnsemble) feature, which combines three state-of-the-art foundation models:
 
-- [**Moirai** (Salesforce AI Research)](https://timecopilot.dev/api/models/foundational/models/#timecopilot.models.foundational.moirai.Moirai).
-- [**Sundial** (THUML @ Tsinghua University)](https://timecopilot.dev/api/models/foundational/models/#timecopilot.models.foundational.sundial.Sundial) 
-- [**Toto** (DataDog)](https://timecopilot.dev/api/models/foundational/models/#timecopilot.models.foundational.toto.Toto).
+- [**Moirai** (Salesforce AI Research)](https://timecopilot.dev/api/models/foundation/models/#timecopilot.models.foundation.moirai.Moirai).
+- [**Sundial** (THUML @ Tsinghua University)](https://timecopilot.dev/api/models/foundation/models/#timecopilot.models.foundation.sundial.Sundial) 
+- [**Toto** (DataDog)](https://timecopilot.dev/api/models/foundation/models/#timecopilot.models.foundation.toto.Toto).
 
 
 ## Setup
