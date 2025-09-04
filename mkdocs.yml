@@ -24,6 +24,7 @@ nav:
       - examples/gift-eval.ipynb
   - Experiments:
       - experiments/gift-eval.md
+      - experiments/fev.md
   - Documentation:
       - Time Series Model Hub: model-hub.md
       - Forecasting Parameters: forecasting-parameters.md
