@@ -346,7 +346,7 @@ class Forecaster:
         if h is None:
             h = self._maybe_get_seasonality(freq)
         min_series_length = df.groupby("unique_id").size().min()
-        max_possible_windows = max(1, min_series_length - h)
+        max_possible_windows = max(1, (min_series_length - h) // h)
         if n_windows is None:
             _n_windows = max_possible_windows
         else:
@@ -446,7 +446,7 @@ class Forecaster:
         df = ensure_time_dtype(df, time_col="ds")
         if forecasts_df is not None:
             forecasts_df = ensure_time_dtype(forecasts_df, time_col="ds")
-            if "anomaly" in forecasts_df.columns:
+            if any("anomaly" in col for col in forecasts_df.columns):
                 df = None
                 models = [
                     col.split("-")[0]

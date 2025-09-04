@@ -82,8 +82,9 @@ class TimeCopilotForecaster(Forecaster):
                 "h": h,
                 "freq": freq,
                 "level": level,
-                "quantiles": quantiles,
             }
+            if attr != "detect_anomalies":
+                known_kwargs["quantiles"] = quantiles
             fn = getattr(model, attr)
             try:
                 res_df_model = fn(**known_kwargs, **kwargs)
