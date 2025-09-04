@@ -446,6 +446,26 @@ class Forecaster:
         df = ensure_time_dtype(df, time_col="ds")
         if forecasts_df is not None:
             forecasts_df = ensure_time_dtype(forecasts_df, time_col="ds")
+            if "anomaly" in forecasts_df.columns:
+                df = None
+                models = [
+                    col.split("-")[0]
+                    for col in forecasts_df.columns
+                    if col.endswith("-anomaly")
+                ]
+                forecasts_df = ufp.drop_columns(
+                    forecasts_df,
+                    [f"{model}-anomaly" for model in models],
+                )
+                lv_cols = [
+                    c.replace(f"{model}-lo-", "")
+                    for model in models
+                    for c in forecasts_df.columns
+                    if f"{model}-lo-" in c
+                ]
+                level = [float(c) if "." in c else int(c) for c in lv_cols]
+                plot_anomalies = True
+                models = models
         return plot_series(
             df=df,
             forecasts_df=forecasts_df,
