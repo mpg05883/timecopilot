@@ -346,7 +346,8 @@ class Forecaster:
         if h is None:
             h = self._maybe_get_seasonality(freq)
         min_series_length = df.groupby("unique_id").size().min()
-        max_possible_windows = max(1, (min_series_length - h) // h)
+        # we require at least one observation before the first forecast
+        max_possible_windows = (min_series_length - 1) // h
         if n_windows is None:
             _n_windows = max_possible_windows
         else:
