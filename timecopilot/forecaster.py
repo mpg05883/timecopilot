@@ -82,8 +82,9 @@ class TimeCopilotForecaster(Forecaster):
                 "h": h,
                 "freq": freq,
                 "level": level,
-                "quantiles": quantiles,
             }
+            if attr != "detect_anomalies":
+                known_kwargs["quantiles"] = quantiles
             fn = getattr(model, attr)
             try:
                 res_df_model = fn(**known_kwargs, **kwargs)
@@ -257,4 +258,72 @@ class TimeCopilotForecaster(Forecaster):
             step_size=step_size,
             level=level,
             quantiles=quantiles,
+        )
+
+    def detect_anomalies(
+        self,
+        df: pd.DataFrame,
+        h: int | None = None,
+        freq: str | None = None,
+        n_windows: int | None = None,
+        level: int | float = 99,
+    ) -> pd.DataFrame:
+        """
+        Detect anomalies in time-series using a cross-validated z-score test.
+
+        This method uses rolling-origin cross-validation to (1) produce
+        adjusted (out-of-sample) predictions and (2) estimate the
+        standard deviation of forecast errors. It then computes a per-point z-score,
+        flags values outside a two-sided prediction interval (with confidence `level`),
+        and returns a DataFrame with results.
+
+        Args:
+            df (pd.DataFrame):
+                DataFrame containing the time series to detect anomalies.
+            h (int, optional):
+                Forecast horizon specifying how many future steps to predict.
+                In each cross validation window. If not provided, the seasonality
+                of the data (inferred from the frequency) is used.
+            freq (str, optional):
+                Frequency of the time series (e.g. "D" for daily, "M" for
+                monthly). See [Pandas frequency aliases](https://pandas.pydata.
+                org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases)
+                for valid values. If not provided, the frequency will be inferred
+                from the data.
+            n_windows (int, optional):
+                Number of cross-validation windows to generate.
+                If not provided, the maximum number of windows
+                (computed by the shortest time series) is used.
+                If provided, the number of windows is the minimum
+                between the maximum number of windows
+                (computed by the shortest time series)
+                and the number of windows provided.
+            level (int | float):
+                Confidence levels for z-score, expressed as
+                percentages (e.g. 80, 95). Default is 99.
+
+        Returns:
+            pd.DataFrame:
+                DataFrame containing the forecasts for each cross-validation
+                window. The output includes:
+
+                    - "unique_id" column to indicate the series.
+                    - "ds" column to indicate the timestamp.
+                    - "y" column to indicate the target.
+                    - model column to indicate the model.
+                    - lower prediction interval.
+                    - upper prediction interval.
+                    - anomaly column to indicate if the value is an anomaly.
+                        an anomaly is defined as a value that is outside of the
+                        prediction interval (True or False).
+        """
+        return self._call_models(
+            "detect_anomalies",
+            merge_on=["unique_id", "ds", "cutoff"],
+            df=df,
+            h=h,  # type: ignore
+            freq=freq,
+            n_windows=n_windows,
+            level=level,  # type: ignore
+            quantiles=None,
         )

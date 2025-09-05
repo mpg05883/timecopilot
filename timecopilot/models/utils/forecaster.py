@@ -9,6 +9,7 @@ from gluonts.time_feature.seasonality import (
 from gluonts.time_feature.seasonality import (
     get_seasonality as _get_seasonality,
 )
+from scipy import stats
 from tqdm import tqdm
 from utilsforecast.plotting import plot_series
 from utilsforecast.processing import (
@@ -283,6 +284,117 @@ class Forecaster:
         fcst_cv_df = out[first_out_cols + remaining_cols]
         return fcst_cv_df
 
+    def detect_anomalies(
+        self,
+        df: pd.DataFrame,
+        h: int | None = None,
+        freq: str | None = None,
+        n_windows: int | None = None,
+        level: int | float = 99,
+    ) -> pd.DataFrame:
+        """
+        Detect anomalies in time-series using a cross-validated z-score test.
+
+        This method uses rolling-origin cross-validation to (1) produce
+        adjusted (out-of-sample) predictions and (2) estimate the
+        standard deviation of forecast errors. It then computes a per-point z-score,
+        flags values outside a two-sided prediction interval (with confidence `level`),
+        and returns a DataFrame with results.
+
+        Args:
+            df (pd.DataFrame):
+                DataFrame containing the time series to detect anomalies.
+            h (int, optional):
+                Forecast horizon specifying how many future steps to predict.
+                In each cross validation window. If not provided, the seasonality
+                of the data (inferred from the frequency) is used.
+            freq (str, optional):
+                Frequency of the time series (e.g. "D" for daily, "M" for
+                monthly). See [Pandas frequency aliases](https://pandas.pydata.
+                org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases)
+                for valid values. If not provided, the frequency will be inferred
+                from the data.
+            n_windows (int, optional):
+                Number of cross-validation windows to generate.
+                If not provided, the maximum number of windows
+                (computed by the shortest time series) is used.
+                If provided, the number of windows is the minimum
+                between the maximum number of windows
+                (computed by the shortest time series)
+                and the number of windows provided.
+            level (int | float):
+                Confidence levels for z-score, expressed as
+                percentages (e.g. 80, 95). Default is 99.
+
+        Returns:
+            pd.DataFrame:
+                DataFrame containing the forecasts for each cross-validation
+                window. The output includes:
+
+                    - "unique_id" column to indicate the series.
+                    - "ds" column to indicate the timestamp.
+                    - "y" column to indicate the target.
+                    - model column to indicate the model.
+                    - lower prediction interval.
+                    - upper prediction interval.
+                    - anomaly column to indicate if the value is an anomaly.
+                        an anomaly is defined as a value that is outside of the
+                        prediction interval (True or False).
+        """
+        freq = self._maybe_infer_freq(df, freq)
+        df = maybe_convert_col_to_datetime(df, "ds")
+        if h is None:
+            h = self._maybe_get_seasonality(freq)
+        min_series_length = df.groupby("unique_id").size().min()
+        # we require at least one observation before the first forecast
+        max_possible_windows = (min_series_length - 1) // h
+        if n_windows is None:
+            _n_windows = max_possible_windows
+        else:
+            _n_windows = min(n_windows, max_possible_windows)
+        if _n_windows < 1:
+            raise ValueError(
+                f"Cannot perform anomaly detection: series too short. "
+                f"Minimum series length required: {h + 1}, "
+                f"actual minimum length: {min_series_length}"
+            )
+        cv_results = self.cross_validation(
+            df=df,
+            h=h,
+            freq=freq,
+            n_windows=_n_windows,
+            step_size=h,  # this is the default but who knows, anxiety
+        )
+        cv_results["residuals"] = cv_results["y"] - cv_results[self.alias]
+        residual_stats = (
+            cv_results.groupby("unique_id")["residuals"].std().reset_index()
+        )
+        residual_stats.columns = ["unique_id", "residual_std"]
+        cv_results = cv_results.merge(residual_stats, on="unique_id", how="left")
+        cv_results["z_score"] = cv_results["residuals"] / cv_results["residual_std"]
+        alpha = 1 - level / 100
+        critical_z = stats.norm.ppf(1 - alpha / 2)
+        an_col = f"{self.alias}-anomaly"
+        cv_results[an_col] = np.abs(cv_results["z_score"]) > critical_z
+        lo_col = f"{self.alias}-lo-{int(level)}"
+        hi_col = f"{self.alias}-hi-{int(level)}"
+        margin = critical_z * cv_results["residual_std"]
+        cv_results[lo_col] = cv_results[self.alias] - margin
+        cv_results[hi_col] = cv_results[self.alias] + margin
+        output_cols = [
+            "unique_id",
+            "ds",
+            "cutoff",
+            "y",
+            self.alias,
+            lo_col,
+            hi_col,
+            an_col,
+        ]
+        result = cv_results[output_cols].copy()
+        result = drop_index_if_pandas(result)
+        return result
+
     @staticmethod
     def plot(
         df: pd.DataFrame | None = None,
@@ -335,6 +447,26 @@ class Forecaster:
         df = ensure_time_dtype(df, time_col="ds")
         if forecasts_df is not None:
             forecasts_df = ensure_time_dtype(forecasts_df, time_col="ds")
+            if any("anomaly" in col for col in forecasts_df.columns):
+                df = None
+                models = [
+                    col.split("-")[0]
+                    for col in forecasts_df.columns
+                    if col.endswith("-anomaly")
+                ]
+                forecasts_df = ufp.drop_columns(
+                    forecasts_df,
+                    [f"{model}-anomaly" for model in models],
+                )
+                lv_cols = [
+                    c.replace(f"{model}-lo-", "")
+                    for model in models
+                    for c in forecasts_df.columns
+                    if f"{model}-lo-" in c
+                ]
+                level = [float(c) if "." in c else int(c) for c in lv_cols]
+                plot_anomalies = True
+                models = models
         return plot_series(
             df=df,
             forecasts_df=forecasts_df,

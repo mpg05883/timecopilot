@@ -21,6 +21,7 @@ nav:
   - Quickstart Examples:
       - examples/agent-quickstart.ipynb
       - examples/forecaster-quickstart.ipynb
+      - examples/anomaly-detection-forecaster-quickstart.ipynb
       - examples/gift-eval.ipynb
   - Experiments:
       - experiments/gift-eval.md
