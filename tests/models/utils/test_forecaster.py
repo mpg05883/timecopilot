@@ -190,3 +190,145 @@ def test_maybe_convert_quantiles_to_level(n_models, level):
         df,
         qc.maybe_convert_level_to_quantiles(df, models=models),
     )
+
+
+def generate_series_with_anomalies(
+    n_series: int = 2,
+    freq: str = "D",
+    min_length: int = 50,
+    max_length: int = 50,
+    anomaly_positions: list[int] | None = None,
+    anomaly_magnitude: float = 5.0,
+) -> pd.DataFrame:
+    """Generate time series with artificial anomalies for testing."""
+    df = generate_series(
+        n_series=n_series,
+        freq=freq,
+        min_length=min_length,
+        max_length=max_length,
+    )
+    df["unique_id"] = df["unique_id"].astype(str)
+
+    if anomaly_positions is not None:
+        for series_id in df["unique_id"].unique():
+            series_data = df[df["unique_id"] == series_id].copy()
+            for pos in anomaly_positions:
+                if pos < len(series_data):
+                    # Add anomaly by increasing magnitude
+                    anomaly_idx = series_data.index[pos]
+                    df.loc[anomaly_idx, "y"] += anomaly_magnitude
+
+    return df
+
+
+@pytest.mark.parametrize("model", [SeasonalNaive()])
+@pytest.mark.parametrize("freq", ["D", "H", "W-MON"])
+def test_detect_anomalies_basic_functionality(model, freq):
+    df = generate_series(n_series=2, freq=freq, min_length=30, max_length=30)
+    df["unique_id"] = df["unique_id"].astype(str)
+    result = model.detect_anomalies(df)
+    assert len(result) > 0
+    expected_cols = [
+        "unique_id",
+        "ds",
+        "cutoff",
+        "y",
+        model.alias,
+        f"{model.alias}-lo-99",
+        f"{model.alias}-hi-99",
+        f"{model.alias}-anomaly",
+    ]
+    for col in expected_cols:
+        assert col in result.columns, f"Missing column: {col}"
+    anomaly_col_name = (
+        "anomaly" if "anomaly" in result.columns else f"{model.alias}-anomaly"
+    )
+    assert result[anomaly_col_name].dtype == bool
+    assert pd.api.types.is_numeric_dtype(result[f"{model.alias}-lo-99"])
+    assert pd.api.types.is_numeric_dtype(result[f"{model.alias}-hi-99"])
+
+
+@pytest.mark.parametrize("model", [SeasonalNaive()])
+def test_detect_anomalies_with_artificial_anomalies(model):
+    df = generate_series_with_anomalies(
+        n_series=2,
+        freq="D",
+        min_length=50,
+        max_length=50,
+        anomaly_positions=[45, 47],  # Add anomalies near the end
+        anomaly_magnitude=10.0,  # Large anomaly
+    )
+    result = model.detect_anomalies(df, freq="D", level=95)
+    anomaly_col = f"{model.alias}-anomaly"
+    assert anomaly_col in result.columns
+    detected_anomalies = result[anomaly_col].sum()
+    assert detected_anomalies >= 0
+    # Check that anomalies are outside the prediction interval
+    anomalies = result[result[anomaly_col]]
+    lo_col = f"{model.alias}-lo-95"
+    hi_col = f"{model.alias}-hi-95"
+    for _, row in anomalies.iterrows():
+        assert row["y"] < row[lo_col] or row["y"] > row[hi_col], (
+            f"Anomaly at index {row.name} is not outside the interval: "
+            f"{row[lo_col]} <= {row['y']} <= {row[hi_col]}"
+        )
+
+
+@pytest.mark.parametrize("model", [SeasonalNaive()])
+@pytest.mark.parametrize("h", [None, 3, 7])
+def test_detect_anomalies_horizon_parameter(model, h):
+    df = generate_series(n_series=2, freq="D", min_length=50, max_length=50)
+    df["unique_id"] = df["unique_id"].astype(str)
+    result = model.detect_anomalies(df, h=h, freq="D")
+    assert len(result) > 0
+    if h is not None:
+        cutoffs = result["cutoff"].unique()
+        assert len(cutoffs) >= 1
+
+
+@pytest.mark.parametrize("model", [SeasonalNaive()])
+@pytest.mark.parametrize("n_windows", [None, 1, 3])
+def test_detect_anomalies_n_windows_parameter(model, n_windows):
+    df = generate_series(n_series=2, freq="D", min_length=50, max_length=50)
+    df["unique_id"] = df["unique_id"].astype(str)
+    result = model.detect_anomalies(df, n_windows=n_windows, freq="D")
+    assert len(result) > 0
+    actual_windows = len(result["cutoff"].unique())
+    if n_windows is not None:
+        assert actual_windows <= n_windows
+
+
+@pytest.mark.parametrize("model", [SeasonalNaive()])
+@pytest.mark.parametrize("level", [80, 95, 99])
+def test_detect_anomalies_confidence_level(model, level):
+    df = generate_series(n_series=2, freq="D", min_length=50, max_length=50)
+    df["unique_id"] = df["unique_id"].astype(str)
+    result = model.detect_anomalies(df, level=level, freq="D")
+    lo_col = f"{model.alias}-lo-{level}"
+    hi_col = f"{model.alias}-hi-{level}"
+
+    assert lo_col in result.columns
+    assert hi_col in result.columns
+    assert (result[lo_col] <= result[hi_col]).all()
+    # Check that anomalies are outside the prediction interval
+    anomalies = result[result[f"{model.alias}-anomaly"]]
+    lo_col = f"{model.alias}-lo-{level}"
+    hi_col = f"{model.alias}-hi-{level}"
+    for _, row in anomalies.iterrows():
+        assert row["y"] < row[lo_col] or row["y"] > row[hi_col], (
+            f"Anomaly at index {row.name} is not outside the interval: "
+            f"{row[lo_col]} <= {row['y']} <= {row[hi_col]}"
+        )
+
+
+def test_detect_anomalies_short_series_error():
+    model = SeasonalNaive()
+    df = pd.DataFrame(
+        {
+            "unique_id": ["A", "A"],
+            "ds": pd.date_range("2023-01-01", periods=2, freq="D"),
+            "y": [1.0, 2.0],
+        }
+    )
+    with pytest.raises(ValueError, match="Cannot perform anomaly detection"):
+        model.detect_anomalies(df, h=5, freq="D")
