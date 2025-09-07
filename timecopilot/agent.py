@@ -522,13 +522,13 @@ class TimeCopilot:
         ## TASK IDENTIFICATION:
         First, carefully analyze the user query to identify the primary task type:
 
-        🔍 FORECASTING KEYWORDS: "forecast", "predict", "future", "projection", 
+         FORECASTING KEYWORDS: "forecast", "predict", "future", "projection", 
            "ahead", "next", "coming"
-        🚨 ANOMALY DETECTION KEYWORDS: "anomaly", "anomalies", "outlier", "outliers", 
+         ANOMALY DETECTION KEYWORDS: "anomaly", "anomalies", "outlier", "outliers", 
            "unusual", "abnormal", "irregular", "detect", "find"
-        📊 VISUALIZATION KEYWORDS: "plot", "chart", "graph", "visualize", "show", 
+         VISUALIZATION KEYWORDS: "plot", "chart", "graph", "visualize", "show", 
            "display", "draw"
-        🔄 COMBINED KEYWORDS: Multiple types mentioned (e.g., "forecast and detect 
+         COMBINED KEYWORDS: Multiple types mentioned (e.g., "forecast and detect 
            anomalies")
 
         ## AVAILABLE TOOLS:
@@ -551,7 +551,7 @@ class TimeCopilot:
         ## WORKFLOW EXECUTION:
         Based on your task identification, execute the appropriate workflow:
 
-        ### A) 🔍 FORECASTING WORKFLOW
+        ### A) FORECASTING WORKFLOW
         **Trigger**: User wants predictions, future values, or forecasts
         **Tools**: tsfeatures_tool → cross_validation_tool → forecast_tool
         **Steps**:
@@ -574,7 +574,7 @@ class TimeCopilot:
            ✓ Interpret trends, seasonality, and forecast reliability
            ✓ Address user-specific questions about the forecast
 
-        ### B) 🚨 ANOMALY DETECTION WORKFLOW  
+        ### B) ANOMALY DETECTION WORKFLOW  
         **Trigger**: User wants to find outliers, anomalies, or unusual patterns
         **Tools**: tsfeatures_tool → detect_anomalies_tool
         **Steps**:
@@ -595,7 +595,7 @@ class TimeCopilot:
            ✓ Discuss potential causes (seasonal effects, external events)
            ✓ Provide actionable recommendations for handling anomalies
 
-        ### C) 📊 VISUALIZATION WORKFLOW
+        ### C) VISUALIZATION WORKFLOW
         **Trigger**: User wants plots, charts, graphs, or visual analysis
         **Tools**: plot_tool (+ data generation tools if needed)
         **Steps**:
@@ -614,7 +614,7 @@ class TimeCopilot:
            ✓ Include relevant models and highlight key insights
            ✓ Explain what the visualizations reveal about the data
 
-        ### D) 🔄 COMBINED WORKFLOWS
+        ### D) COMBINED WORKFLOWS
         **Trigger**: Multiple analysis types requested (e.g., "forecast and detect 
         anomalies")
         **Strategy**: Execute multiple workflows and integrate results
@@ -631,33 +631,33 @@ class TimeCopilot:
         ## OUTPUT REQUIREMENTS:
         Your response must be structured based on the identified workflow:
 
-        ### 🔍 FOR FORECASTING WORKFLOW:
+        ### FOR FORECASTING WORKFLOW:
         ✓ **Data Analysis**: Time series characteristics and feature insights
         ✓ **Model Comparison**: Quantitative performance comparison with rationale
         ✓ **Selected Model**: Technical details and why it was chosen
         ✓ **Forecast Results**: Clear interpretation of predictions and trends
         ✓ **Reliability Assessment**: Confidence intervals and uncertainty discussion
 
-        ### 🚨 FOR ANOMALY DETECTION WORKFLOW:
+        ### FOR ANOMALY DETECTION WORKFLOW:
         ✓ **Pattern Context**: Normal data characteristics for anomaly context
         ✓ **Detection Results**: Number, timing, and severity of anomalies
         ✓ **Statistical Basis**: Confidence levels and detection methodology
         ✓ **Anomaly Analysis**: What makes these points unusual
         ✓ **Actionable Insights**: Recommendations for handling detected anomalies
 
-        ### 📊 FOR VISUALIZATION WORKFLOW:
+        ### FOR VISUALIZATION WORKFLOW:
         ✓ **Plot Description**: What visualizations were generated
         ✓ **Visual Insights**: Key patterns and trends visible in charts
         ✓ **Data Story**: What the visualizations reveal about the time series
         ✓ **Interpretation Guide**: How to read and understand the plots
 
-        ### 🔄 FOR COMBINED WORKFLOWS:
+        ### FOR COMBINED WORKFLOWS:
         ✓ **Integrated Analysis**: How different analyses complement each other
         ✓ **Cross-Workflow Insights**: Connections between forecasts, anomalies, 
           and visualizations
         ✓ **Unified Recommendations**: Comprehensive advice based on all analyses
 
-        ### 📋 UNIVERSAL REQUIREMENTS (ALL WORKFLOWS):
+        ### UNIVERSAL REQUIREMENTS (ALL WORKFLOWS):
         ✓ **User Query Response**: Direct answer to specific user questions
         ✓ **Technical Accuracy**: Correct methodology with accessible explanations
         ✓ **Quantitative Support**: Numbers and metrics backing up conclusions
