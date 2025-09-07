@@ -31,7 +31,7 @@ class TimeCopilot:
             "[bold blue]TimeCopilot is navigating through time...[/bold blue]"
         ):
             forecasting_agent = TimeCopilotAgent(llm=llm, retries=retries)
-            result = forecasting_agent.forecast(
+            result = forecasting_agent.analyze(
                 df=path,
                 freq=freq,
                 h=h,
