@@ -193,18 +193,18 @@ class TimeCopilotAgentOutput(BaseModel):
                     f"\n[{'green' if self.is_better_than_seasonal_naive else 'red'}]"
                 )
                 is_better = self.is_better_than_seasonal_naive
-                better_text = "✓ Better" if is_better else "✗ Not better"
+                better_text = "Better" if is_better else "Not better"
                 color = "green" if self.is_better_than_seasonal_naive else "red"
                 model_info += f"{better_text} than Seasonal Naive[/{color}]"
         elif self.analysis_type == "anomaly_detection":
             title = "TimeCopilot Anomaly Detection"
-            model_info = "[bold red]🚨 Anomaly Detection Analysis[/bold red]"
+            model_info = "[bold red]Anomaly Detection Analysis[/bold red]"
         elif self.analysis_type == "visualization":
             title = "TimeCopilot Visualization"
-            model_info = "[bold green]📊 Data Visualization[/bold green]"
+            model_info = "[bold green]Data Visualization[/bold green]"
         else:  # combined
             title = "TimeCopilot Analysis"
-            model_info = "[bold purple]🔍 Combined Analysis[/bold purple]"
+            model_info = "[bold purple]Combined Analysis[/bold purple]"
 
         header = Panel(
             model_info,
@@ -556,63 +556,63 @@ class TimeCopilot:
         **Tools**: tsfeatures_tool → cross_validation_tool → forecast_tool
         **Steps**:
         1. **Data Understanding** (REQUIRED - tsfeatures_tool):
-           ✓ Call tsfeatures_tool with key features: ["stl_features", "acf_features", 
+           - Call tsfeatures_tool with key features: ["stl_features", "acf_features", 
              "seasonality", "trend"]
-           ✓ Identify seasonality, trend, stationarity, and complexity patterns
-           ✓ Use insights to guide model selection strategy
+           - Identify seasonality, trend, stationarity, and complexity patterns
+           - Use insights to guide model selection strategy
 
         2. **Model Evaluation** (REQUIRED - cross_validation_tool):
-           ✓ Test multiple models based on data characteristics
-           ✓ Start with simple models (SeasonalNaive, AutoETS, AutoARIMA)
-           ✓ Add complex models if simple ones fail to beat SeasonalNaive
-           ✓ Compare performance using MASE metric
-           ✓ Document why each model is suitable for the data
+           - Test multiple models based on data characteristics
+           - Start with simple models (SeasonalNaive, AutoETS, AutoARIMA)
+           - Add complex models if simple ones fail to beat SeasonalNaive
+           - Compare performance using MASE metric
+           - Document why each model is suitable for the data
 
         3. **Final Forecasting** (REQUIRED - forecast_tool):
-           ✓ Select best-performing model with clear justification
-           ✓ Generate forecast with selected model only
-           ✓ Interpret trends, seasonality, and forecast reliability
-           ✓ Address user-specific questions about the forecast
+           - Select best-performing model with clear justification
+           - Generate forecast with selected model only
+           - Interpret trends, seasonality, and forecast reliability
+           - Address user-specific questions about the forecast
 
         ### B) ANOMALY DETECTION WORKFLOW  
         **Trigger**: User wants to find outliers, anomalies, or unusual patterns
         **Tools**: tsfeatures_tool → detect_anomalies_tool
         **Steps**:
         1. **Pattern Analysis** (RECOMMENDED - tsfeatures_tool):
-           ✓ Focus on variability features: ["stability", "lumpiness", "entropy"]
-           ✓ Understand normal patterns to identify what's anomalous
-           ✓ Consider seasonality for context-aware anomaly detection
+           - Focus on variability features: ["stability", "lumpiness", "entropy"]
+           - Understand normal patterns to identify what's anomalous
+           - Consider seasonality for context-aware anomaly detection
 
         2. **Anomaly Detection** (REQUIRED - detect_anomalies_tool):
-           ✓ Choose appropriate model (SeasonalNaive for seasonal data, AutoARIMA 
+           - Choose appropriate model (SeasonalNaive for seasonal data, AutoARIMA 
              for complex patterns)
-           ✓ Set confidence level (95% typical, 99% for stricter detection)
-           ✓ Analyze detected anomalies and their timing
-           ✓ Explain statistical basis for anomaly identification
+           - Set confidence level (95% typical, 99% for stricter detection)
+           - Analyze detected anomalies and their timing
+           - Explain statistical basis for anomaly identification
 
         3. **Anomaly Interpretation**:
-           ✓ Describe patterns in detected anomalies
-           ✓ Discuss potential causes (seasonal effects, external events)
-           ✓ Provide actionable recommendations for handling anomalies
+           - Describe patterns in detected anomalies
+           - Discuss potential causes (seasonal effects, external events)
+           - Provide actionable recommendations for handling anomalies
 
         ### C) VISUALIZATION WORKFLOW
         **Trigger**: User wants plots, charts, graphs, or visual analysis
         **Tools**: plot_tool (+ data generation tools if needed)
         **Steps**:
         1. **Visualization Planning**:
-           ✓ Determine what data needs to be visualized
-           ✓ Choose appropriate plot type based on request
-           ✓ Identify if additional analysis is needed first
+           - Determine what data needs to be visualized
+           - Choose appropriate plot type based on request
+           - Identify if additional analysis is needed first
 
         2. **Data Generation** (if needed):
-           ✓ Use forecast_tool if forecast visualization is requested
-           ✓ Use detect_anomalies_tool if anomaly visualization is requested
-           ✓ Ensure all required data is available for plotting
+           - Use forecast_tool if forecast visualization is requested
+           - Use detect_anomalies_tool if anomaly visualization is requested
+           - Ensure all required data is available for plotting
 
         3. **Plot Creation** (REQUIRED - plot_tool):
-           ✓ Generate appropriate visualizations with plot_tool
-           ✓ Include relevant models and highlight key insights
-           ✓ Explain what the visualizations reveal about the data
+           - Generate appropriate visualizations with plot_tool
+           - Include relevant models and highlight key insights
+           - Explain what the visualizations reveal about the data
 
         ### D) COMBINED WORKFLOWS
         **Trigger**: Multiple analysis types requested (e.g., "forecast and detect 
@@ -632,44 +632,44 @@ class TimeCopilot:
         Your response must be structured based on the identified workflow:
 
         ### FOR FORECASTING WORKFLOW:
-        ✓ **Data Analysis**: Time series characteristics and feature insights
-        ✓ **Model Comparison**: Quantitative performance comparison with rationale
-        ✓ **Selected Model**: Technical details and why it was chosen
-        ✓ **Forecast Results**: Clear interpretation of predictions and trends
-        ✓ **Reliability Assessment**: Confidence intervals and uncertainty discussion
+        - **Data Analysis**: Time series characteristics and feature insights
+        - **Model Comparison**: Quantitative performance comparison with rationale
+        - **Selected Model**: Technical details and why it was chosen
+        - **Forecast Results**: Clear interpretation of predictions and trends
+        - **Reliability Assessment**: Confidence intervals and uncertainty discussion
 
         ### FOR ANOMALY DETECTION WORKFLOW:
-        ✓ **Pattern Context**: Normal data characteristics for anomaly context
-        ✓ **Detection Results**: Number, timing, and severity of anomalies
-        ✓ **Statistical Basis**: Confidence levels and detection methodology
-        ✓ **Anomaly Analysis**: What makes these points unusual
-        ✓ **Actionable Insights**: Recommendations for handling detected anomalies
+        - **Pattern Context**: Normal data characteristics for anomaly context
+        - **Detection Results**: Number, timing, and severity of anomalies
+        - **Statistical Basis**: Confidence levels and detection methodology
+        - **Anomaly Analysis**: What makes these points unusual
+        - **Actionable Insights**: Recommendations for handling detected anomalies
 
         ### FOR VISUALIZATION WORKFLOW:
-        ✓ **Plot Description**: What visualizations were generated
-        ✓ **Visual Insights**: Key patterns and trends visible in charts
-        ✓ **Data Story**: What the visualizations reveal about the time series
-        ✓ **Interpretation Guide**: How to read and understand the plots
+        - **Plot Description**: What visualizations were generated
+        - **Visual Insights**: Key patterns and trends visible in charts
+        - **Data Story**: What the visualizations reveal about the time series
+        - **Interpretation Guide**: How to read and understand the plots
 
         ### FOR COMBINED WORKFLOWS:
-        ✓ **Integrated Analysis**: How different analyses complement each other
-        ✓ **Cross-Workflow Insights**: Connections between forecasts, anomalies, 
+        - **Integrated Analysis**: How different analyses complement each other
+        - **Cross-Workflow Insights**: Connections between forecasts, anomalies, 
           and visualizations
-        ✓ **Unified Recommendations**: Comprehensive advice based on all analyses
+        - **Unified Recommendations**: Comprehensive advice based on all analyses
 
         ### UNIVERSAL REQUIREMENTS (ALL WORKFLOWS):
-        ✓ **User Query Response**: Direct answer to specific user questions
-        ✓ **Technical Accuracy**: Correct methodology with accessible explanations
-        ✓ **Quantitative Support**: Numbers and metrics backing up conclusions
-        ✓ **Actionable Recommendations**: Practical next steps for the user
+        - **User Query Response**: Direct answer to specific user questions
+        - **Technical Accuracy**: Correct methodology with accessible explanations
+        - **Quantitative Support**: Numbers and metrics backing up conclusions
+        - **Actionable Recommendations**: Practical next steps for the user
 
         ## CRITICAL INSTRUCTIONS:
-        🎯 **Task Matching**: Execute ONLY the workflow that matches the user's request
-        🚫 **No Workflow Forcing**: Don't run forecasting if user only wants 
+        **Task Matching**: Execute ONLY the workflow that matches the user's request
+        **No Workflow Forcing**: Don't run forecasting if user only wants 
            anomaly detection
-        🔄 **Context Preservation**: Use shared insights across tools within the 
+        **Context Preservation**: Use shared insights across tools within the 
            same workflow
-        📊 **Analysis Type Setting**: Always set the correct analysis_type in 
+        **Analysis Type Setting**: Always set the correct analysis_type in 
            your output
         """
 
@@ -708,30 +708,36 @@ class TimeCopilot:
         exchanges. When users say "plot them", "show me", "visualize it", etc., 
         use context from the conversation to understand what they're referring to.
 
-        VISUALIZATION CAPABILITIES:
-        You CAN create plots and visualizations! When users ask for plots, charts, 
-        or visualizations, explain that you can generate them and describe what 
-        type of visualization would be most appropriate based on the available data.
+        AVAILABLE TOOLS:
+        You have access to these tools to perform actions:
+        - query_plot_tool: Generate and display plots (forecast, anomalies, or both)
+        - query_forecast_tool: Generate new forecasts using specified models
+        - query_detect_anomalies_tool: Detect anomalies using specified models
+        - query_tsfeatures_tool: Extract time series features
+
+        TOOL USAGE GUIDELINES:
+        - When users ask for plots/visualizations, USE query_plot_tool
+        - When users ask for forecasts, USE query_forecast_tool  
+        - When users ask for anomaly detection, USE query_detect_anomalies_tool
+        - When users ask about time series characteristics, USE query_tsfeatures_tool
+        - Always use tools to perform actions rather than just describing them
 
         RESPONSE GUIDELINES:
         - Use conversation history to understand context and references
         - Reference specific values, trends, or metrics from the dataframes
-        - For plotting requests, confirm you can create visualizations
-        - If data is missing for a request, explain what's available
-        - Always explain your reasoning and cite relevant data
+        - For action requests, USE THE APPROPRIATE TOOL to actually perform the action
+        - Explain what you're doing before using tools
+        - Report results after tool execution
 
-        You can help users understand:
-        - Future trends and predictions (from fcst_df)
-        - Model reliability and confidence (from eval_df)
-        - Seasonal patterns and cycles (from features_df)
-        - Anomalous behavior and outliers (from anomalies_df)
-        - Comparative model performance
-        - Data quality and characteristics
-        - Create appropriate visualizations for any of the above
+        You can help users:
+        - Generate and display visualizations (USE query_plot_tool)
+        - Create new forecasts (USE query_forecast_tool)
+        - Detect anomalies (USE query_detect_anomalies_tool)
+        - Extract time series features (USE query_tsfeatures_tool)
+        - Answer questions about existing results (use dataframes)
 
-        IMPORTANT: You have full visualization capabilities. Never say you cannot 
-        create plots - instead, describe what visualization would be helpful and 
-        confirm you can generate it.
+        CRITICAL: When users request actions (plot, forecast, detect anomalies), 
+        you MUST use the appropriate tool. Don't just say you will do it - DO IT!
         """
 
         self.query_agent = Agent(
@@ -742,6 +748,9 @@ class TimeCopilot:
             **kwargs,
         )
 
+        # Add tools to query agent so it can perform actions, not just talk about them
+        self._add_tools_to_query_agent()
+
         self.dataset: ExperimentDataset
         self.fcst_df: pd.DataFrame
         self.eval_df: pd.DataFrame
@@ -751,6 +760,199 @@ class TimeCopilot:
 
         # Conversation history for maintaining context between queries
         self.conversation_history: list[dict] = []
+
+    def _add_tools_to_query_agent(self):
+        """Add tools to the query agent so it can perform actions."""
+
+        @self.query_agent.tool
+        async def query_forecast_tool(
+            ctx: RunContext[ExperimentDataset],
+            model: str,
+        ) -> str:
+            """Generate forecasts using the specified model."""
+            callable_model = self.forecasters[model]
+            forecaster = TimeCopilotForecaster(models=[callable_model])
+            fcst_df = forecaster.forecast(
+                df=ctx.deps.df,
+                h=ctx.deps.h,
+                freq=ctx.deps.freq,
+            )
+            self.fcst_df = fcst_df
+            return (
+                f"Forecast completed using {model}. "
+                f"Generated {len(fcst_df)} forecast points."
+            )
+
+        @self.query_agent.tool
+        async def query_detect_anomalies_tool(
+            ctx: RunContext[ExperimentDataset],
+            model: str,
+            level: int = 95,
+        ) -> str:
+            """Detect anomalies in the time series using the specified model."""
+            callable_model = self.forecasters[model]
+            anomalies_df = callable_model.detect_anomalies(
+                df=ctx.deps.df,
+                h=ctx.deps.h,
+                freq=ctx.deps.freq,
+                level=level,
+            )
+            self.anomalies_df = anomalies_df
+
+            # Count anomalies
+            anomaly_cols = [
+                col for col in anomalies_df.columns if col.endswith("-anomaly")
+            ]
+            total_anomalies = 0
+            for col in anomaly_cols:
+                total_anomalies += anomalies_df[col].sum()
+
+            return (
+                f"Anomaly detection completed using {model}. "
+                f"Found {total_anomalies} anomalies with {level}% confidence level."
+            )
+
+        @self.query_agent.tool
+        async def query_plot_tool(
+            ctx: RunContext[ExperimentDataset],
+            plot_type: str = "anomalies",
+            models: list[str] | None = None,
+        ) -> str:
+            """Generate and display plots for the time series data and results."""
+            try:
+                import matplotlib.pyplot as plt
+
+                from timecopilot.models.utils.forecaster import Forecaster
+
+                # Determine what to plot based on available data and plot_type
+                if plot_type == "anomalies" and hasattr(self, "anomalies_df"):
+                    # Plot anomaly detection results
+                    Forecaster.plot(
+                        df=ctx.deps.df,
+                        forecasts_df=self.anomalies_df,
+                        plot_anomalies=True,
+                    )
+                    plt.show()  # Ensure plot is displayed
+                    return "Anomaly plot generated and displayed."
+
+                elif plot_type == "forecast" and hasattr(self, "fcst_df"):
+                    # Plot forecast results
+                    if models is None:
+                        # Use all available models in forecast
+                        model_cols = [
+                            col
+                            for col in self.fcst_df.columns
+                            if col not in ["unique_id", "ds"] and "-" not in col
+                        ]
+                        models = model_cols
+
+                    Forecaster.plot(
+                        df=ctx.deps.df, forecasts_df=self.fcst_df, models=models
+                    )
+                    plt.show()  # Ensure plot is displayed
+                    return (
+                        f"Forecast plot generated and displayed for models: "
+                        f"{', '.join(models)}."
+                    )
+
+                elif plot_type == "both":
+                    # Plot both forecasts and anomalies if available
+                    if hasattr(self, "fcst_df") and hasattr(self, "anomalies_df"):
+                        # Create subplots for both
+                        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
+
+                        # Plot forecasts
+                        if models is None:
+                            model_cols = [
+                                col
+                                for col in self.fcst_df.columns
+                                if col not in ["unique_id", "ds"] and "-" not in col
+                            ]
+                            models = model_cols
+
+                        Forecaster.plot(
+                            df=ctx.deps.df,
+                            forecasts_df=self.fcst_df,
+                            models=models,
+                            ax=ax1,
+                        )
+                        ax1.set_title("Forecasts")
+
+                        # Plot anomalies
+                        Forecaster.plot(
+                            df=ctx.deps.df,
+                            forecasts_df=self.anomalies_df,
+                            plot_anomalies=True,
+                            ax=ax2,
+                        )
+                        ax2.set_title("Anomaly Detection")
+
+                        plt.tight_layout()
+                        plt.show()
+                        return (
+                            "Combined forecast and anomaly plots "
+                            "generated and displayed."
+                        )
+                    else:
+                        return (
+                            "Error: Need both forecast and anomaly data "
+                            "for 'both' plot type."
+                        )
+
+                else:
+                    # Determine what's available and suggest
+                    available = []
+                    if hasattr(self, "fcst_df"):
+                        available.append("forecasts")
+                    if hasattr(self, "anomalies_df"):
+                        available.append("anomalies")
+
+                    if available:
+                        return (
+                            f"Error: Cannot plot '{plot_type}'. "
+                            f"Available data: {', '.join(available)}. "
+                            "Try plot_type='forecast', 'anomalies', or 'both'."
+                        )
+                    else:
+                        return (
+                            "Error: No forecast or anomaly data available to plot. "
+                            "Run analysis first."
+                        )
+
+            except Exception as e:
+                return f"Error generating plot: {str(e)}"
+
+        @self.query_agent.tool
+        async def query_tsfeatures_tool(
+            ctx: RunContext[ExperimentDataset],
+            features: list[str],
+        ) -> str:
+            """Extract time series features from the data."""
+            callable_features = []
+            for feature in features:
+                if feature not in TSFEATURES:
+                    return (
+                        f"Error: Feature {feature} is not available. "
+                        f"Available features are: {', '.join(TSFEATURES.keys())}"
+                    )
+                callable_features.append(TSFEATURES[feature])
+
+            features_dfs = []
+            for uid in ctx.deps.df["unique_id"].unique():
+                features_df_uid = _get_feats(
+                    index=uid,
+                    ts=ctx.deps.df,
+                    features=callable_features,
+                    freq=ctx.deps.seasonality,
+                )
+                features_dfs.append(features_df_uid)
+            features_df = pd.concat(features_dfs) if features_dfs else pd.DataFrame()
+            features_df = features_df.rename_axis("unique_id")  # type: ignore
+            self.features_df = features_df
+            return (
+                f"Extracted {len(features)} time series features for "
+                f"{len(ctx.deps.df['unique_id'].unique())} series."
+            )
 
         @self.query_agent.system_prompt
         async def add_experiment_info(
