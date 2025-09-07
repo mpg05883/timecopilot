@@ -766,7 +766,8 @@ class TimeCopilot:
         - query_plot_tool: Generate and display plots (series, forecast, anomalies)
           * This tool can plot raw data without any analysis
           * Use plot_type='series' for "plot series", "show data", etc.
-        - query_forecast_tool: Generate new forecasts using specified models
+        - query_forecast_tool: Generate forecasts using specified models 
+          (cached if parameters unchanged)
         - query_compare_models_tool: Compare multiple models and select the best one
         - query_detect_anomalies_tool: Detect anomalies using specified models
         - query_tsfeatures_tool: Extract time series features
@@ -781,6 +782,9 @@ class TimeCopilot:
           * DO NOT run analysis tools for simple plot requests
         - When users ask for forecasts, USE query_forecast_tool with the full user query
           to parse parameters like "forecast next 12 steps" or "predict 30 periods"
+          * Forecasts are cached - reuses existing forecast if 
+            model/horizon/frequency unchanged
+          * Only generates new forecast when parameters change
         - When users ask to compare models, USE query_compare_models_tool
         - When users ask for anomaly detection, USE query_detect_anomalies_tool
         - When users ask about time series characteristics, USE query_tsfeatures_tool
@@ -889,6 +893,10 @@ class TimeCopilot:
                     if hasattr(self, attr):
                         delattr(self, attr)
 
+                # Clear forecast cache since we have new data
+                if hasattr(self, "_last_forecast_params"):
+                    delattr(self, "_last_forecast_params")
+
                 # Get basic info about the new dataset
                 n_series = len(new_dataset.df["unique_id"].unique())
                 n_points = len(new_dataset.df)
@@ -939,6 +947,28 @@ class TimeCopilot:
                     print(f"Failed to parse query '{query}': {e}")
                     pass
 
+            # Check if we can reuse existing forecast
+            if (
+                hasattr(self, "fcst_df")
+                and self.fcst_df is not None
+                and hasattr(self, "_last_forecast_params")
+            ):
+                last_model = self._last_forecast_params.get("model")
+                last_h = self._last_forecast_params.get("h")
+                last_freq = self._last_forecast_params.get("freq")
+
+                if (
+                    last_model == model
+                    and last_h == forecast_h
+                    and last_freq == forecast_freq
+                ):
+                    return (
+                        f"Using existing forecast (model: {model}, "
+                        f"horizon: {forecast_h}). "
+                        f"Generated {len(self.fcst_df)} forecast points."
+                    )
+
+            # Generate new forecast
             callable_model = self.forecasters[model]
             forecaster = TimeCopilotForecaster(models=[callable_model])
             fcst_df = forecaster.forecast(
@@ -947,8 +977,16 @@ class TimeCopilot:
                 freq=forecast_freq,
             )
             self.fcst_df = fcst_df
+
+            # Store forecast parameters for future comparison
+            self._last_forecast_params = {
+                "model": model,
+                "h": forecast_h,
+                "freq": forecast_freq,
+            }
+
             return (
-                f"Forecast completed using {model}. "
+                f"New forecast completed using {model}. "
                 f"Generated {len(fcst_df)} forecast points with h={forecast_h}."
             )
 
