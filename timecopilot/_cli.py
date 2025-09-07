@@ -5,7 +5,7 @@ import typer
 from dotenv import load_dotenv
 from rich.console import Console
 
-from timecopilot._interactive_cli import main as interactive_main
+from timecopilot._interactive_cli import main as chat_main
 from timecopilot.agent import TimeCopilot as TimeCopilotAgent
 
 load_dotenv()
@@ -78,13 +78,13 @@ def main_callback(
 
 
 @app.command()
-def interactive(
+def chat(
     llm: str = typer.Option(
         "openai:gpt-4o-mini", "--llm", "-l", help="LLM to use for the agent"
     ),
 ):
     """Start interactive TimeCopilot session (explicit command)."""
-    interactive_main()
+    chat_main()
 
 
 @app.command("forecast")
