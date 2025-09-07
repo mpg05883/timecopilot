@@ -32,6 +32,16 @@ from tsfeatures import (
 from tsfeatures.tsfeatures import _get_feats
 
 from .forecaster import Forecaster, TimeCopilotForecaster
+from .models.foundation.chronos import Chronos
+from .models.foundation.timesfm import TimesFM
+from .models.foundation.toto import Toto
+
+# Additional foundation models (commented out - may require extra setup):
+# from .models.foundation.moirai import Moirai
+# from .models.foundation.sundial import Sundial
+# from .models.foundation.tabpfn import TabPFN
+# from .models.foundation.timegpt import TimeGPT
+# from .models.foundation.tirex import TiRex
 from .models.prophet import Prophet
 from .models.stats import (
     ADIDA,
@@ -48,7 +58,8 @@ from .models.stats import (
 )
 from .utils.experiment_handler import ExperimentDataset, ExperimentDatasetParser
 
-DEFAULT_MODELS: list[Forecaster] = [
+# Statistical and classical models (fast, reliable baselines)
+STATISTICAL_MODELS: list[Forecaster] = [
     ADIDA(),
     AutoARIMA(),
     AutoCES(),
@@ -61,6 +72,25 @@ DEFAULT_MODELS: list[Forecaster] = [
     Theta(),
     ZeroModel(),
     Prophet(),
+]
+
+# Foundation models (state-of-the-art, but may require more resources)
+FOUNDATION_MODELS: list[Forecaster] = [
+    Chronos(),
+    TimesFM(),
+    Toto(),
+    # Note: Some models may require additional setup or API keys:
+    # Moirai(),     # Requires GluonTS
+    # Sundial(),    # May require specific dependencies
+    # TabPFN(),     # May require specific setup
+    # TimeGPT(),    # Requires API key
+    # TiRex(),      # May require specific dependencies
+]
+
+# Default models (balanced set of statistical + selected foundation models)
+DEFAULT_MODELS: list[Forecaster] = STATISTICAL_MODELS + [
+    Chronos(),  # Add one reliable foundation model by default
+    TimesFM(),  # Add another popular foundation model
 ]
 
 TSFEATURES: dict[str, Callable] = {
@@ -710,17 +740,23 @@ class TimeCopilot:
 
         AVAILABLE TOOLS:
         You have access to these tools to perform actions:
+        - query_load_data_tool: Load new datasets from files or URLs
         - query_plot_tool: Generate and display plots (forecast, anomalies, or both)
         - query_forecast_tool: Generate new forecasts using specified models
+        - query_compare_models_tool: Compare multiple models and select the best one
         - query_detect_anomalies_tool: Detect anomalies using specified models
         - query_tsfeatures_tool: Extract time series features
 
         TOOL USAGE GUIDELINES:
+        - When users mention new files/URLs, USE query_load_data_tool first
         - When users ask for plots/visualizations, USE query_plot_tool
-        - When users ask for forecasts, USE query_forecast_tool  
+        - When users ask for forecasts, USE query_forecast_tool with the full user query
+          to parse parameters like "forecast next 12 steps" or "predict 30 periods"
+        - When users ask to compare models, USE query_compare_models_tool
         - When users ask for anomaly detection, USE query_detect_anomalies_tool
         - When users ask about time series characteristics, USE query_tsfeatures_tool
         - Always use tools to perform actions rather than just describing them
+        - For forecast requests, pass the user's original query to extract parameters
 
         RESPONSE GUIDELINES:
         - Use conversation history to understand context and references
@@ -729,9 +765,15 @@ class TimeCopilot:
         - Explain what you're doing before using tools
         - Report results after tool execution
 
+        AVAILABLE MODELS:
+        Statistical Models: {", ".join([m.alias for m in STATISTICAL_MODELS])}
+        Foundation Models: {", ".join([m.alias for m in FOUNDATION_MODELS])}
+        
         You can help users:
+        - Load new datasets (USE query_load_data_tool)
         - Generate and display visualizations (USE query_plot_tool)
         - Create new forecasts (USE query_forecast_tool)
+        - Compare multiple models (USE query_compare_models_tool)
         - Detect anomalies (USE query_detect_anomalies_tool)
         - Extract time series features (USE query_tsfeatures_tool)
         - Answer questions about existing results (use dataframes)
@@ -765,23 +807,209 @@ class TimeCopilot:
         """Add tools to the query agent so it can perform actions."""
 
         @self.query_agent.tool
+        async def query_load_data_tool(
+            ctx: RunContext[ExperimentDataset],
+            file_path: str,
+            query: str | None = None,
+        ) -> str:
+            """Load a new dataset from file path or URL."""
+            try:
+                # Parse the new dataset
+                from .utils.experiment_handler import ExperimentDatasetParser
+
+                experiment_parser = ExperimentDatasetParser(model=self.llm)
+
+                # Use existing parameters as defaults, but allow query to override
+                new_dataset = experiment_parser.parse(
+                    df=file_path,
+                    freq=ctx.deps.freq,
+                    h=ctx.deps.h,
+                    seasonality=ctx.deps.seasonality,
+                    query=query,
+                )
+
+                # Update the current dataset
+                self.dataset = new_dataset
+
+                # Clear previous analysis results since we have new data
+                for attr in ["fcst_df", "eval_df", "features_df", "anomalies_df"]:
+                    if hasattr(self, attr):
+                        delattr(self, attr)
+
+                # Get basic info about the new dataset
+                n_series = len(new_dataset.df["unique_id"].unique())
+                n_points = len(new_dataset.df)
+                ds_min = new_dataset.df["ds"].min()
+                ds_max = new_dataset.df["ds"].max()
+                date_range = f"{ds_min} to {ds_max}"
+
+                return (
+                    f"Successfully loaded new dataset from '{file_path}'. "
+                    f"Dataset contains {n_series} time series with {n_points} "
+                    f"total data points. Date range: {date_range}. "
+                    f"Frequency: {new_dataset.freq}, "
+                    f"Seasonality: {new_dataset.seasonality}, "
+                    f"Forecast horizon: {new_dataset.h}."
+                )
+
+            except Exception as e:
+                return f"Error loading dataset from '{file_path}': {str(e)}"
+
+        @self.query_agent.tool
         async def query_forecast_tool(
             ctx: RunContext[ExperimentDataset],
             model: str,
+            h: int | None = None,
+            query: str | None = None,
         ) -> str:
             """Generate forecasts using the specified model."""
+            # Parse parameters from query if provided
+            forecast_h = h or ctx.deps.h
+            forecast_freq = ctx.deps.freq
+
+            if query:
+                # Use the parameter parser to extract h from the query
+                from .utils.experiment_handler import ExperimentDatasetParser
+
+                experiment_parser = ExperimentDatasetParser(model=self.llm)
+                try:
+                    parsed_dataset = experiment_parser.parse(
+                        df=ctx.deps.df,
+                        freq=ctx.deps.freq,
+                        h=h,
+                        seasonality=ctx.deps.seasonality,
+                        query=query,
+                    )
+                    if parsed_dataset.h != ctx.deps.h:
+                        forecast_h = parsed_dataset.h
+                except Exception as e:
+                    print(f"Failed to parse query '{query}': {e}")
+                    pass
+
             callable_model = self.forecasters[model]
             forecaster = TimeCopilotForecaster(models=[callable_model])
             fcst_df = forecaster.forecast(
                 df=ctx.deps.df,
-                h=ctx.deps.h,
-                freq=ctx.deps.freq,
+                h=forecast_h,
+                freq=forecast_freq,
             )
             self.fcst_df = fcst_df
             return (
                 f"Forecast completed using {model}. "
-                f"Generated {len(fcst_df)} forecast points."
+                f"Generated {len(fcst_df)} forecast points with h={forecast_h}."
             )
+
+        @self.query_agent.tool
+        async def query_compare_models_tool(
+            ctx: RunContext[ExperimentDataset],
+            models: list[str],
+            h: int | None = None,
+            query: str | None = None,
+        ) -> str:
+            """Compare multiple models and select the best performing one."""
+            try:
+                # Parse parameters from query if provided
+                compare_h = h or ctx.deps.h
+
+                if query:
+                    # Use the parameter parser to extract h from the query
+                    from .utils.experiment_handler import ExperimentDatasetParser
+
+                    experiment_parser = ExperimentDatasetParser(model=self.llm)
+                    try:
+                        parsed_dataset = experiment_parser.parse(
+                            df=ctx.deps.df,
+                            freq=ctx.deps.freq,
+                            h=h,
+                            seasonality=ctx.deps.seasonality,
+                            query=query,
+                        )
+                        if parsed_dataset.h != ctx.deps.h:
+                            compare_h = parsed_dataset.h
+                    except Exception:
+                        pass  # Use default h
+
+                # Validate models
+                callable_models = []
+                invalid_models = []
+                for model_name in models:
+                    if model_name in self.forecasters:
+                        callable_models.append(self.forecasters[model_name])
+                    else:
+                        invalid_models.append(model_name)
+
+                if invalid_models:
+                    available_models = list(self.forecasters.keys())
+                    return (
+                        f"Error: Invalid models {invalid_models}. "
+                        f"Available models: {', '.join(available_models)}"
+                    )
+
+                if len(callable_models) < 2:
+                    return "Error: Need at least 2 models to compare."
+
+                # Run cross-validation to compare models
+                forecaster = TimeCopilotForecaster(models=callable_models)
+                fcst_cv = forecaster.cross_validation(
+                    df=ctx.deps.df,
+                    h=compare_h,
+                    freq=ctx.deps.freq,
+                )
+
+                # Evaluate models
+                model_aliases = [model.alias for model in callable_models]
+                eval_df = ctx.deps.evaluate_forecast_df(
+                    forecast_df=fcst_cv,
+                    models=model_aliases,
+                )
+                eval_df = eval_df.groupby(["metric"], as_index=False).mean(
+                    numeric_only=True
+                )
+
+                # Store results
+                self.eval_df = eval_df
+                self.eval_forecasters = models
+
+                # Find best model (lowest MASE)
+                model_scores = {}
+                for model_name in models:
+                    if model_name in eval_df.columns:
+                        score = float(eval_df[model_name].iloc[0])
+                        model_scores[model_name] = score
+
+                best_model = min(model_scores.keys(), key=lambda x: model_scores[x])
+                best_score = model_scores[best_model]
+
+                # Generate forecast with best model
+                best_callable_model = self.forecasters[best_model]
+                forecaster_best = TimeCopilotForecaster(models=[best_callable_model])
+                fcst_df = forecaster_best.forecast(
+                    df=ctx.deps.df,
+                    h=compare_h,
+                    freq=ctx.deps.freq,
+                )
+                self.fcst_df = fcst_df
+
+                # Format results
+                results = []
+                sorted_models = sorted(
+                    model_scores.keys(), key=lambda x: model_scores[x]
+                )
+                for model_name in sorted_models:
+                    score = model_scores[model_name]
+                    status = " (BEST)" if model_name == best_model else ""
+                    results.append(f"  {model_name}: {score:.4f}{status}")
+
+                return (
+                    f"Model comparison completed with h={compare_h}:\n"
+                    f"MASE Scores (lower is better):\n" + "\n".join(results) + "\n\n"
+                    f"Best model: {best_model} (MASE: {best_score:.4f})\n"
+                    f"Generated forecast using {best_model} with "
+                    f"{len(fcst_df)} points."
+                )
+
+            except Exception as e:
+                return f"Error comparing models: {str(e)}"
 
         @self.query_agent.tool
         async def query_detect_anomalies_tool(
@@ -917,7 +1145,32 @@ class TimeCopilot:
                         )
 
                 # Determine what to plot based on available data and plot_type
-                if plot_type == "anomalies" and hasattr(self, "anomalies_df"):
+                if plot_type == "series" or plot_type == "raw":
+                    # Plot raw time series data
+                    fig = Forecaster.plot(
+                        df=ctx.deps.df,
+                        forecasts_df=None,  # No forecasts, just raw data
+                        engine="matplotlib",
+                        max_ids=10,
+                    )
+
+                    if save_and_display:
+                        plot_file = "timecopilot_series.png"
+                        if fig is not None:
+                            fig.savefig(plot_file, dpi=300, bbox_inches="tight")
+                            plt.close(fig)
+                        else:
+                            plt.savefig(plot_file, dpi=300, bbox_inches="tight")
+                            plt.close()
+                        return try_display_plot(plot_file)
+                    else:
+                        if fig is not None:
+                            plt.show()
+                        else:
+                            plt.show()
+                        return "Raw time series plot generated and displayed."
+
+                elif plot_type == "anomalies" and hasattr(self, "anomalies_df"):
                     # Plot anomaly detection results
                     fig = Forecaster.plot(
                         df=ctx.deps.df,
@@ -1050,12 +1303,14 @@ class TimeCopilot:
                         return (
                             f"Error: Cannot plot '{plot_type}'. "
                             f"Available data: {', '.join(available)}. "
-                            "Try plot_type='forecast', 'anomalies', or 'both'."
+                            "Try plot_type='series', 'forecast', 'anomalies', "
+                            "or 'both'."
                         )
                     else:
                         return (
-                            "Error: No forecast or anomaly data available to plot. "
-                            "Run analysis first."
+                            "No forecast or anomaly data available. "
+                            "You can plot raw series with plot_type='series' "
+                            "or run analysis first."
                         )
 
             except Exception as e:
