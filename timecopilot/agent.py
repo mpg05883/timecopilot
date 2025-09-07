@@ -84,47 +84,91 @@ TSFEATURES: dict[str, Callable] = {
 }
 
 
-class ForecastAgentOutput(BaseModel):
-    """The output of the forecasting agent."""
+class TimeCopilotAgentOutput(BaseModel):
+    """The output of the TimeCopilot agent for any type of analysis."""
 
-    tsfeatures_analysis: str = Field(
+    analysis_type: str = Field(
         description=(
-            "Analysis of what the time series features reveal about the data "
-            "and their implications for forecasting."
+            "The type of analysis performed: 'forecasting', 'anomaly_detection', "
+            "'visualization', or 'combined'"
         )
     )
-    selected_model: str = Field(
-        description="The model that was selected for the forecast"
+
+    # Data understanding (common to all workflows)
+    data_analysis: str = Field(
+        description=(
+            "Analysis of the time series data characteristics, features, and patterns "
+            "relevant to the requested analysis type."
+        )
     )
-    model_details: str = Field(
+
+    # Forecasting-specific fields (optional)
+    selected_model: str | None = Field(
+        default=None,
+        description="The model that was selected (for forecasting workflows)",
+    )
+    model_details: str | None = Field(
+        default=None,
         description=(
             "Technical details about the selected model including its assumptions, "
             "strengths, and typical use cases."
-        )
+        ),
     )
-    model_comparison: str = Field(
+    model_comparison: str | None = Field(
+        default=None,
         description=(
             "Detailed comparison of model performances, explaining why certain "
             "models performed better or worse on this specific time series."
-        )
+        ),
     )
-    is_better_than_seasonal_naive: bool = Field(
-        description="Whether the selected model is better than the seasonal naive model"
+    is_better_than_seasonal_naive: bool | None = Field(
+        default=None,
+        description=(
+            "Whether the selected model is better than the seasonal naive model"
+        ),
     )
-    reason_for_selection: str = Field(
-        description="Explanation for why the selected model was chosen"
-    )
-    forecast_analysis: str = Field(
+    forecast_analysis: str | None = Field(
+        default=None,
         description=(
             "Detailed interpretation of the forecast, including trends, patterns, "
             "and potential problems."
+        ),
+    )
+
+    # Anomaly detection fields (optional)
+    anomaly_analysis: str | None = Field(
+        default=None,
+        description=(
+            "Analysis of detected anomalies, their patterns, potential causes, "
+            "and recommendations for handling them."
+        ),
+    )
+
+    # Visualization fields (optional)
+    visualization_description: str | None = Field(
+        default=None,
+        description=(
+            "Description of generated visualizations and key insights visible "
+            "in the charts."
+        ),
+    )
+
+    # Common fields
+    main_findings: str = Field(
+        description=(
+            "The main findings and insights from the analysis, tailored to "
+            "the specific type of analysis requested."
         )
     )
+    recommendations: str = Field(
+        description=("Actionable recommendations based on the analysis results.")
+    )
     user_query_response: str | None = Field(
+        default=None,
         description=(
             "The response to the user's query, if any. "
             "If the user did not provide a query, this field will be None."
-        )
+        ),
     )
 
     def prettify(
@@ -133,18 +177,38 @@ class ForecastAgentOutput(BaseModel):
         features_df: pd.DataFrame | None = None,
         eval_df: pd.DataFrame | None = None,
         fcst_df: pd.DataFrame | None = None,
+        anomalies_df: pd.DataFrame | None = None,
     ) -> None:
-        """Pretty print the forecast results using rich formatting."""
+        """Pretty print the analysis results using rich formatting."""
         console = console or Console()
 
-        # Create header with title and overview
+        # Create header based on analysis type
+        if self.analysis_type == "forecasting":
+            title = "TimeCopilot Forecast Analysis"
+            model_info = (
+                f"[bold cyan]{self.selected_model}[/bold cyan] forecast analysis"
+            )
+            if self.is_better_than_seasonal_naive is not None:
+                model_info += (
+                    f"\n[{'green' if self.is_better_than_seasonal_naive else 'red'}]"
+                )
+                is_better = self.is_better_than_seasonal_naive
+                better_text = "✓ Better" if is_better else "✗ Not better"
+                color = "green" if self.is_better_than_seasonal_naive else "red"
+                model_info += f"{better_text} than Seasonal Naive[/{color}]"
+        elif self.analysis_type == "anomaly_detection":
+            title = "TimeCopilot Anomaly Detection"
+            model_info = "[bold red]🚨 Anomaly Detection Analysis[/bold red]"
+        elif self.analysis_type == "visualization":
+            title = "TimeCopilot Visualization"
+            model_info = "[bold green]📊 Data Visualization[/bold green]"
+        else:  # combined
+            title = "TimeCopilot Analysis"
+            model_info = "[bold purple]🔍 Combined Analysis[/bold purple]"
+
         header = Panel(
-            f"[bold cyan]{self.selected_model}[/bold cyan] forecast analysis\n"
-            f"[{'green' if self.is_better_than_seasonal_naive else 'red'}]"
-            f"{'✓ Better' if self.is_better_than_seasonal_naive else '✗ Not better'} "
-            "than Seasonal Naive[/"
-            f"{'green' if self.is_better_than_seasonal_naive else 'red'}]",
-            title="[bold blue]TimeCopilot Forecast[/bold blue]",
+            model_info,
+            title=f"[bold blue]{title}[/bold blue]",
             style="blue",
         )
 
@@ -168,18 +232,47 @@ class ForecastAgentOutput(BaseModel):
             ts_features.add_row("Features", "Available in analysis text below")
 
         ts_analysis = Panel(
-            f"{self.tsfeatures_analysis}",
-            title="[bold cyan]Feature Analysis[/bold cyan]",
+            f"{self.data_analysis}",
+            title="[bold cyan]Data Analysis[/bold cyan]",
             style="blue",
         )
 
-        # Model Selection Section
-        model_details = Panel(
-            f"[bold]Technical Details[/bold]\n{self.model_details}\n\n"
-            f"[bold]Selection Rationale[/bold]\n{self.reason_for_selection}",
-            title="[bold green]Model Information[/bold green]",
-            style="green",
-        )
+        # Analysis-specific sections
+        analysis_sections = []
+
+        # Forecasting sections
+        if self.analysis_type in ["forecasting", "combined"] and self.model_details:
+            model_details = Panel(
+                f"[bold]Technical Details[/bold]\n{self.model_details}\n\n"
+                f"[bold]Model Comparison[/bold]\n{self.model_comparison or 'N/A'}",
+                title="[bold green]Model Information[/bold green]",
+                style="green",
+            )
+            analysis_sections.append(("Model Selection", model_details))
+
+        # Anomaly detection sections
+        if (
+            self.analysis_type in ["anomaly_detection", "combined"]
+            and self.anomaly_analysis
+        ):
+            anomaly_details = Panel(
+                self.anomaly_analysis,
+                title="[bold red]Anomaly Analysis[/bold red]",
+                style="red",
+            )
+            analysis_sections.append(("Anomaly Detection", anomaly_details))
+
+        # Visualization sections
+        if (
+            self.analysis_type in ["visualization", "combined"]
+            and self.visualization_description
+        ):
+            viz_details = Panel(
+                self.visualization_description,
+                title="[bold green]Visualization Details[/bold green]",
+                style="green",
+            )
+            analysis_sections.append(("Visualization", viz_details))
 
         # Model Comparison Table - check if eval_df is available
         model_scores = Table(
@@ -243,9 +336,11 @@ class ForecastAgentOutput(BaseModel):
             # Fallback: show a note that detailed forecast is not available
             forecast_table.add_row("Forecast", "Available in analysis text below")
 
-        forecast_analysis = Panel(
-            self.forecast_analysis,
-            title="[bold magenta]Forecast Analysis[/bold magenta]",
+        # Main findings and recommendations
+        main_findings = Panel(
+            f"[bold]Key Findings[/bold]\n{self.main_findings}\n\n"
+            f"[bold]Recommendations[/bold]\n{self.recommendations}",
+            title="[bold magenta]Analysis Results[/bold magenta]",
             style="magenta",
         )
 
@@ -262,21 +357,34 @@ class ForecastAgentOutput(BaseModel):
         console.print("\n")
         console.print(header)
 
-        console.print("\n[bold]1. Time Series Analysis[/bold]")
+        console.print("\n[bold]1. Data Analysis[/bold]")
         console.print(ts_features)
         console.print(ts_analysis)
 
-        console.print("\n[bold]2. Model Selection[/bold]")
-        console.print(model_details)
-        console.print(model_scores)
-        console.print(model_analysis)
+        # Print analysis-specific sections
+        section_num = 2
+        for section_name, section_panel in analysis_sections:
+            console.print(f"\n[bold]{section_num}. {section_name}[/bold]")
+            console.print(section_panel)
+            section_num += 1
 
-        console.print("\n[bold]3. Forecast Results[/bold]")
-        console.print(forecast_table)
-        console.print(forecast_analysis)
+        # Show performance table only for forecasting
+        if self.analysis_type in ["forecasting", "combined"] and eval_df is not None:
+            console.print(model_scores)
+            console.print(model_analysis)
+
+        # Show forecast table only for forecasting
+        if self.analysis_type in ["forecasting", "combined"] and fcst_df is not None:
+            console.print(f"\n[bold]{section_num}. Results[/bold]")
+            console.print(forecast_table)
+            section_num += 1
+
+        # Always show main findings
+        console.print(f"\n[bold]{section_num}. Summary[/bold]")
+        console.print(main_findings)
 
         if user_response:
-            console.print("\n[bold]4. Additional Information[/bold]")
+            console.print(f"\n[bold]{section_num + 1}. Additional Information[/bold]")
             console.print(user_response)
 
         console.print("\n")
@@ -322,7 +430,71 @@ def _transform_fcst_to_text(fcst_df: pd.DataFrame) -> str:
     return output
 
 
+def _transform_anomalies_to_text(anomalies_df: pd.DataFrame) -> str:
+    """Transform anomaly detection results to text for the agent."""
+    # Get anomaly columns
+    anomaly_cols = [col for col in anomalies_df.columns if col.endswith("-anomaly")]
+
+    if not anomaly_cols:
+        return "No anomaly detection results available."
+
+    # Count anomalies per series
+    anomaly_summary = {}
+    for unique_id in anomalies_df["unique_id"].unique():
+        series_data = anomalies_df[anomalies_df["unique_id"] == unique_id]
+        series_summary = {}
+
+        for anomaly_col in anomaly_cols:
+            if anomaly_col in series_data.columns:
+                anomaly_count = series_data[anomaly_col].sum()
+                total_points = len(series_data)
+                anomaly_rate = (
+                    (anomaly_count / total_points) * 100 if total_points > 0 else 0
+                )
+
+                # Get timestamps of anomalies
+                anomalies = series_data[series_data[anomaly_col]]
+                anomaly_dates = (
+                    anomalies["ds"].dt.strftime("%Y-%m-%d").tolist()
+                    if len(anomalies) > 0
+                    else []
+                )
+
+                series_summary[anomaly_col] = {
+                    "count": int(anomaly_count),
+                    "rate_percent": round(anomaly_rate, 2),
+                    "dates": anomaly_dates[:10],  # Limit to first 10
+                    "total_points": int(total_points),
+                }
+
+        anomaly_summary[unique_id] = series_summary
+
+    output = (
+        "these are the anomaly detection results in json format where the key is the "
+        "identifier of the time series and the values contain anomaly statistics "
+        "including count, rate, and timestamps of detected anomalies. "
+        f"{anomaly_summary}"
+    )
+    return output
+
+
 class TimeCopilot:
+    """
+    TimeCopilot: An AI agent for comprehensive time series analysis.
+
+    Supports multiple analysis workflows:
+    - Forecasting: Predict future values
+    - Anomaly Detection: Identify outliers and unusual patterns
+    - Visualization: Generate plots and charts
+    - Combined: Multiple analysis types together
+    """
+
+    # Tool organization by workflow
+    FORECASTING_TOOLS = ["tsfeatures_tool", "cross_validation_tool", "forecast_tool"]
+    ANOMALY_TOOLS = ["tsfeatures_tool", "detect_anomalies_tool"]
+    VISUALIZATION_TOOLS = ["plot_tool"]
+    SHARED_TOOLS = ["tsfeatures_tool"]  # Used across multiple workflows
+
     def __init__(
         self,
         llm: str,
@@ -343,69 +515,162 @@ class TimeCopilot:
         if "SeasonalNaive" not in self.forecasters:
             self.forecasters["SeasonalNaive"] = SeasonalNaive()
         self.system_prompt = f"""
-        You're a forecasting expert. You will be given a time series 
-        as a list of numbers
-        and your task is to determine the best forecasting model for that series. 
-        You have access to the following tools:
+        You are TimeCopilot, a time series analysis expert. You will be given time 
+        series data and your task is to provide comprehensive analysis based on the 
+        user's request.
 
-        1. tsfeatures_tool: Calculates time series features to help 
-        with model selection.
-        Available features are: {", ".join(TSFEATURES.keys())}
+        ## TASK IDENTIFICATION:
+        First, carefully analyze the user query to identify the primary task type:
 
-        2. cross_validation_tool: Performs cross-validation for one or more models.
-        Takes a list of model names and returns their cross-validation results.
-        Available models are: {", ".join(self.forecasters.keys())}
+        🔍 FORECASTING KEYWORDS: "forecast", "predict", "future", "projection", 
+           "ahead", "next", "coming"
+        🚨 ANOMALY DETECTION KEYWORDS: "anomaly", "anomalies", "outlier", "outliers", 
+           "unusual", "abnormal", "irregular", "detect", "find"
+        📊 VISUALIZATION KEYWORDS: "plot", "chart", "graph", "visualize", "show", 
+           "display", "draw"
+        🔄 COMBINED KEYWORDS: Multiple types mentioned (e.g., "forecast and detect 
+           anomalies")
 
-        3. forecast_tool: Generates forecasts using a selected model.
-        Takes a model name and returns forecasted values.
+        ## AVAILABLE TOOLS:
+        You have access to these specialized tools organized by workflow:
 
-        You MUST complete all three steps and use all three tools in order:
+        ### FORECASTING TOOLS:
+        1. tsfeatures_tool: Calculate time series characteristics for model selection
+           Available features: {", ".join(TSFEATURES.keys())}
+        2. cross_validation_tool: Evaluate model performance across time windows
+           Available models: {", ".join(self.forecasters.keys())}
+        3. forecast_tool: Generate predictions using selected model
 
-        1. Time Series Feature Analysis (REQUIRED - use tsfeatures_tool):
-           - ALWAYS call tsfeatures_tool first with a focused set of key features
-           - Calculate time series features to identify characteristics (trend, 
-                seasonality, stationarity, etc.)
-           - Use these insights to guide efficient model selection
-           - Focus on features that directly inform model choice
+        ### ANOMALY DETECTION TOOLS:
+        1. tsfeatures_tool: Understand data patterns for anomaly context
+        2. detect_anomalies_tool: Identify outliers using statistical methods
 
-        2. Model Selection and Evaluation (REQUIRED - use cross_validation_tool):
-           - ALWAYS call cross_validation_tool with multiple models
-           - Start with simple models that can potentially beat seasonal naive
-           - Select additional candidate models based on the time series 
-                values and features
-           - Document each model's technical details and assumptions
-           - Explain why these models are suitable for the identified features
-           - Compare models quantitatively and qualitatively against seasonal naive
-           - If initial models don't beat seasonal naive, try more complex models
-           - Prioritize finding a model that outperforms seasonal naive benchmark
-           - Balance model complexity with forecast accuracy
+        ### VISUALIZATION TOOLS:
+        1. plot_tool: Create charts and graphs (types: 'forecast', 'anomalies', 'both')
 
-        3. Final Model Selection and Forecasting (REQUIRED - use forecast_tool):
-           - Choose the best performing model with clear justification
-           - ALWAYS call forecast_tool with the selected model
-           - Generate the forecast using just the selected model
-           - Interpret trends and patterns in the forecast
-           - Discuss reliability and potential uncertainties
-           - Address any specific aspects from the user's prompt
+        ## WORKFLOW EXECUTION:
+        Based on your task identification, execute the appropriate workflow:
+
+        ### A) 🔍 FORECASTING WORKFLOW
+        **Trigger**: User wants predictions, future values, or forecasts
+        **Tools**: tsfeatures_tool → cross_validation_tool → forecast_tool
+        **Steps**:
+        1. **Data Understanding** (REQUIRED - tsfeatures_tool):
+           ✓ Call tsfeatures_tool with key features: ["stl_features", "acf_features", 
+             "seasonality", "trend"]
+           ✓ Identify seasonality, trend, stationarity, and complexity patterns
+           ✓ Use insights to guide model selection strategy
+
+        2. **Model Evaluation** (REQUIRED - cross_validation_tool):
+           ✓ Test multiple models based on data characteristics
+           ✓ Start with simple models (SeasonalNaive, AutoETS, AutoARIMA)
+           ✓ Add complex models if simple ones fail to beat SeasonalNaive
+           ✓ Compare performance using MASE metric
+           ✓ Document why each model is suitable for the data
+
+        3. **Final Forecasting** (REQUIRED - forecast_tool):
+           ✓ Select best-performing model with clear justification
+           ✓ Generate forecast with selected model only
+           ✓ Interpret trends, seasonality, and forecast reliability
+           ✓ Address user-specific questions about the forecast
+
+        ### B) 🚨 ANOMALY DETECTION WORKFLOW  
+        **Trigger**: User wants to find outliers, anomalies, or unusual patterns
+        **Tools**: tsfeatures_tool → detect_anomalies_tool
+        **Steps**:
+        1. **Pattern Analysis** (RECOMMENDED - tsfeatures_tool):
+           ✓ Focus on variability features: ["stability", "lumpiness", "entropy"]
+           ✓ Understand normal patterns to identify what's anomalous
+           ✓ Consider seasonality for context-aware anomaly detection
+
+        2. **Anomaly Detection** (REQUIRED - detect_anomalies_tool):
+           ✓ Choose appropriate model (SeasonalNaive for seasonal data, AutoARIMA 
+             for complex patterns)
+           ✓ Set confidence level (95% typical, 99% for stricter detection)
+           ✓ Analyze detected anomalies and their timing
+           ✓ Explain statistical basis for anomaly identification
+
+        3. **Anomaly Interpretation**:
+           ✓ Describe patterns in detected anomalies
+           ✓ Discuss potential causes (seasonal effects, external events)
+           ✓ Provide actionable recommendations for handling anomalies
+
+        ### C) 📊 VISUALIZATION WORKFLOW
+        **Trigger**: User wants plots, charts, graphs, or visual analysis
+        **Tools**: plot_tool (+ data generation tools if needed)
+        **Steps**:
+        1. **Visualization Planning**:
+           ✓ Determine what data needs to be visualized
+           ✓ Choose appropriate plot type based on request
+           ✓ Identify if additional analysis is needed first
+
+        2. **Data Generation** (if needed):
+           ✓ Use forecast_tool if forecast visualization is requested
+           ✓ Use detect_anomalies_tool if anomaly visualization is requested
+           ✓ Ensure all required data is available for plotting
+
+        3. **Plot Creation** (REQUIRED - plot_tool):
+           ✓ Generate appropriate visualizations with plot_tool
+           ✓ Include relevant models and highlight key insights
+           ✓ Explain what the visualizations reveal about the data
+
+        ### D) 🔄 COMBINED WORKFLOWS
+        **Trigger**: Multiple analysis types requested (e.g., "forecast and detect 
+        anomalies")
+        **Strategy**: Execute multiple workflows and integrate results
+        **Steps**:
+        1. **Workflow Identification**: Identify all requested analysis types
+        2. **Sequential Execution**: Run each workflow with shared context
+        3. **Result Integration**: Combine insights from all analyses
+        4. **Unified Visualization**: Use plot_tool with 'both' type if appropriate
 
         The evaluation will use MASE (Mean Absolute Scaled Error) by default.
         Use at least one cross-validation window for evaluation.
         The seasonality will be inferred from the date column.
 
-        Your output must include:
-        - Comprehensive feature analysis with clear implications
-        - Detailed model comparison and selection rationale
-        - Technical details of the selected model
-        - Clear interpretation of cross-validation results
-        - Analysis of the forecast and its implications
-        - Response to any user queries
+        ## OUTPUT REQUIREMENTS:
+        Your response must be structured based on the identified workflow:
 
-        Focus on providing:
-        - Clear connections between features and model choices
-        - Technical accuracy with accessible explanations
-        - Quantitative support for decisions
-        - Practical implications of the forecast
-        - Thorough responses to user concerns
+        ### 🔍 FOR FORECASTING WORKFLOW:
+        ✓ **Data Analysis**: Time series characteristics and feature insights
+        ✓ **Model Comparison**: Quantitative performance comparison with rationale
+        ✓ **Selected Model**: Technical details and why it was chosen
+        ✓ **Forecast Results**: Clear interpretation of predictions and trends
+        ✓ **Reliability Assessment**: Confidence intervals and uncertainty discussion
+
+        ### 🚨 FOR ANOMALY DETECTION WORKFLOW:
+        ✓ **Pattern Context**: Normal data characteristics for anomaly context
+        ✓ **Detection Results**: Number, timing, and severity of anomalies
+        ✓ **Statistical Basis**: Confidence levels and detection methodology
+        ✓ **Anomaly Analysis**: What makes these points unusual
+        ✓ **Actionable Insights**: Recommendations for handling detected anomalies
+
+        ### 📊 FOR VISUALIZATION WORKFLOW:
+        ✓ **Plot Description**: What visualizations were generated
+        ✓ **Visual Insights**: Key patterns and trends visible in charts
+        ✓ **Data Story**: What the visualizations reveal about the time series
+        ✓ **Interpretation Guide**: How to read and understand the plots
+
+        ### 🔄 FOR COMBINED WORKFLOWS:
+        ✓ **Integrated Analysis**: How different analyses complement each other
+        ✓ **Cross-Workflow Insights**: Connections between forecasts, anomalies, 
+          and visualizations
+        ✓ **Unified Recommendations**: Comprehensive advice based on all analyses
+
+        ### 📋 UNIVERSAL REQUIREMENTS (ALL WORKFLOWS):
+        ✓ **User Query Response**: Direct answer to specific user questions
+        ✓ **Technical Accuracy**: Correct methodology with accessible explanations
+        ✓ **Quantitative Support**: Numbers and metrics backing up conclusions
+        ✓ **Actionable Recommendations**: Practical next steps for the user
+
+        ## CRITICAL INSTRUCTIONS:
+        🎯 **Task Matching**: Execute ONLY the workflow that matches the user's request
+        🚫 **No Workflow Forcing**: Don't run forecasting if user only wants 
+           anomaly detection
+        🔄 **Context Preservation**: Use shared insights across tools within the 
+           same workflow
+        📊 **Analysis Type Setting**: Always set the correct analysis_type in 
+           your output
         """
 
         if "model" in kwargs:
@@ -417,7 +682,7 @@ class TimeCopilot:
 
         self.forecasting_agent = Agent(
             deps_type=ExperimentDataset,
-            output_type=ForecastAgentOutput,
+            output_type=TimeCopilotAgentOutput,
             system_prompt=self.system_prompt,
             model=self.llm,
             **kwargs,
@@ -433,17 +698,29 @@ class TimeCopilot:
           Each value in eval_df represents the MASE score for a model.
         - features_df: Extracted time series features for each series, such as trend, 
           seasonality, autocorrelation, and more.
+        - anomalies_df: Anomaly detection results (if available), including timestamps,
+          actual values, predictions, and anomaly flags.
 
         When the user asks a follow-up question, use these dataframes to provide 
         detailed, data-driven answers. Reference specific values, trends, or metrics 
         from the dataframes as needed. If the user asks about model performance, use 
-        eval_df and explain that the metric is MASE. For questions about the forecast, 
+        eval_df and explain that the metric is MASE. For questions about the 
+        forecast, 
         use fcst_df. For questions about the characteristics of the time series, use 
-        features_df.
+        features_df. For questions about anomalies or unusual patterns, use 
+        anomalies_df.
+
+        You can also help users understand:
+        - Future trends and predictions
+        - Model reliability and confidence
+        - Seasonal patterns and cycles
+        - Anomalous behavior and outliers
+        - Comparative model performance
+        - Data quality and characteristics
 
         Always explain your reasoning and cite the relevant data when answering. If a 
         question cannot be answered with the available data, politely explain the 
-        limitation.
+        limitation and suggest what additional analysis might be helpful.
         """
 
         self.query_agent = Agent(
@@ -458,21 +735,26 @@ class TimeCopilot:
         self.fcst_df: pd.DataFrame
         self.eval_df: pd.DataFrame
         self.features_df: pd.DataFrame
+        self.anomalies_df: pd.DataFrame
         self.eval_forecasters: list[str]
 
         @self.query_agent.system_prompt
         async def add_experiment_info(
             ctx: RunContext[ExperimentDataset],
         ) -> str:
-            output = "\n".join(
-                [
-                    _transform_time_series_to_text(ctx.deps.df),
-                    _transform_features_to_text(self.features_df),
-                    _transform_eval_to_text(self.eval_df, self.eval_forecasters),
-                    _transform_fcst_to_text(self.fcst_df),
-                ]
-            )
-            return output
+            output_parts = [
+                _transform_time_series_to_text(ctx.deps.df),
+                _transform_features_to_text(self.features_df),
+                _transform_eval_to_text(self.eval_df, self.eval_forecasters),
+                _transform_fcst_to_text(self.fcst_df),
+            ]
+
+            # Add anomaly data if available
+            if hasattr(self, "anomalies_df") and self.anomalies_df is not None:
+                anomaly_text = _transform_anomalies_to_text(self.anomalies_df)
+                output_parts.append(anomaly_text)
+
+            return "\n".join(output_parts)
 
         @self.forecasting_agent.system_prompt
         async def add_time_series(
@@ -553,19 +835,253 @@ class TimeCopilot:
             self.fcst_df = fcst_df
             return _transform_fcst_to_text(fcst_df)
 
-        @self.forecasting_agent.output_validator
-        async def validate_best_model(
+        @self.forecasting_agent.tool
+        async def detect_anomalies_tool(
             ctx: RunContext[ExperimentDataset],
-            output: ForecastAgentOutput,
-        ) -> ForecastAgentOutput:
-            if not output.is_better_than_seasonal_naive:
-                raise ModelRetry(
-                    "The selected model is not better than the seasonal naive model. "
-                    "Please try again with a different model."
-                    "The cross-validation results are: "
-                    f"{output.model_comparison}"
-                )
+            model: str,
+            level: int = 95,
+        ) -> str:
+            """
+            Detect anomalies in the time series using the specified model.
+
+            Args:
+                model: The model to use for anomaly detection
+                level: Confidence level for anomaly detection (default: 95)
+            """
+            callable_model = self.forecasters[model]
+            anomalies_df = callable_model.detect_anomalies(
+                df=ctx.deps.df,
+                freq=ctx.deps.freq,
+                level=level,
+            )
+            self.anomalies_df = anomalies_df
+
+            # Transform to text for the agent
+            anomaly_count = anomalies_df[f"{model}-anomaly"].sum()
+            total_points = len(anomalies_df)
+            anomaly_rate = (
+                (anomaly_count / total_points) * 100 if total_points > 0 else 0
+            )
+
+            output = (
+                f"Anomaly detection completed using {model} model. "
+                f"Found {anomaly_count} anomalies out of {total_points} data points "
+                f"({anomaly_rate:.1f}% anomaly rate) at {level}% confidence level. "
+                f"Anomalies are flagged in the '{model}-anomaly' column."
+            )
+
+            if anomaly_count > 0:
+                # Add details about detected anomalies
+                anomalies = anomalies_df[anomalies_df[f"{model}-anomaly"]]
+                timestamps = list(anomalies["ds"].dt.strftime("%Y-%m-%d").head(10))
+                output += f" Anomalies detected at timestamps: {timestamps}"
+                if len(anomalies) > 10:
+                    output += f" and {len(anomalies) - 10} more."
+
             return output
+
+        @self.forecasting_agent.tool
+        async def plot_tool(
+            ctx: RunContext[ExperimentDataset],
+            plot_type: str = "forecast",
+            models: list[str] | None = None,
+        ) -> str:
+            """
+            Generate plots for the time series data and results.
+
+            Args:
+                plot_type: Type of plot ('forecast', 'anomalies', 'both')
+                models: List of models to include in the plot
+            """
+            try:
+                from timecopilot.models.utils.forecaster import Forecaster
+
+                # Determine what to plot based on available data
+                if plot_type == "forecast" and hasattr(self, "fcst_df"):
+                    # Plot forecast results
+                    if models is None:
+                        # Use all available models in forecast
+                        model_cols = [
+                            col
+                            for col in self.fcst_df.columns
+                            if col not in ["unique_id", "ds"] and "-" not in col
+                        ]
+                        models = model_cols
+
+                    Forecaster.plot(
+                        df=ctx.deps.df,
+                        forecasts_df=self.fcst_df,
+                        models=models,
+                        max_ids=5,
+                        engine="matplotlib",
+                    )
+                    return f"Generated forecast plot for models: {', '.join(models)}"
+
+                elif plot_type == "anomalies" and hasattr(self, "anomalies_df"):
+                    # Plot anomaly detection results
+                    Forecaster.plot(
+                        df=None,  # Will be inferred from anomalies_df
+                        forecasts_df=self.anomalies_df,
+                        plot_anomalies=True,
+                        max_ids=5,
+                        engine="matplotlib",
+                    )
+                    return "Generated anomaly detection plot"
+
+                elif plot_type == "both":
+                    # Plot both if available
+                    plots_generated = []
+
+                    if hasattr(self, "fcst_df"):
+                        Forecaster.plot(
+                            df=ctx.deps.df,
+                            forecasts_df=self.fcst_df,
+                            max_ids=5,
+                            engine="matplotlib",
+                        )
+                        plots_generated.append("forecast")
+
+                    if hasattr(self, "anomalies_df"):
+                        Forecaster.plot(
+                            df=None,
+                            forecasts_df=self.anomalies_df,
+                            plot_anomalies=True,
+                            max_ids=5,
+                            engine="matplotlib",
+                        )
+                        plots_generated.append("anomalies")
+
+                    if plots_generated:
+                        return f"Generated plots for: {', '.join(plots_generated)}"
+                    else:
+                        return (
+                            "No data available for plotting. Please run forecast "
+                            "or anomaly detection first."
+                        )
+
+                else:
+                    return (
+                        f"Cannot generate {plot_type} plot. Required data not "
+                        "available. Please run the appropriate analysis first."
+                    )
+
+            except Exception as e:
+                return f"Error generating plot: {str(e)}"
+
+        @self.forecasting_agent.output_validator
+        async def validate_analysis_output(
+            ctx: RunContext[ExperimentDataset],
+            output: TimeCopilotAgentOutput,
+        ) -> TimeCopilotAgentOutput:
+            """Workflow-specific validation based on analysis type."""
+
+            if output.analysis_type == "forecasting":
+                return self._validate_forecasting_output(output)
+            elif output.analysis_type == "anomaly_detection":
+                return self._validate_anomaly_output(output)
+            elif output.analysis_type == "visualization":
+                return self._validate_visualization_output(output)
+            elif output.analysis_type == "combined":
+                return self._validate_combined_output(output)
+            else:
+                valid_types = (
+                    "'forecasting', 'anomaly_detection', 'visualization', 'combined'"
+                )
+                raise ModelRetry(
+                    f"Unknown analysis_type: {output.analysis_type}. "
+                    f"Must be one of: {valid_types}"
+                )
+
+    def _validate_forecasting_output(
+        self, output: TimeCopilotAgentOutput
+    ) -> TimeCopilotAgentOutput:
+        """Validate forecasting workflow output."""
+        # Check required forecasting fields
+        if not output.selected_model:
+            raise ModelRetry("Forecasting workflow must specify a selected_model.")
+
+        if not output.model_details:
+            raise ModelRetry("Forecasting workflow must provide model_details.")
+
+        if not output.forecast_analysis:
+            raise ModelRetry("Forecasting workflow must provide forecast_analysis.")
+
+        # Check model performance requirement
+        if (
+            output.is_better_than_seasonal_naive is not None
+            and not output.is_better_than_seasonal_naive
+        ):
+            raise ModelRetry(
+                "The selected model is not better than the seasonal naive model. "
+                "Please try again with a different model. "
+                f"Cross-validation results: {output.model_comparison}"
+            )
+
+        return output
+
+    def _validate_anomaly_output(
+        self, output: TimeCopilotAgentOutput
+    ) -> TimeCopilotAgentOutput:
+        """Validate anomaly detection workflow output."""
+        if not output.anomaly_analysis:
+            raise ModelRetry(
+                "Anomaly detection workflow must provide anomaly_analysis."
+            )
+
+        # Check that anomaly-specific insights are provided
+        if "anomal" not in output.main_findings.lower():
+            raise ModelRetry(
+                "Anomaly detection workflow must include anomaly insights in "
+                "main_findings."
+            )
+
+        return output
+
+    def _validate_visualization_output(
+        self, output: TimeCopilotAgentOutput
+    ) -> TimeCopilotAgentOutput:
+        """Validate visualization workflow output."""
+        if not output.visualization_description:
+            raise ModelRetry(
+                "Visualization workflow must provide visualization_description."
+            )
+
+        # Check that visualization insights are provided
+        if not any(
+            word in output.main_findings.lower()
+            for word in ["plot", "chart", "graph", "visual"]
+        ):
+            raise ModelRetry(
+                "Visualization workflow must include visualization insights in "
+                "main_findings."
+            )
+
+        return output
+
+    def _validate_combined_output(
+        self, output: TimeCopilotAgentOutput
+    ) -> TimeCopilotAgentOutput:
+        """Validate combined workflow output."""
+        # Count how many workflow types are actually present
+        workflow_count = 0
+
+        if output.selected_model and output.forecast_analysis:
+            workflow_count += 1
+
+        if output.anomaly_analysis:
+            workflow_count += 1
+
+        if output.visualization_description:
+            workflow_count += 1
+
+        if workflow_count < 2:
+            raise ModelRetry(
+                "Combined workflow must include results from at least 2 different "
+                f"analysis types. Currently only {workflow_count} workflow type(s) "
+                "detected."
+            )
+
+        return output
 
     def is_queryable(self) -> bool:
         """
@@ -584,15 +1100,22 @@ class TimeCopilot:
             ]
         )
 
-    def forecast(
+    def analyze(
         self,
         df: pd.DataFrame | str | Path,
         h: int | None = None,
         freq: str | None = None,
         seasonality: int | None = None,
         query: str | None = None,
-    ) -> AgentRunResult[ForecastAgentOutput]:
-        """Generate forecast and analysis.
+    ) -> AgentRunResult[TimeCopilotAgentOutput]:
+        """Analyze time series data with forecasting, anomaly detection, or
+        visualization.
+
+        This method can handle multiple types of analysis based on the query:
+        - Forecasting: Generate predictions for future periods
+        - Anomaly Detection: Identify outliers and unusual patterns
+        - Visualization: Create plots and charts
+        - Combined: Multiple analysis types together
 
         Args:
             df: The time-series data. Can be one of:
@@ -612,11 +1135,16 @@ class TimeCopilot:
             query: Optional natural-language prompt that will be shown to the
                 agent. You can embed `freq`, `h` or `seasonality` here in
                 plain English, they take precedence over the keyword
-                arguments.
+                arguments. Examples:
+                - "forecast next 12 months"
+                - "detect anomalies with 95% confidence"
+                - "plot the time series data"
+                - "forecast and detect anomalies"
 
         Returns:
             A result object whose `output` attribute is a fully
-                populated [`ForecastAgentOutput`][timecopilot.agent.ForecastAgentOutput]
+                populated [`TimeCopilotAgentOutput`][timecopilot.agent.
+                TimeCopilotAgentOutput]
                 instance. Use `result.output` to access typed fields or
                 `result.output.prettify()` to print a nicely formatted
                 report.
@@ -641,10 +1169,56 @@ class TimeCopilot:
         result.features_df = self.features_df
         return result
 
+    def forecast(
+        self,
+        df: pd.DataFrame | str | Path,
+        h: int | None = None,
+        freq: str | None = None,
+        seasonality: int | None = None,
+        query: str | None = None,
+    ) -> AgentRunResult[TimeCopilotAgentOutput]:
+        """Generate forecast and analysis.
+
+        .. deprecated:: 0.1.0
+            Use :meth:`analyze` instead. This method is kept for backwards
+            compatibility.
+
+        Args:
+            df: The time-series data. Can be one of:
+                - a *pandas* `DataFrame` with at least the columns
+                  `["unique_id", "ds", "y"]`.
+                - a file path or URL pointing to a CSV / Parquet file with the
+                  same columns (it will be read automatically).
+            h: Forecast horizon. Number of future periods to predict. If
+                `None` (default), TimeCopilot will try to infer it from
+                `query` or, as a last resort, default to `2 * seasonality`.
+            freq: Pandas frequency string (e.g. `"H"`, `"D"`, `"MS"`).
+                `None` (default), lets TimeCopilot infer it from the data or
+                the query. See [pandas frequency documentation](https://pandas.pydata.org/docs/user_guide/timeseries.html#offset-aliases).
+            seasonality: Length of the dominant seasonal cycle (expressed in
+                `freq` periods). `None` (default), asks TimeCopilot to infer it via
+                [`get_seasonality`][timecopilot.models.utils.forecaster.get_seasonality].
+            query: Optional natural-language prompt that will be shown to the
+                agent. You can embed `freq`, `h` or `seasonality` here in
+                plain English, they take precedence over the keyword
+                arguments.
+
+        Returns:
+            A result object whose `output` attribute is a fully
+                populated [`TimeCopilotAgentOutput`][timecopilot.agent.
+                TimeCopilotAgentOutput]
+                instance. Use `result.output` to access typed fields or
+                `result.output.prettify()` to print a nicely formatted
+                report.
+        """
+        # Delegate to the new analyze method
+        return self.analyze(df=df, h=h, freq=freq, seasonality=seasonality, query=query)
+
     def _maybe_raise_if_not_queryable(self):
         if not self.is_queryable():
             raise ValueError(
-                "The class is not queryable. Please forecast first using `forecast`."
+                "The class is not queryable. Please run analysis first using "
+                "`analyze()` or `forecast()`."
             )
 
     def query(
@@ -708,26 +1282,32 @@ class AsyncTimeCopilot(TimeCopilot):
         """
         super().__init__(**kwargs)
 
-    async def forecast(
+    async def analyze(
         self,
         df: pd.DataFrame | str | Path,
         h: int | None = None,
         freq: str | None = None,
         seasonality: int | None = None,
         query: str | None = None,
-    ) -> AgentRunResult[ForecastAgentOutput]:
+    ) -> AgentRunResult[TimeCopilotAgentOutput]:
         """
-        Asynchronously generate forecast and analysis for the provided
-        time series data.
+        Asynchronously analyze time series data with forecasting, anomaly detection,
+        or visualization.
+
+        This method can handle multiple types of analysis based on the query:
+        - Forecasting: Generate predictions for future periods
+        - Anomaly Detection: Identify outliers and unusual patterns
+        - Visualization: Create plots and charts
+        - Combined: Multiple analysis types together
 
         Args:
             df: The time-series data. Can be one of:
                 - a *pandas* `DataFrame` with at least the columns
                   `["unique_id", "ds", "y"]`.
-                - You must always work with time series data with the columns ds (date)
-                  and y (target value), if these are missing, attempt to infer them
-                  from similar column names or, if unsure, request clarification
-                  from the user.
+                - You must always work with time series data with the columns
+                  ds (date) and y (target value), if these are missing, attempt to
+                  infer them from similar column names or, if unsure, request
+                  clarification from the user.
                 - a file path or URL pointing to a CSV / Parquet file with the
                   same columns (it will be read automatically).
             h: Forecast horizon. Number of future periods to predict. If
@@ -742,11 +1322,16 @@ class AsyncTimeCopilot(TimeCopilot):
             query: Optional natural-language prompt that will be shown to the
                 agent. You can embed `freq`, `h` or `seasonality` here in
                 plain English, they take precedence over the keyword
-                arguments.
+                arguments. Examples:
+                - "forecast next 12 months"
+                - "detect anomalies with 95% confidence"
+                - "plot the time series data"
+                - "forecast and detect anomalies"
 
         Returns:
             A result object whose `output` attribute is a fully
-                populated [`ForecastAgentOutput`][timecopilot.agent.ForecastAgentOutput]
+                populated [`TimeCopilotAgentOutput`][timecopilot.agent.
+                TimeCopilotAgentOutput]
                 instance. Use `result.output` to access typed fields or
                 `result.output.prettify()` to print a nicely formatted
                 report.
@@ -770,6 +1355,59 @@ class AsyncTimeCopilot(TimeCopilot):
         result.eval_df = self.eval_df
         result.features_df = self.features_df
         return result
+
+    async def forecast(
+        self,
+        df: pd.DataFrame | str | Path,
+        h: int | None = None,
+        freq: str | None = None,
+        seasonality: int | None = None,
+        query: str | None = None,
+    ) -> AgentRunResult[TimeCopilotAgentOutput]:
+        """
+        Asynchronously generate forecast and analysis for the provided
+        time series data.
+
+        .. deprecated:: 0.1.0
+            Use :meth:`analyze` instead. This method is kept for backwards
+            compatibility.
+
+        Args:
+            df: The time-series data. Can be one of:
+                - a *pandas* `DataFrame` with at least the columns
+                  `["unique_id", "ds", "y"]`.
+                - You must always work with time series data with the columns
+                  ds (date) and y (target value), if these are missing, attempt to
+                  infer them from similar column names or, if unsure, request
+                  clarification from the user.
+                - a file path or URL pointing to a CSV / Parquet file with the
+                  same columns (it will be read automatically).
+            h: Forecast horizon. Number of future periods to predict. If
+                `None` (default), TimeCopilot will try to infer it from
+                `query` or, as a last resort, default to `2 * seasonality`.
+            freq: Pandas frequency string (e.g. `"H"`, `"D"`, `"MS"`).
+                `None` (default), lets TimeCopilot infer it from the data or
+                the query. See [pandas frequency documentation](https://pandas.pydata.org/docs/user_guide/timeseries.html#offset-aliases).
+            seasonality: Length of the dominant seasonal cycle (expressed in
+                `freq` periods). `None` (default), asks TimeCopilot to infer it via
+                [`get_seasonality`][timecopilot.models.utils.forecaster.get_seasonality].
+            query: Optional natural-language prompt that will be shown to the
+                agent. You can embed `freq`, `h` or `seasonality` here in
+                plain English, they take precedence over the keyword
+                arguments.
+
+        Returns:
+            A result object whose `output` attribute is a fully
+                populated [`TimeCopilotAgentOutput`][timecopilot.agent.
+                TimeCopilotAgentOutput]
+                instance. Use `result.output` to access typed fields or
+                `result.output.prettify()` to print a nicely formatted
+                report.
+        """
+        # Delegate to the new analyze method
+        return await self.analyze(
+            df=df, h=h, freq=freq, seasonality=seasonality, query=query
+        )
 
     @asynccontextmanager
     async def query_stream(
