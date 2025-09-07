@@ -1,10 +1,11 @@
 from pathlib import Path
 
-import fire
 import logfire
+import typer
 from dotenv import load_dotenv
 from rich.console import Console
 
+from timecopilot._interactive_cli import main as interactive_main
 from timecopilot.agent import TimeCopilot as TimeCopilotAgent
 
 load_dotenv()
@@ -46,8 +47,73 @@ class TimeCopilot:
         )
 
 
+app = typer.Typer(
+    name="timecopilot",
+    help="TimeCopilot - Your GenAI Forecasting Agent",
+    rich_markup_mode="rich",
+    no_args_is_help=False,
+)
+
+
+@app.callback(invoke_without_command=True)
+def main_callback(
+    ctx: typer.Context,
+    llm: str = typer.Option(
+        "openai:gpt-4o-mini", "--llm", "-l", help="LLM to use for the agent"
+    ),
+):
+    """
+    TimeCopilot - Your GenAI Forecasting Agent
+
+    Start an interactive session by running 'timecopilot' with no arguments,
+    or use specific commands for advanced usage.
+    """
+    if ctx.invoked_subcommand is None:
+        import asyncio
+
+        from timecopilot._interactive_cli import InteractiveTimeCopilot
+
+        session = InteractiveTimeCopilot(llm=llm, use_async=True)
+        asyncio.run(session.run_async())
+
+
+@app.command()
+def interactive(
+    llm: str = typer.Option(
+        "openai:gpt-4o-mini", "--llm", "-l", help="LLM to use for the agent"
+    ),
+):
+    """Start interactive TimeCopilot session (explicit command)."""
+    interactive_main()
+
+
+@app.command("forecast")
+def forecast_command(
+    path: str = typer.Argument(..., help="Path to CSV file or URL"),
+    llm: str = typer.Option(
+        "openai:gpt-4o-mini", "--llm", "-l", help="LLM to use for forecasting"
+    ),
+    freq: str = typer.Option(None, "--freq", "-f", help="Data frequency"),
+    h: int = typer.Option(None, "--horizon", "-h", help="Forecast horizon"),
+    seasonality: int = typer.Option(None, "--seasonality", "-s", help="Seasonality"),
+    query: str = typer.Option(None, "--query", "-q", help="Additional query"),
+    retries: int = typer.Option(3, "--retries", "-r", help="Number of retries"),
+):
+    """Generate forecast (legacy one-shot mode)."""
+    tc = TimeCopilot()
+    tc.forecast(
+        path=path,
+        llm=llm,
+        freq=freq,
+        h=h,
+        seasonality=seasonality,
+        query=query,
+        retries=retries,
+    )
+
+
 def main():
-    fire.Fire(TimeCopilot)
+    app()
 
 
 if __name__ == "__main__":
