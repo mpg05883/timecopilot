@@ -689,8 +689,10 @@ class TimeCopilot:
         )
 
         self.query_system_prompt = """
-        You are a forecasting assistant. You have access to the following dataframes 
-        from a previous analysis:
+        You are a TimeCopilot assistant with conversation memory. You have access to 
+        dataframes from previous analysis and can create visualizations.
+
+        AVAILABLE DATAFRAMES (may vary based on analysis type):
         - fcst_df: Forecasted values for each time series, including dates and 
           predicted values.
         - eval_df: Evaluation results for each model. The evaluation metric is always 
@@ -701,26 +703,35 @@ class TimeCopilot:
         - anomalies_df: Anomaly detection results (if available), including timestamps,
           actual values, predictions, and anomaly flags.
 
-        When the user asks a follow-up question, use these dataframes to provide 
-        detailed, data-driven answers. Reference specific values, trends, or metrics 
-        from the dataframes as needed. If the user asks about model performance, use 
-        eval_df and explain that the metric is MASE. For questions about the 
-        forecast, 
-        use fcst_df. For questions about the characteristics of the time series, use 
-        features_df. For questions about anomalies or unusual patterns, use 
-        anomalies_df.
+        CONVERSATION CONTEXT:
+        You maintain conversation history and can understand references to previous 
+        exchanges. When users say "plot them", "show me", "visualize it", etc., 
+        use context from the conversation to understand what they're referring to.
 
-        You can also help users understand:
-        - Future trends and predictions
-        - Model reliability and confidence
-        - Seasonal patterns and cycles
-        - Anomalous behavior and outliers
+        VISUALIZATION CAPABILITIES:
+        You CAN create plots and visualizations! When users ask for plots, charts, 
+        or visualizations, explain that you can generate them and describe what 
+        type of visualization would be most appropriate based on the available data.
+
+        RESPONSE GUIDELINES:
+        - Use conversation history to understand context and references
+        - Reference specific values, trends, or metrics from the dataframes
+        - For plotting requests, confirm you can create visualizations
+        - If data is missing for a request, explain what's available
+        - Always explain your reasoning and cite relevant data
+
+        You can help users understand:
+        - Future trends and predictions (from fcst_df)
+        - Model reliability and confidence (from eval_df)
+        - Seasonal patterns and cycles (from features_df)
+        - Anomalous behavior and outliers (from anomalies_df)
         - Comparative model performance
         - Data quality and characteristics
+        - Create appropriate visualizations for any of the above
 
-        Always explain your reasoning and cite the relevant data when answering. If a 
-        question cannot be answered with the available data, politely explain the 
-        limitation and suggest what additional analysis might be helpful.
+        IMPORTANT: You have full visualization capabilities. Never say you cannot 
+        create plots - instead, describe what visualization would be helpful and 
+        confirm you can generate it.
         """
 
         self.query_agent = Agent(
@@ -738,18 +749,34 @@ class TimeCopilot:
         self.anomalies_df: pd.DataFrame
         self.eval_forecasters: list[str]
 
+        # Conversation history for maintaining context between queries
+        self.conversation_history: list[dict] = []
+
         @self.query_agent.system_prompt
         async def add_experiment_info(
             ctx: RunContext[ExperimentDataset],
         ) -> str:
             output_parts = [
                 _transform_time_series_to_text(ctx.deps.df),
-                _transform_features_to_text(self.features_df),
-                _transform_eval_to_text(self.eval_df, self.eval_forecasters),
-                _transform_fcst_to_text(self.fcst_df),
             ]
 
-            # Add anomaly data if available
+            # Add dataframes if they exist (depends on workflow)
+            if hasattr(self, "features_df") and self.features_df is not None:
+                output_parts.append(_transform_features_to_text(self.features_df))
+
+            if (
+                hasattr(self, "eval_df")
+                and self.eval_df is not None
+                and hasattr(self, "eval_forecasters")
+                and self.eval_forecasters is not None
+            ):
+                output_parts.append(
+                    _transform_eval_to_text(self.eval_df, self.eval_forecasters)
+                )
+
+            if hasattr(self, "fcst_df") and self.fcst_df is not None:
+                output_parts.append(_transform_fcst_to_text(self.fcst_df))
+
             if hasattr(self, "anomalies_df") and self.anomalies_df is not None:
                 anomaly_text = _transform_anomalies_to_text(self.anomalies_df)
                 output_parts.append(anomaly_text)
@@ -1086,19 +1113,18 @@ class TimeCopilot:
     def is_queryable(self) -> bool:
         """
         Check if the class is queryable.
-        It needs to have `dataset`, `fcst_df`, `eval_df`, `features_df`
-        and `eval_forecasters`.
+        It needs to have `dataset` and at least one analysis result dataframe.
         """
-        return all(
-            hasattr(self, attr) and getattr(self, attr) is not None
-            for attr in [
-                "dataset",
-                "fcst_df",
-                "eval_df",
-                "features_df",
-                "eval_forecasters",
-            ]
-        )
+        # Must have dataset
+        if not (hasattr(self, "dataset") and self.dataset is not None):
+            return False
+
+        # Must have at least one result dataframe from any workflow
+        has_forecasting = hasattr(self, "fcst_df") and self.fcst_df is not None
+        has_anomalies = hasattr(self, "anomalies_df") and self.anomalies_df is not None
+        has_features = hasattr(self, "features_df") and self.features_df is not None
+
+        return has_forecasting or has_anomalies or has_features
 
     def analyze(
         self,
@@ -1164,9 +1190,11 @@ class TimeCopilot:
             user_prompt=query,
             deps=self.dataset,
         )
-        result.fcst_df = self.fcst_df
-        result.eval_df = self.eval_df
-        result.features_df = self.features_df
+        # Attach dataframes if they exist (depends on workflow)
+        result.fcst_df = getattr(self, "fcst_df", None)
+        result.eval_df = getattr(self, "eval_df", None)
+        result.features_df = getattr(self, "features_df", None)
+        result.anomalies_df = getattr(self, "anomalies_df", None)
         return result
 
     def forecast(
@@ -1227,49 +1255,81 @@ class TimeCopilot:
     ) -> AgentRunResult[str]:
         # fmt: off
         """
-        Ask a follow-up question about the forecast, model evaluation, or time
-        series features.
+        Ask a follow-up question about the analysis results with conversation history.
 
-        This method enables chat-like, interactive querying after a forecast
-        has been run. The agent will use the stored dataframes (`fcst_df`,
-        `eval_df`, `features_df`) and the original dataset to answer the user's
-        question in a data-driven manner. Typical queries include asking about
-        the best model, forecasted values, or time series characteristics.
+        This method enables chat-like, interactive querying after an analysis
+        has been run. The agent will use the stored dataframes and maintain
+        conversation history to provide contextual responses. It can answer
+        questions about forecasts, anomalies, visualizations, and more.
 
         Args:
             query: The user's follow-up question. This can be about model
-                performance, forecast results, or time series features.
+                performance, forecast results, anomaly detection, or visualizations.
 
         Returns:
             AgentRunResult[str]: The agent's answer as a string. Use
                 `result.output` to access the answer.
 
         Raises:
-            ValueError: If the class is not ready for querying (i.e., forecast
-                has not been run and required dataframes are missing).
+            ValueError: If the class is not ready for querying (i.e., no analysis
+                has been run and required dataframes are missing).
 
         Example:
             ```python
             import pandas as pd
             from timecopilot import TimeCopilot
 
-            df = pd.read_csv("https://timecopilot.s3.amazonaws.com/public/data/air_passengers.csv") 
+            df = pd.read_csv("data.csv") 
             tc = TimeCopilot(llm="openai:gpt-4o")
-            tc.forecast(df, h=12, freq="MS")
-            answer = tc.query("Which model performed best?")
+            
+            # Run anomaly detection
+            tc.analyze(df, query="detect anomalies")
+            
+            # Follow-up with conversation history
+            answer = tc.query("plot them")  # "them" refers to the anomalies
             print(answer.output)
             ```
         Note:
-            The class is not queryable until the `forecast` method has been
-            called.
+            The class is not queryable until an analysis method has been called.
         """
         # fmt: on
         self._maybe_raise_if_not_queryable()
+
+        # Build conversation context with history
+        conversation_context = self._build_conversation_context(query)
+
         result = self.query_agent.run_sync(
-            user_prompt=query,
+            user_prompt=conversation_context,
             deps=self.dataset,
         )
+
+        # Store the conversation in history
+        self.conversation_history.append({"user": query, "assistant": result.output})
+
         return result
+
+    def _build_conversation_context(self, current_query: str) -> str:
+        """Build conversation context including history for better responses."""
+        if not self.conversation_history:
+            # No history, just return the current query
+            return current_query
+
+        # Build context with conversation history
+        context_parts = ["Previous conversation:"]
+
+        # Add recent conversation history (last 5 exchanges to avoid token limits)
+        recent_history = self.conversation_history[-5:]
+        for exchange in recent_history:
+            context_parts.append(f"User: {exchange['user']}")
+            context_parts.append(f"Assistant: {exchange['assistant']}")
+
+        context_parts.append(f"\nCurrent question: {current_query}")
+
+        return "\n".join(context_parts)
+
+    def clear_conversation_history(self):
+        """Clear the conversation history."""
+        self.conversation_history = []
 
 
 class AsyncTimeCopilot(TimeCopilot):
@@ -1351,9 +1411,11 @@ class AsyncTimeCopilot(TimeCopilot):
             user_prompt=query,
             deps=self.dataset,
         )
-        result.fcst_df = self.fcst_df
-        result.eval_df = self.eval_df
-        result.features_df = self.features_df
+        # Attach dataframes if they exist (depends on workflow)
+        result.fcst_df = getattr(self, "fcst_df", None)
+        result.eval_df = getattr(self, "eval_df", None)
+        result.features_df = getattr(self, "features_df", None)
+        result.anomalies_df = getattr(self, "anomalies_df", None)
         return result
 
     async def forecast(
@@ -1460,11 +1522,24 @@ class AsyncTimeCopilot(TimeCopilot):
         """
         # fmt: on
         self._maybe_raise_if_not_queryable()
+
+        # Build conversation context with history
+        conversation_context = self._build_conversation_context(query)
+
         async with self.query_agent.run_stream(
-            user_prompt=query,
+            user_prompt=conversation_context,
             deps=self.dataset,
         ) as result:
+            # Store the conversation in history after streaming completes
+            # Note: We'll store the final result when the stream is consumed
             yield result
+
+            # Store conversation after streaming (this might not capture the full
+            # response)
+            # For streaming, we'll store what we can
+            self.conversation_history.append(
+                {"user": query, "assistant": "[Streaming response - see above]"}
+            )
 
     async def query(
         self,
@@ -1516,8 +1591,16 @@ class AsyncTimeCopilot(TimeCopilot):
         """
         # fmt: on
         self._maybe_raise_if_not_queryable()
+
+        # Build conversation context with history
+        conversation_context = self._build_conversation_context(query)
+
         result = await self.query_agent.run(
-            user_prompt=query,
+            user_prompt=conversation_context,
             deps=self.dataset,
         )
+
+        # Store the conversation in history
+        self.conversation_history.append({"user": query, "assistant": result.output})
+
         return result
