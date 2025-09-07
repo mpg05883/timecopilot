@@ -232,6 +232,9 @@ class TimeCopilotAgentOutput(BaseModel):
         elif self.analysis_type == "visualization":
             title = "TimeCopilot Visualization"
             model_info = "[bold green]Data Visualization[/bold green]"
+        elif self.analysis_type == "data_loading":
+            title = "TimeCopilot Data Loading"
+            model_info = "[bold yellow]Data Loading Complete[/bold yellow]"
         else:  # combined
             title = "TimeCopilot Analysis"
             model_info = "[bold purple]Combined Analysis[/bold purple]"
@@ -552,6 +555,8 @@ class TimeCopilot:
         ## TASK IDENTIFICATION:
         First, carefully analyze the user query to identify the primary task type:
 
+         DATA LOADING KEYWORDS: "load data only", "no analysis needed", "just load", 
+           "data loading", "prepare data"
          FORECASTING KEYWORDS: "forecast", "predict", "future", "projection", 
            "ahead", "next", "coming"
          ANOMALY DETECTION KEYWORDS: "anomaly", "anomalies", "outlier", "outliers", 
@@ -581,7 +586,15 @@ class TimeCopilot:
         ## WORKFLOW EXECUTION:
         Based on your task identification, execute the appropriate workflow:
 
-        ### A) FORECASTING WORKFLOW
+        ### A) DATA LOADING WORKFLOW
+        **Trigger**: User requests "load data only", "no analysis needed", etc.
+        **Tools**: NONE - Just load and return basic data summary
+        **Steps**:
+        1. Load the dataset and provide basic information (shape, columns, date range)
+        2. Do NOT call any analysis tools (tsfeatures, cross_validation, forecast, etc.)
+        3. Return a simple confirmation that data is loaded and ready for queries
+
+        ### B) FORECASTING WORKFLOW
         **Trigger**: User wants predictions, future values, or forecasts
         **Tools**: tsfeatures_tool → cross_validation_tool → forecast_tool
         **Steps**:
@@ -604,7 +617,7 @@ class TimeCopilot:
            - Interpret trends, seasonality, and forecast reliability
            - Address user-specific questions about the forecast
 
-        ### B) ANOMALY DETECTION WORKFLOW  
+        ### C) ANOMALY DETECTION WORKFLOW  
         **Trigger**: User wants to find outliers, anomalies, or unusual patterns
         **Tools**: tsfeatures_tool → detect_anomalies_tool
         **Steps**:
@@ -625,7 +638,7 @@ class TimeCopilot:
            - Discuss potential causes (seasonal effects, external events)
            - Provide actionable recommendations for handling anomalies
 
-        ### C) VISUALIZATION WORKFLOW
+        ### D) VISUALIZATION WORKFLOW
         **Trigger**: User wants plots, charts, graphs, or visual analysis
         **Tools**: plot_tool (+ data generation tools if needed)
         **Steps**:
@@ -644,7 +657,7 @@ class TimeCopilot:
            - Include relevant models and highlight key insights
            - Explain what the visualizations reveal about the data
 
-        ### D) COMBINED WORKFLOWS
+        ### E) COMBINED WORKFLOWS
         **Trigger**: Multiple analysis types requested (e.g., "forecast and detect 
         anomalies")
         **Strategy**: Execute multiple workflows and integrate results
@@ -660,6 +673,13 @@ class TimeCopilot:
 
         ## OUTPUT REQUIREMENTS:
         Your response must be structured based on the identified workflow:
+
+        ### FOR DATA LOADING WORKFLOW:
+        - **Analysis Type**: Must set analysis_type='data_loading'
+        - **Data Summary**: Basic information about the loaded dataset
+        - **Dataset Shape**: Number of rows, columns, and time range
+        - **Ready Status**: Confirmation that data is loaded and ready for analysis
+        - **Next Steps**: Brief mention of available analysis options
 
         ### FOR FORECASTING WORKFLOW:
         - **Data Analysis**: Time series characteristics and feature insights
@@ -695,6 +715,8 @@ class TimeCopilot:
 
         ## CRITICAL INSTRUCTIONS:
         **Task Matching**: Execute ONLY the workflow that matches the user's request
+        **Data Loading Only**: If user requests "load data only" or "no analysis 
+           needed", do NOT call any analysis tools - just provide data summary
         **No Workflow Forcing**: Don't run forecasting if user only wants 
            anomaly detection
         **Context Preservation**: Use shared insights across tools within the 
@@ -741,7 +763,9 @@ class TimeCopilot:
         AVAILABLE TOOLS:
         You have access to these tools to perform actions:
         - query_load_data_tool: Load new datasets from files or URLs
-        - query_plot_tool: Generate and display plots (forecast, anomalies, or both)
+        - query_plot_tool: Generate and display plots (series, forecast, anomalies)
+          * This tool can plot raw data without any analysis
+          * Use plot_type='series' for "plot series", "show data", etc.
         - query_forecast_tool: Generate new forecasts using specified models
         - query_compare_models_tool: Compare multiple models and select the best one
         - query_detect_anomalies_tool: Detect anomalies using specified models
@@ -749,7 +773,12 @@ class TimeCopilot:
 
         TOOL USAGE GUIDELINES:
         - When users mention new files/URLs, USE query_load_data_tool first
-        - When users ask for plots/visualizations, USE query_plot_tool
+        - When users ask for plots/visualizations of EXISTING data, 
+          ONLY USE query_plot_tool
+          * "plot series" → query_plot_tool with plot_type='series'
+          * "plot forecast" → query_plot_tool with plot_type='forecast'  
+          * "plot anomalies" → query_plot_tool with plot_type='anomalies'
+          * DO NOT run analysis tools for simple plot requests
         - When users ask for forecasts, USE query_forecast_tool with the full user query
           to parse parameters like "forecast next 12 steps" or "predict 30 periods"
         - When users ask to compare models, USE query_compare_models_tool
@@ -757,6 +786,10 @@ class TimeCopilot:
         - When users ask about time series characteristics, USE query_tsfeatures_tool
         - Always use tools to perform actions rather than just describing them
         - For forecast requests, pass the user's original query to extract parameters
+        
+        CRITICAL: For simple plot requests like "plot series", "show data", 
+        "visualize", ONLY use query_plot_tool. Do NOT run forecasting or analysis 
+        tools first.
 
         RESPONSE GUIDELINES:
         - Use conversation history to understand context and references
@@ -769,17 +802,37 @@ class TimeCopilot:
         Statistical Models: {", ".join([m.alias for m in STATISTICAL_MODELS])}
         Foundation Models: {", ".join([m.alias for m in FOUNDATION_MODELS])}
         
+        IMPORTANT: Use exact model names as listed above. Common correct names:
+        - "SeasonalNaive" (not "seasonal naive" or "seasonal_naive")
+        - "AutoARIMA" (not "ARIMA" or "auto_arima") 
+        - "AutoETS" (not "ETS" or "auto_ets")
+        - "Chronos" (foundation model)
+        - "TimesFM" (foundation model)
+        
         You can help users:
         - Load new datasets (USE query_load_data_tool)
-        - Generate and display visualizations (USE query_plot_tool)
+        - Generate and display visualizations (USE query_plot_tool ONLY)
+          * Examples: "plot series", "show the data", "visualize", "plot raw data"
+          * These should ONLY call query_plot_tool, nothing else
         - Create new forecasts (USE query_forecast_tool)
         - Compare multiple models (USE query_compare_models_tool)
         - Detect anomalies (USE query_detect_anomalies_tool)
         - Extract time series features (USE query_tsfeatures_tool)
         - Answer questions about existing results (use dataframes)
+        
+        IMPORTANT: Simple visualization requests should be handled with a SINGLE 
+        tool call to query_plot_tool. Do not run multiple analysis tools for basic 
+        plot requests.
 
-        CRITICAL: When users request actions (plot, forecast, detect anomalies), 
-        you MUST use the appropriate tool. Don't just say you will do it - DO IT!
+        CRITICAL RULES:
+        1. When users request actions (plot, forecast, detect anomalies), 
+           you MUST use the appropriate tool. Don't just say you will do it - DO IT!
+        2. For visualization requests like "plot series", "show data", "visualize":
+           - Use ONLY query_plot_tool with plot_type='series'
+           - Do NOT call any other tools (no tsfeatures, no forecasting, no analysis)
+           - One tool call is sufficient for basic plotting
+        3. Only run analysis tools when explicitly asked for analysis, 
+           not for simple plots
         """
 
         self.query_agent = Agent(
@@ -1018,35 +1071,71 @@ class TimeCopilot:
             level: int = 95,
         ) -> str:
             """Detect anomalies in the time series using the specified model."""
-            callable_model = self.forecasters[model]
-            anomalies_df = callable_model.detect_anomalies(
-                df=ctx.deps.df,
-                h=ctx.deps.h,
-                freq=ctx.deps.freq,
-                level=level,
-            )
-            self.anomalies_df = anomalies_df
+            # Validate model name and provide suggestions if invalid
+            if model not in self.forecasters:
+                available_models = list(self.forecasters.keys())
 
-            # Count anomalies
-            anomaly_cols = [
-                col for col in anomalies_df.columns if col.endswith("-anomaly")
-            ]
-            total_anomalies = 0
-            for col in anomaly_cols:
-                total_anomalies += anomalies_df[col].sum()
+                # Try to suggest a similar model
+                model_lower = model.lower().replace(" ", "").replace("_", "")
+                suggestions = []
 
-            return (
-                f"Anomaly detection completed using {model}. "
-                f"Found {total_anomalies} anomalies with {level}% confidence level."
-            )
+                for available in available_models:
+                    available_lower = (
+                        available.lower().replace(" ", "").replace("_", "")
+                    )
+                    if model_lower in available_lower or available_lower in model_lower:
+                        suggestions.append(available)
+
+                if suggestions:
+                    suggestion_text = f"Did you mean: {', '.join(suggestions)}?"
+                else:
+                    suggestion_text = (
+                        f"Available models: {', '.join(available_models[:5])}..."
+                    )
+
+                return f"Error: Model '{model}' not found. {suggestion_text}"
+
+            try:
+                callable_model = self.forecasters[model]
+                anomalies_df = callable_model.detect_anomalies(
+                    df=ctx.deps.df,
+                    h=ctx.deps.h,
+                    freq=ctx.deps.freq,
+                    level=level,
+                )
+                self.anomalies_df = anomalies_df
+
+                # Count anomalies
+                anomaly_cols = [
+                    col for col in anomalies_df.columns if col.endswith("-anomaly")
+                ]
+                total_anomalies = 0
+                for col in anomaly_cols:
+                    total_anomalies += anomalies_df[col].sum()
+
+                return (
+                    f"Anomaly detection completed using {model}. "
+                    f"Found {total_anomalies} anomalies with {level}% confidence level."
+                )
+            except Exception as e:
+                return f"Error during anomaly detection with {model}: {str(e)}"
 
         @self.query_agent.tool
         async def query_plot_tool(
             ctx: RunContext[ExperimentDataset],
-            plot_type: str = "anomalies",
+            plot_type: str = "series",
             models: list[str] | None = None,
         ) -> str:
-            """Generate and display plots for the time series data and results."""
+            """Generate and display plots for the time series data and results.
+
+            Use this tool for ALL plotting requests:
+            - plot_type='series' for raw time series data
+            - plot_type='forecast' for forecast results
+            - plot_type='anomalies' for anomaly detection results
+            - plot_type='both' for combined plots
+
+            This tool is self-sufficient and does not require other analysis tools.
+            """
             try:
                 import os
                 import subprocess
@@ -1471,6 +1560,14 @@ class TimeCopilot:
                 model: The model to use for anomaly detection
                 level: Confidence level for anomaly detection (default: 95)
             """
+            # Validate model name
+            if model not in self.forecasters:
+                available_models = list(self.forecasters.keys())
+                raise ModelRetry(
+                    f"Model '{model}' not available. "
+                    f"Available models: {', '.join(available_models)}"
+                )
+
             callable_model = self.forecasters[model]
             anomalies_df = callable_model.detect_anomalies(
                 df=ctx.deps.df,
@@ -1606,9 +1703,12 @@ class TimeCopilot:
                 return self._validate_visualization_output(output)
             elif output.analysis_type == "combined":
                 return self._validate_combined_output(output)
+            elif output.analysis_type == "data_loading":
+                return self._validate_data_loading_output(output)
             else:
                 valid_types = (
-                    "'forecasting', 'anomaly_detection', 'visualization', 'combined'"
+                    "'forecasting', 'anomaly_detection', 'visualization', "
+                    "'combined', 'data_loading'"
                 )
                 raise ModelRetry(
                     f"Unknown analysis_type: {output.analysis_type}. "
@@ -1681,6 +1781,19 @@ class TimeCopilot:
 
         return output
 
+    def _validate_data_loading_output(
+        self, output: TimeCopilotAgentOutput
+    ) -> TimeCopilotAgentOutput:
+        """Validate data loading workflow output."""
+        # Data loading workflow should be minimal - just basic info
+        # No specific validation required, just ensure it's marked as data_loading
+        if output.analysis_type != "data_loading":
+            raise ModelRetry(
+                "Data loading workflow must have analysis_type='data_loading'."
+            )
+
+        return output
+
     def _validate_combined_output(
         self, output: TimeCopilotAgentOutput
     ) -> TimeCopilotAgentOutput:
@@ -1709,18 +1822,10 @@ class TimeCopilot:
     def is_queryable(self) -> bool:
         """
         Check if the class is queryable.
-        It needs to have `dataset` and at least one analysis result dataframe.
+        It needs to have `dataset` loaded. Analysis results are optional for queries.
         """
-        # Must have dataset
-        if not (hasattr(self, "dataset") and self.dataset is not None):
-            return False
-
-        # Must have at least one result dataframe from any workflow
-        has_forecasting = hasattr(self, "fcst_df") and self.fcst_df is not None
-        has_anomalies = hasattr(self, "anomalies_df") and self.anomalies_df is not None
-        has_features = hasattr(self, "features_df") and self.features_df is not None
-
-        return has_forecasting or has_anomalies or has_features
+        # Must have dataset - sufficient for basic queries like plotting raw data
+        return hasattr(self, "dataset") and self.dataset is not None
 
     def analyze(
         self,
