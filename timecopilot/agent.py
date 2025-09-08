@@ -557,12 +557,30 @@ class TimeCopilot:
         - anomalies_df: Anomaly detection results, including timestamps, actual values, 
           predictions, and anomaly flags.
 
+        You also have access to a plot_tool that can generate visualizations:
+        - plot_tool(plot_type="forecast"): Shows forecast vs actual values
+        - plot_tool(plot_type="series"): Shows the raw time series data  
+        - plot_tool(plot_type="anomalies"): Shows detected anomalies highlighted
+        - plot_tool(plot_type="both"): Shows both forecasts and anomalies in subplots
+        - plot_tool(plot_type="raw"): Alternative to "series" for raw data
+
+        The plot tool automatically handles different environments (tmux, terminal, GUI) 
+        and will save plots and try to display them using available viewers (imgcat, 
+        catimg, system viewer, web browser).
+
         When the user asks a follow-up question, use these dataframes to provide 
         detailed, data-driven answers. Reference specific values, trends, or metrics 
         from the dataframes as needed. If the user asks about model performance, use 
         eval_df and explain that the metric is MASE. For questions about the forecast, 
         use fcst_df. For questions about the characteristics of the time series, use 
         features_df. For questions about anomalies, use anomalies_df.
+
+        When users request plots, visualizations, or want to "see" something, use the 
+        plot_tool with the appropriate plot_type. Common requests include:
+        - "show me the plot", "plot the forecast" -> use plot_tool(plot_type="forecast")
+        - "plot the series", "show the data" -> use plot_tool(plot_type="series")  
+        - "plot the anomalies", "show anomalies" -> use plot_tool(plot_type="anomalies")
+        - "show both", "plot everything" -> use plot_tool(plot_type="both")
 
         Always explain your reasoning and cite the relevant data when answering. If a 
         question cannot be answered with the available data, politely explain the 
@@ -589,6 +607,282 @@ class TimeCopilot:
 
         # Conversation history for maintaining context between queries
         self.conversation_history: list[dict] = []
+
+        @self.query_agent.tool
+        async def plot_tool(
+            ctx: RunContext[ExperimentDataset],
+            plot_type: str = "anomalies",
+            models: list[str] | None = None,
+        ) -> str:
+            """Generate and display plots for the time series data and results."""
+            try:
+                import os
+                import subprocess
+                import sys
+
+                import matplotlib
+                import matplotlib.pyplot as plt
+
+                from timecopilot.models.utils.forecaster import Forecaster
+
+                # Configure matplotlib for different environments
+                in_tmux = bool(os.environ.get("TMUX"))
+                has_display = bool(os.environ.get("DISPLAY"))
+
+                if in_tmux:
+                    # In tmux - we'll save and try to display
+                    matplotlib.use("Agg")
+                    save_and_display = True
+                elif not has_display:
+                    # No display available - save only
+                    matplotlib.use("Agg")
+                    save_and_display = True
+                else:
+                    # Normal environment - try interactive
+                    try:
+                        matplotlib.use("TkAgg")
+                        save_and_display = False
+                    except ImportError:
+                        try:
+                            matplotlib.use("Qt5Agg")
+                            save_and_display = False
+                        except ImportError:
+                            matplotlib.use("Agg")
+                            save_and_display = True
+
+                def try_display_plot(plot_file: str) -> str:
+                    """Try different methods to display plot in tmux/terminal."""
+                    display_methods = []
+
+                    # Method 1: Try to open with system default (macOS/Linux)
+                    try:
+                        if sys.platform == "darwin":  # macOS
+                            subprocess.run(
+                                ["open", plot_file], check=True, capture_output=True
+                            )
+                            display_methods.append("opened with system viewer")
+                        elif sys.platform.startswith("linux"):
+                            subprocess.run(
+                                ["xdg-open", plot_file], check=True, capture_output=True
+                            )
+                            display_methods.append("opened with system viewer")
+                    except (subprocess.CalledProcessError, FileNotFoundError):
+                        pass
+
+                    # Method 2: Try terminal image viewers
+                    terminal_viewers = [
+                        ("imgcat", [plot_file]),  # iTerm2
+                        ("catimg", [plot_file]),  # Terminal image viewer
+                        ("timg", [plot_file]),  # Terminal image viewer
+                        ("chafa", [plot_file]),  # Terminal image viewer
+                    ]
+
+                    for viewer, cmd in terminal_viewers:
+                        try:
+                            if (
+                                subprocess.run(
+                                    ["which", viewer], capture_output=True
+                                ).returncode
+                                == 0
+                            ):
+                                subprocess.run([viewer] + cmd, check=True)
+                                display_methods.append(f"displayed with {viewer}")
+                                break
+                        except (subprocess.CalledProcessError, FileNotFoundError):
+                            continue
+
+                    # Method 3: Try web browser (as fallback)
+                    try:
+                        import webbrowser
+
+                        webbrowser.open(f"file://{os.path.abspath(plot_file)}")
+                        display_methods.append("opened in web browser")
+                    except Exception:
+                        pass
+
+                    if display_methods:
+                        return (
+                            f"Plot saved as '{plot_file}' and "
+                            f"{', '.join(display_methods)}"
+                        )
+                    else:
+                        return (
+                            f"Plot saved as '{plot_file}'. "
+                            "To view: 'open {plot_file}' (macOS) or install "
+                            "imgcat/catimg for terminal viewing"
+                        )
+
+                # Determine what to plot based on available data and plot_type
+                if plot_type == "series" or plot_type == "raw":
+                    # Plot raw time series data
+                    fig = Forecaster.plot(
+                        df=ctx.deps.df,
+                        forecasts_df=None,  # No forecasts, just raw data
+                        engine="matplotlib",
+                        max_ids=10,
+                    )
+
+                    if save_and_display:
+                        plot_file = "timecopilot_series.png"
+                        if fig is not None:
+                            fig.savefig(plot_file, dpi=300, bbox_inches="tight")
+                            plt.close(fig)
+                        else:
+                            plt.savefig(plot_file, dpi=300, bbox_inches="tight")
+                            plt.close()
+                        return try_display_plot(plot_file)
+                    else:
+                        if fig is not None:
+                            plt.show()
+                        else:
+                            plt.show()
+                        return "Raw time series plot generated and displayed."
+
+                elif plot_type == "anomalies" and hasattr(self, "anomalies_df"):
+                    # Plot anomaly detection results
+                    fig = Forecaster.plot(
+                        df=ctx.deps.df,
+                        forecasts_df=self.anomalies_df,
+                        plot_anomalies=True,
+                        engine="matplotlib",
+                        max_ids=5,
+                    )
+
+                    if save_and_display:
+                        plot_file = "timecopilot_anomalies.png"
+                        if fig is not None:
+                            fig.savefig(plot_file, dpi=300, bbox_inches="tight")
+                            plt.close(fig)
+                        else:
+                            plt.savefig(plot_file, dpi=300, bbox_inches="tight")
+                            plt.close()
+                        return try_display_plot(plot_file)
+                    else:
+                        if fig is not None:
+                            plt.show()
+                        else:
+                            plt.show()
+                        return "Anomaly plot generated and displayed."
+
+                elif plot_type == "forecast" and hasattr(self, "fcst_df"):
+                    # Plot forecast results
+                    if models is None:
+                        # Use all available models in forecast
+                        model_cols = [
+                            col
+                            for col in self.fcst_df.columns
+                            if col not in ["unique_id", "ds"] and "-" not in col
+                        ]
+                        models = model_cols
+
+                    fig = Forecaster.plot(
+                        df=ctx.deps.df,
+                        forecasts_df=self.fcst_df,
+                        models=models,
+                        engine="matplotlib",
+                        max_ids=5,
+                    )
+
+                    if save_and_display:
+                        plot_file = "timecopilot_forecast.png"
+                        if fig is not None:
+                            fig.savefig(plot_file, dpi=300, bbox_inches="tight")
+                            plt.close(fig)
+                        else:
+                            plt.savefig(plot_file, dpi=300, bbox_inches="tight")
+                            plt.close()
+                        result_msg = try_display_plot(plot_file)
+                        return f"{result_msg} (models: {', '.join(models)})"
+                    else:
+                        if fig is not None:
+                            plt.show()
+                        else:
+                            plt.show()
+                        return (
+                            f"Forecast plot generated and displayed for models: "
+                            f"{', '.join(models)}."
+                        )
+
+                elif plot_type == "both":
+                    # Plot both forecasts and anomalies if available
+                    if hasattr(self, "fcst_df") and hasattr(self, "anomalies_df"):
+                        # Create subplots for both
+                        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
+
+                        # Plot forecasts
+                        if models is None:
+                            model_cols = [
+                                col
+                                for col in self.fcst_df.columns
+                                if col not in ["unique_id", "ds"] and "-" not in col
+                            ]
+                            models = model_cols
+
+                        # Plot forecasts in first subplot
+                        Forecaster.plot(
+                            df=ctx.deps.df,
+                            forecasts_df=self.fcst_df,
+                            models=models,
+                            engine="matplotlib",
+                            max_ids=3,
+                            ax=ax1,
+                        )
+                        ax1.set_title("Forecasts")
+
+                        # Plot anomalies in second subplot
+                        Forecaster.plot(
+                            df=ctx.deps.df,
+                            forecasts_df=self.anomalies_df,
+                            plot_anomalies=True,
+                            engine="matplotlib",
+                            max_ids=3,
+                            ax=ax2,
+                        )
+                        ax2.set_title("Anomaly Detection")
+
+                        plt.tight_layout()
+
+                        if save_and_display:
+                            plot_file = "timecopilot_combined.png"
+                            fig.savefig(plot_file, dpi=300, bbox_inches="tight")
+                            plt.close(fig)
+                            return try_display_plot(plot_file)
+                        else:
+                            plt.show()
+                            return (
+                                "Combined forecast and anomaly plots "
+                                "generated and displayed."
+                            )
+                    else:
+                        return (
+                            "Error: Need both forecast and anomaly data "
+                            "for 'both' plot type."
+                        )
+
+                else:
+                    # Determine what's available and suggest
+                    available = []
+                    if hasattr(self, "fcst_df"):
+                        available.append("forecasts")
+                    if hasattr(self, "anomalies_df"):
+                        available.append("anomalies")
+
+                    if available:
+                        return (
+                            f"Error: Cannot plot '{plot_type}'. "
+                            f"Available data: {', '.join(available)}. "
+                            "Try plot_type='series', 'forecast', 'anomalies', "
+                            "or 'both'."
+                        )
+                    else:
+                        return (
+                            "No forecast or anomaly data available. "
+                            "You can plot raw series with plot_type='series' "
+                            "or run analysis first."
+                        )
+
+            except Exception as e:
+                return f"Error generating plot: {str(e)}"
 
         @self.query_agent.system_prompt
         async def add_experiment_info(
