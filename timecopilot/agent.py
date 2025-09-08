@@ -114,91 +114,53 @@ TSFEATURES: dict[str, Callable] = {
 }
 
 
-class TimeCopilotAgentOutput(BaseModel):
-    """The output of the TimeCopilot agent for any type of analysis."""
+class ForecastAgentOutput(BaseModel):
+    """The output of the forecasting agent."""
 
-    analysis_type: str = Field(
+    tsfeatures_analysis: str = Field(
         description=(
-            "The type of analysis performed: 'forecasting', 'anomaly_detection', "
-            "'visualization', or 'combined'"
+            "Analysis of what the time series features reveal about the data "
+            "and their implications for forecasting."
         )
     )
-
-    # Data understanding (common to all workflows)
-    data_analysis: str = Field(
-        description=(
-            "Analysis of the time series data characteristics, features, and patterns "
-            "relevant to the requested analysis type."
-        )
+    selected_model: str = Field(
+        description="The model that was selected for the forecast"
     )
-
-    # Forecasting-specific fields (optional)
-    selected_model: str | None = Field(
-        default=None,
-        description="The model that was selected (for forecasting workflows)",
-    )
-    model_details: str | None = Field(
-        default=None,
+    model_details: str = Field(
         description=(
             "Technical details about the selected model including its assumptions, "
             "strengths, and typical use cases."
-        ),
+        )
     )
-    model_comparison: str | None = Field(
-        default=None,
+    model_comparison: str = Field(
         description=(
             "Detailed comparison of model performances, explaining why certain "
             "models performed better or worse on this specific time series."
-        ),
+        )
     )
-    is_better_than_seasonal_naive: bool | None = Field(
-        default=None,
-        description=(
-            "Whether the selected model is better than the seasonal naive model"
-        ),
+    is_better_than_seasonal_naive: bool = Field(
+        description="Whether the selected model is better than the seasonal naive model"
     )
-    forecast_analysis: str | None = Field(
-        default=None,
+    reason_for_selection: str = Field(
+        description="Explanation for why the selected model was chosen"
+    )
+    forecast_analysis: str = Field(
         description=(
             "Detailed interpretation of the forecast, including trends, patterns, "
             "and potential problems."
-        ),
+        )
     )
-
-    # Anomaly detection fields (optional)
-    anomaly_analysis: str | None = Field(
-        default=None,
+    anomaly_analysis: str = Field(
         description=(
             "Analysis of detected anomalies, their patterns, potential causes, "
             "and recommendations for handling them."
-        ),
-    )
-
-    # Visualization fields (optional)
-    visualization_description: str | None = Field(
-        default=None,
-        description=(
-            "Description of generated visualizations and key insights visible "
-            "in the charts."
-        ),
-    )
-
-    # Common fields
-    main_findings: str = Field(
-        description=(
-            "The main findings and insights from the analysis, tailored to "
-            "the specific type of analysis requested."
         )
     )
-    recommendations: str = Field(
-        description=("Actionable recommendations based on the analysis results.")
-    )
     user_query_response: str | None = Field(
-        default=None,
         description=(
             "The response to the user's query, if any. "
             "If the user did not provide a query, this field will be None."
-        ),
+        )
     )
 
     def prettify(
@@ -209,39 +171,17 @@ class TimeCopilotAgentOutput(BaseModel):
         fcst_df: pd.DataFrame | None = None,
         anomalies_df: pd.DataFrame | None = None,
     ) -> None:
-        """Pretty print the analysis results using rich formatting."""
+        """Pretty print the forecast results using rich formatting."""
         console = console or Console()
 
-        # Create header based on analysis type
-        if self.analysis_type == "forecasting":
-            title = "TimeCopilot Forecast Analysis"
-            model_info = (
-                f"[bold cyan]{self.selected_model}[/bold cyan] forecast analysis"
-            )
-            if self.is_better_than_seasonal_naive is not None:
-                model_info += (
-                    f"\n[{'green' if self.is_better_than_seasonal_naive else 'red'}]"
-                )
-                is_better = self.is_better_than_seasonal_naive
-                better_text = "Better" if is_better else "Not better"
-                color = "green" if self.is_better_than_seasonal_naive else "red"
-                model_info += f"{better_text} than Seasonal Naive[/{color}]"
-        elif self.analysis_type == "anomaly_detection":
-            title = "TimeCopilot Anomaly Detection"
-            model_info = "[bold red]Anomaly Detection Analysis[/bold red]"
-        elif self.analysis_type == "visualization":
-            title = "TimeCopilot Visualization"
-            model_info = "[bold green]Data Visualization[/bold green]"
-        elif self.analysis_type == "data_loading":
-            title = "TimeCopilot Data Loading"
-            model_info = "[bold yellow]Data Loading Complete[/bold yellow]"
-        else:  # combined
-            title = "TimeCopilot Analysis"
-            model_info = "[bold purple]Combined Analysis[/bold purple]"
-
+        # Create header with title and overview
         header = Panel(
-            model_info,
-            title=f"[bold blue]{title}[/bold blue]",
+            f"[bold cyan]{self.selected_model}[/bold cyan] forecast analysis\n"
+            f"[{'green' if self.is_better_than_seasonal_naive else 'red'}]"
+            f"{'Better' if self.is_better_than_seasonal_naive else 'Not better'} "
+            "than Seasonal Naive[/"
+            f"{'green' if self.is_better_than_seasonal_naive else 'red'}]",
+            title="[bold blue]TimeCopilot Forecast[/bold blue]",
             style="blue",
         )
 
@@ -265,47 +205,18 @@ class TimeCopilotAgentOutput(BaseModel):
             ts_features.add_row("Features", "Available in analysis text below")
 
         ts_analysis = Panel(
-            f"{self.data_analysis}",
-            title="[bold cyan]Data Analysis[/bold cyan]",
+            f"{self.tsfeatures_analysis}",
+            title="[bold cyan]Feature Analysis[/bold cyan]",
             style="blue",
         )
 
-        # Analysis-specific sections
-        analysis_sections = []
-
-        # Forecasting sections
-        if self.analysis_type in ["forecasting", "combined"] and self.model_details:
-            model_details = Panel(
-                f"[bold]Technical Details[/bold]\n{self.model_details}\n\n"
-                f"[bold]Model Comparison[/bold]\n{self.model_comparison or 'N/A'}",
-                title="[bold green]Model Information[/bold green]",
-                style="green",
-            )
-            analysis_sections.append(("Model Selection", model_details))
-
-        # Anomaly detection sections
-        if (
-            self.analysis_type in ["anomaly_detection", "combined"]
-            and self.anomaly_analysis
-        ):
-            anomaly_details = Panel(
-                self.anomaly_analysis,
-                title="[bold red]Anomaly Analysis[/bold red]",
-                style="red",
-            )
-            analysis_sections.append(("Anomaly Detection", anomaly_details))
-
-        # Visualization sections
-        if (
-            self.analysis_type in ["visualization", "combined"]
-            and self.visualization_description
-        ):
-            viz_details = Panel(
-                self.visualization_description,
-                title="[bold green]Visualization Details[/bold green]",
-                style="green",
-            )
-            analysis_sections.append(("Visualization", viz_details))
+        # Model Selection Section
+        model_details = Panel(
+            f"[bold]Technical Details[/bold]\n{self.model_details}\n\n"
+            f"[bold]Selection Rationale[/bold]\n{self.reason_for_selection}",
+            title="[bold green]Model Information[/bold green]",
+            style="green",
+        )
 
         # Model Comparison Table - check if eval_df is available
         model_scores = Table(
@@ -369,12 +280,17 @@ class TimeCopilotAgentOutput(BaseModel):
             # Fallback: show a note that detailed forecast is not available
             forecast_table.add_row("Forecast", "Available in analysis text below")
 
-        # Main findings and recommendations
-        main_findings = Panel(
-            f"[bold]Key Findings[/bold]\n{self.main_findings}\n\n"
-            f"[bold]Recommendations[/bold]\n{self.recommendations}",
-            title="[bold magenta]Analysis Results[/bold magenta]",
+        forecast_analysis = Panel(
+            self.forecast_analysis,
+            title="[bold magenta]Forecast Analysis[/bold magenta]",
             style="magenta",
+        )
+
+        # Anomaly Detection Section
+        anomaly_analysis = Panel(
+            self.anomaly_analysis,
+            title="[bold red]Anomaly Detection[/bold red]",
+            style="red",
         )
 
         # Optional user response section
@@ -390,34 +306,24 @@ class TimeCopilotAgentOutput(BaseModel):
         console.print("\n")
         console.print(header)
 
-        console.print("\n[bold]1. Data Analysis[/bold]")
+        console.print("\n[bold]1. Time Series Analysis[/bold]")
         console.print(ts_features)
         console.print(ts_analysis)
 
-        # Print analysis-specific sections
-        section_num = 2
-        for section_name, section_panel in analysis_sections:
-            console.print(f"\n[bold]{section_num}. {section_name}[/bold]")
-            console.print(section_panel)
-            section_num += 1
+        console.print("\n[bold]2. Model Selection[/bold]")
+        console.print(model_details)
+        console.print(model_scores)
+        console.print(model_analysis)
 
-        # Show performance table only for forecasting
-        if self.analysis_type in ["forecasting", "combined"] and eval_df is not None:
-            console.print(model_scores)
-            console.print(model_analysis)
+        console.print("\n[bold]3. Forecast Results[/bold]")
+        console.print(forecast_table)
+        console.print(forecast_analysis)
 
-        # Show forecast table only for forecasting
-        if self.analysis_type in ["forecasting", "combined"] and fcst_df is not None:
-            console.print(f"\n[bold]{section_num}. Results[/bold]")
-            console.print(forecast_table)
-            section_num += 1
-
-        # Always show main findings
-        console.print(f"\n[bold]{section_num}. Summary[/bold]")
-        console.print(main_findings)
+        console.print("\n[bold]4. Anomaly Detection[/bold]")
+        console.print(anomaly_analysis)
 
         if user_response:
-            console.print(f"\n[bold]{section_num + 1}. Additional Information[/bold]")
+            console.print("\n[bold]5. Additional Information[/bold]")
             console.print(user_response)
 
         console.print("\n")
@@ -548,181 +454,79 @@ class TimeCopilot:
         if "SeasonalNaive" not in self.forecasters:
             self.forecasters["SeasonalNaive"] = SeasonalNaive()
         self.system_prompt = f"""
-        You are TimeCopilot, a time series analysis expert. You will be given time 
-        series data and your task is to provide comprehensive analysis based on the 
-        user's request.
+        You're a forecasting expert. You will be given a time series 
+        as a list of numbers and your task is to determine the best model for it. 
+        You have access to the following tools:
 
-        ## TASK IDENTIFICATION:
-        First, carefully analyze the user query to identify the primary task type:
+        1. tsfeatures_tool: Calculates time series features to help 
+        with model selection.
+        Available features are: {", ".join(TSFEATURES.keys())}
 
-         DATA LOADING KEYWORDS: "load data only", "no analysis needed", "just load", 
-           "data loading", "prepare data"
-         FORECASTING KEYWORDS: "forecast", "predict", "future", "projection", 
-           "ahead", "next", "coming"
-         ANOMALY DETECTION KEYWORDS: "anomaly", "anomalies", "outlier", "outliers", 
-           "unusual", "abnormal", "irregular", "detect", "find"
-         VISUALIZATION KEYWORDS: "plot", "chart", "graph", "visualize", "show", 
-           "display", "draw"
-         COMBINED KEYWORDS: Multiple types mentioned (e.g., "forecast and detect 
-           anomalies")
+        2. cross_validation_tool: Performs cross-validation for one or more models.
+        Takes a list of model names and returns their cross-validation results.
+        Available models are: {", ".join(self.forecasters.keys())}
 
-        ## AVAILABLE TOOLS:
-        You have access to these specialized tools organized by workflow:
+        3. forecast_tool: Generates forecasts using a selected model.
+        Takes a model name and returns forecasted values.
 
-        ### FORECASTING TOOLS:
-        1. tsfeatures_tool: Calculate time series characteristics for model selection
-           Available features: {", ".join(TSFEATURES.keys())}
-        2. cross_validation_tool: Evaluate model performance across time windows
-           Available models: {", ".join(self.forecasters.keys())}
-        3. forecast_tool: Generate predictions using selected model
+        4. detect_anomalies_tool: Detects anomalies using the best performing model.
+        Takes a model name and confidence level, returns anomaly detection results.
 
-        ### ANOMALY DETECTION TOOLS:
-        1. tsfeatures_tool: Understand data patterns for anomaly context
-        2. detect_anomalies_tool: Identify outliers using statistical methods
+        You MUST complete all four steps and use all four tools in order:
 
-        ### VISUALIZATION TOOLS:
-        1. plot_tool: Create charts and graphs (types: 'forecast', 'anomalies', 'both')
+        1. Time Series Feature Analysis (REQUIRED - use tsfeatures_tool):
+           - ALWAYS call tsfeatures_tool first with a focused set of key features
+           - Calculate time series features to identify characteristics (trend, 
+                seasonality, stationarity, etc.)
+           - Use these insights to guide efficient model selection
+           - Focus on features that directly inform model choice
 
-        ## WORKFLOW EXECUTION:
-        Based on your task identification, execute the appropriate workflow:
+        2. Model Selection and Evaluation (REQUIRED - use cross_validation_tool):
+           - ALWAYS call cross_validation_tool with multiple models
+           - Start with simple models that can potentially beat seasonal naive
+           - Select additional candidate models based on the time series 
+                values and features
+           - Document each model's technical details and assumptions
+           - Explain why these models are suitable for the identified features
+           - Compare models quantitatively and qualitatively against seasonal naive
+           - If initial models don't beat seasonal naive, try more complex models
+           - Prioritize finding a model that outperforms seasonal naive benchmark
+           - Balance model complexity with forecast accuracy
 
-        ### A) DATA LOADING WORKFLOW
-        **Trigger**: User requests "load data only", "no analysis needed", etc.
-        **Tools**: NONE - Just load and return basic data summary
-        **Steps**:
-        1. Load the dataset and provide basic information (shape, columns, date range)
-        2. Do NOT call any analysis tools (tsfeatures, cross_validation, forecast, etc.)
-        3. Return a simple confirmation that data is loaded and ready for queries
+        3. Final Model Selection and Forecasting (REQUIRED - use forecast_tool):
+           - Choose the best performing model with clear justification
+           - ALWAYS call forecast_tool with the selected model
+           - Generate the forecast using just the selected model
+           - Interpret trends and patterns in the forecast
+           - Discuss reliability and potential uncertainties
 
-        ### B) FORECASTING WORKFLOW
-        **Trigger**: User wants predictions, future values, or forecasts
-        **Tools**: tsfeatures_tool → cross_validation_tool → forecast_tool
-        **Steps**:
-        1. **Data Understanding** (REQUIRED - tsfeatures_tool):
-           - Call tsfeatures_tool with key features: ["stl_features", "acf_features", 
-             "seasonality", "trend"]
-           - Identify seasonality, trend, stationarity, and complexity patterns
-           - Use insights to guide model selection strategy
-
-        2. **Model Evaluation** (REQUIRED - cross_validation_tool):
-           - Test multiple models based on data characteristics
-           - Start with simple models (SeasonalNaive, AutoETS, AutoARIMA)
-           - Add complex models if simple ones fail to beat SeasonalNaive
-           - Compare performance using MASE metric
-           - Document why each model is suitable for the data
-
-        3. **Final Forecasting** (REQUIRED - forecast_tool):
-           - Select best-performing model with clear justification
-           - Generate forecast with selected model only
-           - Interpret trends, seasonality, and forecast reliability
-           - Address user-specific questions about the forecast
-
-        ### C) ANOMALY DETECTION WORKFLOW  
-        **Trigger**: User wants to find outliers, anomalies, or unusual patterns
-        **Tools**: tsfeatures_tool → detect_anomalies_tool
-        **Steps**:
-        1. **Pattern Analysis** (RECOMMENDED - tsfeatures_tool):
-           - Focus on variability features: ["stability", "lumpiness", "entropy"]
-           - Understand normal patterns to identify what's anomalous
-           - Consider seasonality for context-aware anomaly detection
-
-        2. **Anomaly Detection** (REQUIRED - detect_anomalies_tool):
-           - Choose appropriate model (SeasonalNaive for seasonal data, AutoARIMA 
-             for complex patterns)
-           - Set confidence level (95% typical, 99% for stricter detection)
-           - Analyze detected anomalies and their timing
-           - Explain statistical basis for anomaly identification
-
-        3. **Anomaly Interpretation**:
-           - Describe patterns in detected anomalies
-           - Discuss potential causes (seasonal effects, external events)
-           - Provide actionable recommendations for handling anomalies
-
-        ### D) VISUALIZATION WORKFLOW
-        **Trigger**: User wants plots, charts, graphs, or visual analysis
-        **Tools**: plot_tool (+ data generation tools if needed)
-        **Steps**:
-        1. **Visualization Planning**:
-           - Determine what data needs to be visualized
-           - Choose appropriate plot type based on request
-           - Identify if additional analysis is needed first
-
-        2. **Data Generation** (if needed):
-           - Use forecast_tool if forecast visualization is requested
-           - Use detect_anomalies_tool if anomaly visualization is requested
-           - Ensure all required data is available for plotting
-
-        3. **Plot Creation** (REQUIRED - plot_tool):
-           - Generate appropriate visualizations with plot_tool
-           - Include relevant models and highlight key insights
-           - Explain what the visualizations reveal about the data
-
-        ### E) COMBINED WORKFLOWS
-        **Trigger**: Multiple analysis types requested (e.g., "forecast and detect 
-        anomalies")
-        **Strategy**: Execute multiple workflows and integrate results
-        **Steps**:
-        1. **Workflow Identification**: Identify all requested analysis types
-        2. **Sequential Execution**: Run each workflow with shared context
-        3. **Result Integration**: Combine insights from all analyses
-        4. **Unified Visualization**: Use plot_tool with 'both' type if appropriate
+        4. Anomaly Detection (REQUIRED - use detect_anomalies_tool):
+           - ALWAYS call detect_anomalies_tool with the best performing model
+           - Use the same model that was selected for forecasting
+           - Apply appropriate confidence level (95% typical, 99% for strict detection)
+           - Analyze detected anomalies and their patterns
+           - Explain how anomalies relate to forecast reliability
+           - Address any specific aspects from the user's prompt
 
         The evaluation will use MASE (Mean Absolute Scaled Error) by default.
         Use at least one cross-validation window for evaluation.
         The seasonality will be inferred from the date column.
 
-        ## OUTPUT REQUIREMENTS:
-        Your response must be structured based on the identified workflow:
+        Your output must include:
+        - Comprehensive feature analysis with clear implications
+        - Detailed model comparison and selection rationale
+        - Technical details of the selected model
+        - Clear interpretation of cross-validation results
+        - Analysis of the forecast and its implications
+        - Comprehensive anomaly detection results and interpretation
+        - Response to any user queries
 
-        ### FOR DATA LOADING WORKFLOW:
-        - **Analysis Type**: Must set analysis_type='data_loading'
-        - **Data Summary**: Basic information about the loaded dataset
-        - **Dataset Shape**: Number of rows, columns, and time range
-        - **Ready Status**: Confirmation that data is loaded and ready for analysis
-        - **Next Steps**: Brief mention of available analysis options
-
-        ### FOR FORECASTING WORKFLOW:
-        - **Data Analysis**: Time series characteristics and feature insights
-        - **Model Comparison**: Quantitative performance comparison with rationale
-        - **Selected Model**: Technical details and why it was chosen
-        - **Forecast Results**: Clear interpretation of predictions and trends
-        - **Reliability Assessment**: Confidence intervals and uncertainty discussion
-
-        ### FOR ANOMALY DETECTION WORKFLOW:
-        - **Pattern Context**: Normal data characteristics for anomaly context
-        - **Detection Results**: Number, timing, and severity of anomalies
-        - **Statistical Basis**: Confidence levels and detection methodology
-        - **Anomaly Analysis**: What makes these points unusual
-        - **Actionable Insights**: Recommendations for handling detected anomalies
-
-        ### FOR VISUALIZATION WORKFLOW:
-        - **Plot Description**: What visualizations were generated
-        - **Visual Insights**: Key patterns and trends visible in charts
-        - **Data Story**: What the visualizations reveal about the time series
-        - **Interpretation Guide**: How to read and understand the plots
-
-        ### FOR COMBINED WORKFLOWS:
-        - **Integrated Analysis**: How different analyses complement each other
-        - **Cross-Workflow Insights**: Connections between forecasts, anomalies, 
-          and visualizations
-        - **Unified Recommendations**: Comprehensive advice based on all analyses
-
-        ### UNIVERSAL REQUIREMENTS (ALL WORKFLOWS):
-        - **User Query Response**: Direct answer to specific user questions
-        - **Technical Accuracy**: Correct methodology with accessible explanations
-        - **Quantitative Support**: Numbers and metrics backing up conclusions
-        - **Actionable Recommendations**: Practical next steps for the user
-
-        ## CRITICAL INSTRUCTIONS:
-        **Task Matching**: Execute ONLY the workflow that matches the user's request
-        **Data Loading Only**: If user requests "load data only" or "no analysis 
-           needed", do NOT call any analysis tools - just provide data summary
-        **No Workflow Forcing**: Don't run forecasting if user only wants 
-           anomaly detection
-        **Context Preservation**: Use shared insights across tools within the 
-           same workflow
-        **Analysis Type Setting**: Always set the correct analysis_type in 
-           your output
+        Focus on providing:
+        - Clear connections between features and model choices
+        - Technical accuracy with accessible explanations
+        - Quantitative support for decisions
+        - Practical implications of both forecasts and anomalies
+        - Thorough responses to user concerns
         """
 
         if "model" in kwargs:
@@ -734,17 +538,15 @@ class TimeCopilot:
 
         self.forecasting_agent = Agent(
             deps_type=ExperimentDataset,
-            output_type=TimeCopilotAgentOutput,
+            output_type=ForecastAgentOutput,
             system_prompt=self.system_prompt,
             model=self.llm,
             **kwargs,
         )
 
         self.query_system_prompt = """
-        You are a TimeCopilot assistant with conversation memory. You have access to 
-        dataframes from previous analysis and can create visualizations.
-
-        AVAILABLE DATAFRAMES (may vary based on analysis type):
+        You are a forecasting assistant. You have access to the following dataframes 
+        from a previous analysis:
         - fcst_df: Forecasted values for each time series, including dates and 
           predicted values.
         - eval_df: Evaluation results for each model. The evaluation metric is always 
@@ -752,91 +554,19 @@ class TimeCopilot:
           Each value in eval_df represents the MASE score for a model.
         - features_df: Extracted time series features for each series, such as trend, 
           seasonality, autocorrelation, and more.
-        - anomalies_df: Anomaly detection results (if available), including timestamps,
-          actual values, predictions, and anomaly flags.
+        - anomalies_df: Anomaly detection results, including timestamps, actual values, 
+          predictions, and anomaly flags.
 
-        CONVERSATION CONTEXT:
-        You maintain conversation history and can understand references to previous 
-        exchanges. When users say "plot them", "show me", "visualize it", etc., 
-        use context from the conversation to understand what they're referring to.
+        When the user asks a follow-up question, use these dataframes to provide 
+        detailed, data-driven answers. Reference specific values, trends, or metrics 
+        from the dataframes as needed. If the user asks about model performance, use 
+        eval_df and explain that the metric is MASE. For questions about the forecast, 
+        use fcst_df. For questions about the characteristics of the time series, use 
+        features_df. For questions about anomalies, use anomalies_df.
 
-        AVAILABLE TOOLS:
-        You have access to these tools to perform actions:
-        - query_load_data_tool: Load new datasets from files or URLs
-        - query_plot_tool: Generate and display plots (series, forecast, anomalies)
-          * This tool can plot raw data without any analysis
-          * Use plot_type='series' for "plot series", "show data", etc.
-        - query_forecast_tool: Generate forecasts using specified models 
-          (cached if parameters unchanged)
-        - query_compare_models_tool: Compare multiple models and select the best one
-        - query_detect_anomalies_tool: Detect anomalies using specified models
-        - query_tsfeatures_tool: Extract time series features
-
-        TOOL USAGE GUIDELINES:
-        - When users mention new files/URLs, USE query_load_data_tool first
-        - When users ask for plots/visualizations of EXISTING data, 
-          ONLY USE query_plot_tool
-          * "plot series" → query_plot_tool with plot_type='series'
-          * "plot forecast" → query_plot_tool with plot_type='forecast'  
-          * "plot anomalies" → query_plot_tool with plot_type='anomalies'
-          * DO NOT run analysis tools for simple plot requests
-        - When users ask for forecasts, USE query_forecast_tool with the full user query
-          to parse parameters like "forecast next 12 steps" or "predict 30 periods"
-          * Forecasts are cached - reuses existing forecast if 
-            model/horizon/frequency unchanged
-          * Only generates new forecast when parameters change
-        - When users ask to compare models, USE query_compare_models_tool
-        - When users ask for anomaly detection, USE query_detect_anomalies_tool
-        - When users ask about time series characteristics, USE query_tsfeatures_tool
-        - Always use tools to perform actions rather than just describing them
-        - For forecast requests, pass the user's original query to extract parameters
-        
-        CRITICAL: For simple plot requests like "plot series", "show data", 
-        "visualize", ONLY use query_plot_tool. Do NOT run forecasting or analysis 
-        tools first.
-
-        RESPONSE GUIDELINES:
-        - Use conversation history to understand context and references
-        - Reference specific values, trends, or metrics from the dataframes
-        - For action requests, USE THE APPROPRIATE TOOL to actually perform the action
-        - Explain what you're doing before using tools
-        - Report results after tool execution
-
-        AVAILABLE MODELS:
-        Statistical Models: {", ".join([m.alias for m in STATISTICAL_MODELS])}
-        Foundation Models: {", ".join([m.alias for m in FOUNDATION_MODELS])}
-        
-        IMPORTANT: Use exact model names as listed above. Common correct names:
-        - "SeasonalNaive" (not "seasonal naive" or "seasonal_naive")
-        - "AutoARIMA" (not "ARIMA" or "auto_arima") 
-        - "AutoETS" (not "ETS" or "auto_ets")
-        - "Chronos" (foundation model)
-        - "TimesFM" (foundation model)
-        
-        You can help users:
-        - Load new datasets (USE query_load_data_tool)
-        - Generate and display visualizations (USE query_plot_tool ONLY)
-          * Examples: "plot series", "show the data", "visualize", "plot raw data"
-          * These should ONLY call query_plot_tool, nothing else
-        - Create new forecasts (USE query_forecast_tool)
-        - Compare multiple models (USE query_compare_models_tool)
-        - Detect anomalies (USE query_detect_anomalies_tool)
-        - Extract time series features (USE query_tsfeatures_tool)
-        - Answer questions about existing results (use dataframes)
-        
-        IMPORTANT: Simple visualization requests should be handled with a SINGLE 
-        tool call to query_plot_tool. Do not run multiple analysis tools for basic 
-        plot requests.
-
-        CRITICAL RULES:
-        1. When users request actions (plot, forecast, detect anomalies), 
-           you MUST use the appropriate tool. Don't just say you will do it - DO IT!
-        2. For visualization requests like "plot series", "show data", "visualize":
-           - Use ONLY query_plot_tool with plot_type='series'
-           - Do NOT call any other tools (no tsfeatures, no forecasting, no analysis)
-           - One tool call is sufficient for basic plotting
-        3. Only run analysis tools when explicitly asked for analysis, 
-           not for simple plots
+        Always explain your reasoning and cite the relevant data when answering. If a 
+        question cannot be answered with the available data, politely explain the 
+        limitation.
         """
 
         self.query_agent = Agent(
@@ -847,9 +577,6 @@ class TimeCopilot:
             **kwargs,
         )
 
-        # Add tools to query agent so it can perform actions, not just talk about them
-        self._add_tools_to_query_agent()
-
         self.dataset: ExperimentDataset
         self.fcst_df: pd.DataFrame
         self.eval_df: pd.DataFrame
@@ -857,654 +584,23 @@ class TimeCopilot:
         self.anomalies_df: pd.DataFrame
         self.eval_forecasters: list[str]
 
-        # Conversation history for maintaining context between queries
-        self.conversation_history: list[dict] = []
-
-    def _add_tools_to_query_agent(self):
-        """Add tools to the query agent so it can perform actions."""
-
-        @self.query_agent.tool
-        async def query_load_data_tool(
-            ctx: RunContext[ExperimentDataset],
-            file_path: str,
-            query: str | None = None,
-        ) -> str:
-            """Load a new dataset from file path or URL."""
-            try:
-                # Parse the new dataset
-                from .utils.experiment_handler import ExperimentDatasetParser
-
-                experiment_parser = ExperimentDatasetParser(model=self.llm)
-
-                # Use existing parameters as defaults, but allow query to override
-                new_dataset = experiment_parser.parse(
-                    df=file_path,
-                    freq=ctx.deps.freq,
-                    h=ctx.deps.h,
-                    seasonality=ctx.deps.seasonality,
-                    query=query,
-                )
-
-                # Update the current dataset
-                self.dataset = new_dataset
-
-                # Clear previous analysis results since we have new data
-                for attr in ["fcst_df", "eval_df", "features_df", "anomalies_df"]:
-                    if hasattr(self, attr):
-                        delattr(self, attr)
-
-                # Clear forecast cache since we have new data
-                if hasattr(self, "_last_forecast_params"):
-                    delattr(self, "_last_forecast_params")
-
-                # Get basic info about the new dataset
-                n_series = len(new_dataset.df["unique_id"].unique())
-                n_points = len(new_dataset.df)
-                ds_min = new_dataset.df["ds"].min()
-                ds_max = new_dataset.df["ds"].max()
-                date_range = f"{ds_min} to {ds_max}"
-
-                return (
-                    f"Successfully loaded new dataset from '{file_path}'. "
-                    f"Dataset contains {n_series} time series with {n_points} "
-                    f"total data points. Date range: {date_range}. "
-                    f"Frequency: {new_dataset.freq}, "
-                    f"Seasonality: {new_dataset.seasonality}, "
-                    f"Forecast horizon: {new_dataset.h}."
-                )
-
-            except Exception as e:
-                return f"Error loading dataset from '{file_path}': {str(e)}"
-
-        @self.query_agent.tool
-        async def query_forecast_tool(
-            ctx: RunContext[ExperimentDataset],
-            model: str,
-            h: int | None = None,
-            query: str | None = None,
-        ) -> str:
-            """Generate forecasts using the specified model."""
-            # Parse parameters from query if provided
-            forecast_h = h or ctx.deps.h
-            forecast_freq = ctx.deps.freq
-
-            if query:
-                # Use the parameter parser to extract h from the query
-                from .utils.experiment_handler import ExperimentDatasetParser
-
-                experiment_parser = ExperimentDatasetParser(model=self.llm)
-                try:
-                    parsed_dataset = experiment_parser.parse(
-                        df=ctx.deps.df,
-                        freq=ctx.deps.freq,
-                        h=h,
-                        seasonality=ctx.deps.seasonality,
-                        query=query,
-                    )
-                    if parsed_dataset.h != ctx.deps.h:
-                        forecast_h = parsed_dataset.h
-                except Exception as e:
-                    print(f"Failed to parse query '{query}': {e}")
-                    pass
-
-            # Check if we can reuse existing forecast
-            if (
-                hasattr(self, "fcst_df")
-                and self.fcst_df is not None
-                and hasattr(self, "_last_forecast_params")
-            ):
-                last_model = self._last_forecast_params.get("model")
-                last_h = self._last_forecast_params.get("h")
-                last_freq = self._last_forecast_params.get("freq")
-
-                if (
-                    last_model == model
-                    and last_h == forecast_h
-                    and last_freq == forecast_freq
-                ):
-                    return (
-                        f"Using existing forecast (model: {model}, "
-                        f"horizon: {forecast_h}). "
-                        f"Generated {len(self.fcst_df)} forecast points."
-                    )
-
-            # Generate new forecast
-            callable_model = self.forecasters[model]
-            forecaster = TimeCopilotForecaster(models=[callable_model])
-            fcst_df = forecaster.forecast(
-                df=ctx.deps.df,
-                h=forecast_h,
-                freq=forecast_freq,
-            )
-            self.fcst_df = fcst_df
-
-            # Store forecast parameters for future comparison
-            self._last_forecast_params = {
-                "model": model,
-                "h": forecast_h,
-                "freq": forecast_freq,
-            }
-
-            return (
-                f"New forecast completed using {model}. "
-                f"Generated {len(fcst_df)} forecast points with h={forecast_h}."
-            )
-
-        @self.query_agent.tool
-        async def query_compare_models_tool(
-            ctx: RunContext[ExperimentDataset],
-            models: list[str],
-            h: int | None = None,
-            query: str | None = None,
-        ) -> str:
-            """Compare multiple models and select the best performing one."""
-            try:
-                # Parse parameters from query if provided
-                compare_h = h or ctx.deps.h
-
-                if query:
-                    # Use the parameter parser to extract h from the query
-                    from .utils.experiment_handler import ExperimentDatasetParser
-
-                    experiment_parser = ExperimentDatasetParser(model=self.llm)
-                    try:
-                        parsed_dataset = experiment_parser.parse(
-                            df=ctx.deps.df,
-                            freq=ctx.deps.freq,
-                            h=h,
-                            seasonality=ctx.deps.seasonality,
-                            query=query,
-                        )
-                        if parsed_dataset.h != ctx.deps.h:
-                            compare_h = parsed_dataset.h
-                    except Exception:
-                        pass  # Use default h
-
-                # Validate models
-                callable_models = []
-                invalid_models = []
-                for model_name in models:
-                    if model_name in self.forecasters:
-                        callable_models.append(self.forecasters[model_name])
-                    else:
-                        invalid_models.append(model_name)
-
-                if invalid_models:
-                    available_models = list(self.forecasters.keys())
-                    return (
-                        f"Error: Invalid models {invalid_models}. "
-                        f"Available models: {', '.join(available_models)}"
-                    )
-
-                if len(callable_models) < 2:
-                    return "Error: Need at least 2 models to compare."
-
-                # Run cross-validation to compare models
-                forecaster = TimeCopilotForecaster(models=callable_models)
-                fcst_cv = forecaster.cross_validation(
-                    df=ctx.deps.df,
-                    h=compare_h,
-                    freq=ctx.deps.freq,
-                )
-
-                # Evaluate models
-                model_aliases = [model.alias for model in callable_models]
-                eval_df = ctx.deps.evaluate_forecast_df(
-                    forecast_df=fcst_cv,
-                    models=model_aliases,
-                )
-                eval_df = eval_df.groupby(["metric"], as_index=False).mean(
-                    numeric_only=True
-                )
-
-                # Store results
-                self.eval_df = eval_df
-                self.eval_forecasters = models
-
-                # Find best model (lowest MASE)
-                model_scores = {}
-                for model_name in models:
-                    if model_name in eval_df.columns:
-                        score = float(eval_df[model_name].iloc[0])
-                        model_scores[model_name] = score
-
-                best_model = min(model_scores.keys(), key=lambda x: model_scores[x])
-                best_score = model_scores[best_model]
-
-                # Generate forecast with best model
-                best_callable_model = self.forecasters[best_model]
-                forecaster_best = TimeCopilotForecaster(models=[best_callable_model])
-                fcst_df = forecaster_best.forecast(
-                    df=ctx.deps.df,
-                    h=compare_h,
-                    freq=ctx.deps.freq,
-                )
-                self.fcst_df = fcst_df
-
-                # Format results
-                results = []
-                sorted_models = sorted(
-                    model_scores.keys(), key=lambda x: model_scores[x]
-                )
-                for model_name in sorted_models:
-                    score = model_scores[model_name]
-                    status = " (BEST)" if model_name == best_model else ""
-                    results.append(f"  {model_name}: {score:.4f}{status}")
-
-                return (
-                    f"Model comparison completed with h={compare_h}:\n"
-                    f"MASE Scores (lower is better):\n" + "\n".join(results) + "\n\n"
-                    f"Best model: {best_model} (MASE: {best_score:.4f})\n"
-                    f"Generated forecast using {best_model} with "
-                    f"{len(fcst_df)} points."
-                )
-
-            except Exception as e:
-                return f"Error comparing models: {str(e)}"
-
-        @self.query_agent.tool
-        async def query_detect_anomalies_tool(
-            ctx: RunContext[ExperimentDataset],
-            model: str,
-            level: int = 95,
-        ) -> str:
-            """Detect anomalies in the time series using the specified model."""
-            # Validate model name and provide suggestions if invalid
-            if model not in self.forecasters:
-                available_models = list(self.forecasters.keys())
-
-                # Try to suggest a similar model
-                model_lower = model.lower().replace(" ", "").replace("_", "")
-                suggestions = []
-
-                for available in available_models:
-                    available_lower = (
-                        available.lower().replace(" ", "").replace("_", "")
-                    )
-                    if model_lower in available_lower or available_lower in model_lower:
-                        suggestions.append(available)
-
-                if suggestions:
-                    suggestion_text = f"Did you mean: {', '.join(suggestions)}?"
-                else:
-                    suggestion_text = (
-                        f"Available models: {', '.join(available_models[:5])}..."
-                    )
-
-                return f"Error: Model '{model}' not found. {suggestion_text}"
-
-            try:
-                callable_model = self.forecasters[model]
-                anomalies_df = callable_model.detect_anomalies(
-                    df=ctx.deps.df,
-                    h=ctx.deps.h,
-                    freq=ctx.deps.freq,
-                    level=level,
-                )
-                self.anomalies_df = anomalies_df
-
-                # Count anomalies
-                anomaly_cols = [
-                    col for col in anomalies_df.columns if col.endswith("-anomaly")
-                ]
-                total_anomalies = 0
-                for col in anomaly_cols:
-                    total_anomalies += anomalies_df[col].sum()
-
-                return (
-                    f"Anomaly detection completed using {model}. "
-                    f"Found {total_anomalies} anomalies with {level}% confidence level."
-                )
-            except Exception as e:
-                return f"Error during anomaly detection with {model}: {str(e)}"
-
-        @self.query_agent.tool
-        async def query_plot_tool(
-            ctx: RunContext[ExperimentDataset],
-            plot_type: str = "series",
-            models: list[str] | None = None,
-        ) -> str:
-            """Generate and display plots for the time series data and results.
-
-            Use this tool for ALL plotting requests:
-            - plot_type='series' for raw time series data
-            - plot_type='forecast' for forecast results
-            - plot_type='anomalies' for anomaly detection results
-            - plot_type='both' for combined plots
-
-            This tool is self-sufficient and does not require other analysis tools.
-            """
-            try:
-                import os
-                import subprocess
-                import sys
-
-                import matplotlib
-                import matplotlib.pyplot as plt
-
-                from timecopilot.models.utils.forecaster import Forecaster
-
-                # Configure matplotlib for different environments
-                in_tmux = bool(os.environ.get("TMUX"))
-                has_display = bool(os.environ.get("DISPLAY"))
-
-                if in_tmux:
-                    # In tmux - we'll save and try to display
-                    matplotlib.use("Agg")
-                    save_and_display = True
-                elif not has_display:
-                    # No display available - save only
-                    matplotlib.use("Agg")
-                    save_and_display = True
-                else:
-                    # Normal environment - try interactive
-                    try:
-                        matplotlib.use("TkAgg")
-                        save_and_display = False
-                    except ImportError:
-                        try:
-                            matplotlib.use("Qt5Agg")
-                            save_and_display = False
-                        except ImportError:
-                            matplotlib.use("Agg")
-                            save_and_display = True
-
-                def try_display_plot(plot_file: str) -> str:
-                    """Try different methods to display plot in tmux/terminal."""
-                    display_methods = []
-
-                    # Method 1: Try to open with system default (macOS/Linux)
-                    try:
-                        if sys.platform == "darwin":  # macOS
-                            subprocess.run(
-                                ["open", plot_file], check=True, capture_output=True
-                            )
-                            display_methods.append("opened with system viewer")
-                        elif sys.platform.startswith("linux"):
-                            subprocess.run(
-                                ["xdg-open", plot_file], check=True, capture_output=True
-                            )
-                            display_methods.append("opened with system viewer")
-                    except (subprocess.CalledProcessError, FileNotFoundError):
-                        pass
-
-                    # Method 2: Try terminal image viewers
-                    terminal_viewers = [
-                        ("imgcat", [plot_file]),  # iTerm2
-                        ("catimg", [plot_file]),  # Terminal image viewer
-                        ("timg", [plot_file]),  # Terminal image viewer
-                        ("chafa", [plot_file]),  # Terminal image viewer
-                    ]
-
-                    for viewer, cmd in terminal_viewers:
-                        try:
-                            if (
-                                subprocess.run(
-                                    ["which", viewer], capture_output=True
-                                ).returncode
-                                == 0
-                            ):
-                                subprocess.run([viewer] + cmd, check=True)
-                                display_methods.append(f"displayed with {viewer}")
-                                break
-                        except (subprocess.CalledProcessError, FileNotFoundError):
-                            continue
-
-                    # Method 3: Try web browser (as fallback)
-                    try:
-                        import webbrowser
-
-                        webbrowser.open(f"file://{os.path.abspath(plot_file)}")
-                        display_methods.append("opened in web browser")
-                    except Exception:
-                        pass
-
-                    if display_methods:
-                        return (
-                            f"Plot saved as '{plot_file}' and "
-                            f"{', '.join(display_methods)}"
-                        )
-                    else:
-                        return (
-                            f"Plot saved as '{plot_file}'. "
-                            "To view: 'open {plot_file}' (macOS) or install "
-                            "imgcat/catimg for terminal viewing"
-                        )
-
-                # Determine what to plot based on available data and plot_type
-                if plot_type == "series" or plot_type == "raw":
-                    # Plot raw time series data
-                    fig = Forecaster.plot(
-                        df=ctx.deps.df,
-                        forecasts_df=None,  # No forecasts, just raw data
-                        engine="matplotlib",
-                        max_ids=10,
-                    )
-
-                    if save_and_display:
-                        plot_file = "timecopilot_series.png"
-                        if fig is not None:
-                            fig.savefig(plot_file, dpi=300, bbox_inches="tight")
-                            plt.close(fig)
-                        else:
-                            plt.savefig(plot_file, dpi=300, bbox_inches="tight")
-                            plt.close()
-                        return try_display_plot(plot_file)
-                    else:
-                        if fig is not None:
-                            plt.show()
-                        else:
-                            plt.show()
-                        return "Raw time series plot generated and displayed."
-
-                elif plot_type == "anomalies" and hasattr(self, "anomalies_df"):
-                    # Plot anomaly detection results
-                    fig = Forecaster.plot(
-                        df=ctx.deps.df,
-                        forecasts_df=self.anomalies_df,
-                        plot_anomalies=True,
-                        engine="matplotlib",
-                        max_ids=5,
-                    )
-
-                    if save_and_display:
-                        plot_file = "timecopilot_anomalies.png"
-                        if fig is not None:
-                            fig.savefig(plot_file, dpi=300, bbox_inches="tight")
-                            plt.close(fig)
-                        else:
-                            plt.savefig(plot_file, dpi=300, bbox_inches="tight")
-                            plt.close()
-                        return try_display_plot(plot_file)
-                    else:
-                        if fig is not None:
-                            plt.show()
-                        else:
-                            plt.show()
-                        return "Anomaly plot generated and displayed."
-
-                elif plot_type == "forecast" and hasattr(self, "fcst_df"):
-                    # Plot forecast results
-                    if models is None:
-                        # Use all available models in forecast
-                        model_cols = [
-                            col
-                            for col in self.fcst_df.columns
-                            if col not in ["unique_id", "ds"] and "-" not in col
-                        ]
-                        models = model_cols
-
-                    fig = Forecaster.plot(
-                        df=ctx.deps.df,
-                        forecasts_df=self.fcst_df,
-                        models=models,
-                        engine="matplotlib",
-                        max_ids=5,
-                    )
-
-                    if save_and_display:
-                        plot_file = "timecopilot_forecast.png"
-                        if fig is not None:
-                            fig.savefig(plot_file, dpi=300, bbox_inches="tight")
-                            plt.close(fig)
-                        else:
-                            plt.savefig(plot_file, dpi=300, bbox_inches="tight")
-                            plt.close()
-                        result_msg = try_display_plot(plot_file)
-                        return f"{result_msg} (models: {', '.join(models)})"
-                    else:
-                        if fig is not None:
-                            plt.show()
-                        else:
-                            plt.show()
-                        return (
-                            f"Forecast plot generated and displayed for models: "
-                            f"{', '.join(models)}."
-                        )
-
-                elif plot_type == "both":
-                    # Plot both forecasts and anomalies if available
-                    if hasattr(self, "fcst_df") and hasattr(self, "anomalies_df"):
-                        # Create subplots for both
-                        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
-
-                        # Plot forecasts
-                        if models is None:
-                            model_cols = [
-                                col
-                                for col in self.fcst_df.columns
-                                if col not in ["unique_id", "ds"] and "-" not in col
-                            ]
-                            models = model_cols
-
-                        # Plot forecasts in first subplot
-                        Forecaster.plot(
-                            df=ctx.deps.df,
-                            forecasts_df=self.fcst_df,
-                            models=models,
-                            engine="matplotlib",
-                            max_ids=3,
-                            ax=ax1,
-                        )
-                        ax1.set_title("Forecasts")
-
-                        # Plot anomalies in second subplot
-                        Forecaster.plot(
-                            df=ctx.deps.df,
-                            forecasts_df=self.anomalies_df,
-                            plot_anomalies=True,
-                            engine="matplotlib",
-                            max_ids=3,
-                            ax=ax2,
-                        )
-                        ax2.set_title("Anomaly Detection")
-
-                        plt.tight_layout()
-
-                        if save_and_display:
-                            plot_file = "timecopilot_combined.png"
-                            fig.savefig(plot_file, dpi=300, bbox_inches="tight")
-                            plt.close(fig)
-                            return try_display_plot(plot_file)
-                        else:
-                            plt.show()
-                            return (
-                                "Combined forecast and anomaly plots "
-                                "generated and displayed."
-                            )
-                    else:
-                        return (
-                            "Error: Need both forecast and anomaly data "
-                            "for 'both' plot type."
-                        )
-
-                else:
-                    # Determine what's available and suggest
-                    available = []
-                    if hasattr(self, "fcst_df"):
-                        available.append("forecasts")
-                    if hasattr(self, "anomalies_df"):
-                        available.append("anomalies")
-
-                    if available:
-                        return (
-                            f"Error: Cannot plot '{plot_type}'. "
-                            f"Available data: {', '.join(available)}. "
-                            "Try plot_type='series', 'forecast', 'anomalies', "
-                            "or 'both'."
-                        )
-                    else:
-                        return (
-                            "No forecast or anomaly data available. "
-                            "You can plot raw series with plot_type='series' "
-                            "or run analysis first."
-                        )
-
-            except Exception as e:
-                return f"Error generating plot: {str(e)}"
-
-        @self.query_agent.tool
-        async def query_tsfeatures_tool(
-            ctx: RunContext[ExperimentDataset],
-            features: list[str],
-        ) -> str:
-            """Extract time series features from the data."""
-            callable_features = []
-            for feature in features:
-                if feature not in TSFEATURES:
-                    return (
-                        f"Error: Feature {feature} is not available. "
-                        f"Available features are: {', '.join(TSFEATURES.keys())}"
-                    )
-                callable_features.append(TSFEATURES[feature])
-
-            features_dfs = []
-            for uid in ctx.deps.df["unique_id"].unique():
-                features_df_uid = _get_feats(
-                    index=uid,
-                    ts=ctx.deps.df,
-                    features=callable_features,
-                    freq=ctx.deps.seasonality,
-                )
-                features_dfs.append(features_df_uid)
-            features_df = pd.concat(features_dfs) if features_dfs else pd.DataFrame()
-            features_df = features_df.rename_axis("unique_id")  # type: ignore
-            self.features_df = features_df
-            return (
-                f"Extracted {len(features)} time series features for "
-                f"{len(ctx.deps.df['unique_id'].unique())} series."
-            )
+        # Cache for checking if parameters changed (for re-running workflow)
+        self._last_forecast_params: dict = {}
 
         @self.query_agent.system_prompt
         async def add_experiment_info(
             ctx: RunContext[ExperimentDataset],
         ) -> str:
-            output_parts = [
-                _transform_time_series_to_text(ctx.deps.df),
-            ]
-
-            # Add dataframes if they exist (depends on workflow)
-            if hasattr(self, "features_df") and self.features_df is not None:
-                output_parts.append(_transform_features_to_text(self.features_df))
-
-            if (
-                hasattr(self, "eval_df")
-                and self.eval_df is not None
-                and hasattr(self, "eval_forecasters")
-                and self.eval_forecasters is not None
-            ):
-                output_parts.append(
-                    _transform_eval_to_text(self.eval_df, self.eval_forecasters)
-                )
-
-            if hasattr(self, "fcst_df") and self.fcst_df is not None:
-                output_parts.append(_transform_fcst_to_text(self.fcst_df))
-
-            if hasattr(self, "anomalies_df") and self.anomalies_df is not None:
-                anomaly_text = _transform_anomalies_to_text(self.anomalies_df)
-                output_parts.append(anomaly_text)
-
-            return "\n".join(output_parts)
+            output = "\n".join(
+                [
+                    _transform_time_series_to_text(ctx.deps.df),
+                    _transform_features_to_text(self.features_df),
+                    _transform_eval_to_text(self.eval_df, self.eval_forecasters),
+                    _transform_fcst_to_text(self.fcst_df),
+                    _transform_anomalies_to_text(self.anomalies_df),
+                ]
+            )
+            return output
 
         @self.forecasting_agent.system_prompt
         async def add_time_series(
@@ -1598,14 +694,6 @@ class TimeCopilot:
                 model: The model to use for anomaly detection
                 level: Confidence level for anomaly detection (default: 95)
             """
-            # Validate model name
-            if model not in self.forecasters:
-                available_models = list(self.forecasters.keys())
-                raise ModelRetry(
-                    f"Model '{model}' not available. "
-                    f"Available models: {', '.join(available_models)}"
-                )
-
             callable_model = self.forecasters[model]
             anomalies_df = callable_model.detect_anomalies(
                 df=ctx.deps.df,
@@ -1638,232 +726,47 @@ class TimeCopilot:
 
             return output
 
-        @self.forecasting_agent.tool
-        async def plot_tool(
-            ctx: RunContext[ExperimentDataset],
-            plot_type: str = "forecast",
-            models: list[str] | None = None,
-        ) -> str:
-            """
-            Generate plots for the time series data and results.
-
-            Args:
-                plot_type: Type of plot ('forecast', 'anomalies', 'both')
-                models: List of models to include in the plot
-            """
-            try:
-                from timecopilot.models.utils.forecaster import Forecaster
-
-                # Determine what to plot based on available data
-                if plot_type == "forecast" and hasattr(self, "fcst_df"):
-                    # Plot forecast results
-                    if models is None:
-                        # Use all available models in forecast
-                        model_cols = [
-                            col
-                            for col in self.fcst_df.columns
-                            if col not in ["unique_id", "ds"] and "-" not in col
-                        ]
-                        models = model_cols
-
-                    Forecaster.plot(
-                        df=ctx.deps.df,
-                        forecasts_df=self.fcst_df,
-                        models=models,
-                        max_ids=5,
-                        engine="matplotlib",
-                    )
-                    return f"Generated forecast plot for models: {', '.join(models)}"
-
-                elif plot_type == "anomalies" and hasattr(self, "anomalies_df"):
-                    # Plot anomaly detection results
-                    Forecaster.plot(
-                        df=None,  # Will be inferred from anomalies_df
-                        forecasts_df=self.anomalies_df,
-                        plot_anomalies=True,
-                        max_ids=5,
-                        engine="matplotlib",
-                    )
-                    return "Generated anomaly detection plot"
-
-                elif plot_type == "both":
-                    # Plot both if available
-                    plots_generated = []
-
-                    if hasattr(self, "fcst_df"):
-                        Forecaster.plot(
-                            df=ctx.deps.df,
-                            forecasts_df=self.fcst_df,
-                            max_ids=5,
-                            engine="matplotlib",
-                        )
-                        plots_generated.append("forecast")
-
-                    if hasattr(self, "anomalies_df"):
-                        Forecaster.plot(
-                            df=None,
-                            forecasts_df=self.anomalies_df,
-                            plot_anomalies=True,
-                            max_ids=5,
-                            engine="matplotlib",
-                        )
-                        plots_generated.append("anomalies")
-
-                    if plots_generated:
-                        return f"Generated plots for: {', '.join(plots_generated)}"
-                    else:
-                        return (
-                            "No data available for plotting. Please run forecast "
-                            "or anomaly detection first."
-                        )
-
-                else:
-                    return (
-                        f"Cannot generate {plot_type} plot. Required data not "
-                        "available. Please run the appropriate analysis first."
-                    )
-
-            except Exception as e:
-                return f"Error generating plot: {str(e)}"
-
         @self.forecasting_agent.output_validator
-        async def validate_analysis_output(
+        async def validate_best_model(
             ctx: RunContext[ExperimentDataset],
-            output: TimeCopilotAgentOutput,
-        ) -> TimeCopilotAgentOutput:
-            """Workflow-specific validation based on analysis type."""
-
-            if output.analysis_type == "forecasting":
-                return self._validate_forecasting_output(output)
-            elif output.analysis_type == "anomaly_detection":
-                return self._validate_anomaly_output(output)
-            elif output.analysis_type == "visualization":
-                return self._validate_visualization_output(output)
-            elif output.analysis_type == "combined":
-                return self._validate_combined_output(output)
-            elif output.analysis_type == "data_loading":
-                return self._validate_data_loading_output(output)
-            else:
-                valid_types = (
-                    "'forecasting', 'anomaly_detection', 'visualization', "
-                    "'combined', 'data_loading'"
-                )
+            output: ForecastAgentOutput,
+        ) -> ForecastAgentOutput:
+            if not output.is_better_than_seasonal_naive:
                 raise ModelRetry(
-                    f"Unknown analysis_type: {output.analysis_type}. "
-                    f"Must be one of: {valid_types}"
+                    "The selected model is not better than the seasonal naive model. "
+                    "Please try again with a different model."
+                    "The cross-validation results are: "
+                    f"{output.model_comparison}"
                 )
+            return output
 
-    def _validate_forecasting_output(
-        self, output: TimeCopilotAgentOutput
-    ) -> TimeCopilotAgentOutput:
-        """Validate forecasting workflow output."""
-        # Check required forecasting fields
-        if not output.selected_model:
-            raise ModelRetry("Forecasting workflow must specify a selected_model.")
+    def _should_rerun_workflow(self, h: int | None, freq: str | None) -> bool:
+        """Check if parameters have changed and workflow should be re-run."""
+        if not self._last_forecast_params:
+            return True  # First run
 
-        if not output.model_details:
-            raise ModelRetry("Forecasting workflow must provide model_details.")
-
-        if not output.forecast_analysis:
-            raise ModelRetry("Forecasting workflow must provide forecast_analysis.")
-
-        # Check model performance requirement
-        if (
-            output.is_better_than_seasonal_naive is not None
-            and not output.is_better_than_seasonal_naive
-        ):
-            raise ModelRetry(
-                "The selected model is not better than the seasonal naive model. "
-                "Please try again with a different model. "
-                f"Cross-validation results: {output.model_comparison}"
-            )
-
-        return output
-
-    def _validate_anomaly_output(
-        self, output: TimeCopilotAgentOutput
-    ) -> TimeCopilotAgentOutput:
-        """Validate anomaly detection workflow output."""
-        if not output.anomaly_analysis:
-            raise ModelRetry(
-                "Anomaly detection workflow must provide anomaly_analysis."
-            )
-
-        # Check that anomaly-specific insights are provided
-        if "anomal" not in output.main_findings.lower():
-            raise ModelRetry(
-                "Anomaly detection workflow must include anomaly insights in "
-                "main_findings."
-            )
-
-        return output
-
-    def _validate_visualization_output(
-        self, output: TimeCopilotAgentOutput
-    ) -> TimeCopilotAgentOutput:
-        """Validate visualization workflow output."""
-        if not output.visualization_description:
-            raise ModelRetry(
-                "Visualization workflow must provide visualization_description."
-            )
-
-        # Check that visualization insights are provided
-        if not any(
-            word in output.main_findings.lower()
-            for word in ["plot", "chart", "graph", "visual"]
-        ):
-            raise ModelRetry(
-                "Visualization workflow must include visualization insights in "
-                "main_findings."
-            )
-
-        return output
-
-    def _validate_data_loading_output(
-        self, output: TimeCopilotAgentOutput
-    ) -> TimeCopilotAgentOutput:
-        """Validate data loading workflow output."""
-        # Data loading workflow should be minimal - just basic info
-        # No specific validation required, just ensure it's marked as data_loading
-        if output.analysis_type != "data_loading":
-            raise ModelRetry(
-                "Data loading workflow must have analysis_type='data_loading'."
-            )
-
-        return output
-
-    def _validate_combined_output(
-        self, output: TimeCopilotAgentOutput
-    ) -> TimeCopilotAgentOutput:
-        """Validate combined workflow output."""
-        # Count how many workflow types are actually present
-        workflow_count = 0
-
-        if output.selected_model and output.forecast_analysis:
-            workflow_count += 1
-
-        if output.anomaly_analysis:
-            workflow_count += 1
-
-        if output.visualization_description:
-            workflow_count += 1
-
-        if workflow_count < 2:
-            raise ModelRetry(
-                "Combined workflow must include results from at least 2 different "
-                f"analysis types. Currently only {workflow_count} workflow type(s) "
-                "detected."
-            )
-
-        return output
+        return (
+            self._last_forecast_params.get("h") != h
+            or self._last_forecast_params.get("freq") != freq
+        )
 
     def is_queryable(self) -> bool:
         """
         Check if the class is queryable.
-        It needs to have `dataset` loaded. Analysis results are optional for queries.
+        It needs to have `dataset`, `fcst_df`, `eval_df`, `features_df`,
+        `anomalies_df` and `eval_forecasters`.
         """
-        # Must have dataset - sufficient for basic queries like plotting raw data
-        return hasattr(self, "dataset") and self.dataset is not None
+        return all(
+            hasattr(self, attr) and getattr(self, attr) is not None
+            for attr in [
+                "dataset",
+                "fcst_df",
+                "eval_df",
+                "features_df",
+                "anomalies_df",
+                "eval_forecasters",
+            ]
+        )
 
     def analyze(
         self,
@@ -1872,15 +775,8 @@ class TimeCopilot:
         freq: str | None = None,
         seasonality: int | None = None,
         query: str | None = None,
-    ) -> AgentRunResult[TimeCopilotAgentOutput]:
-        """Analyze time series data with forecasting, anomaly detection, or
-        visualization.
-
-        This method can handle multiple types of analysis based on the query:
-        - Forecasting: Generate predictions for future periods
-        - Anomaly Detection: Identify outliers and unusual patterns
-        - Visualization: Create plots and charts
-        - Combined: Multiple analysis types together
+    ) -> AgentRunResult[ForecastAgentOutput]:
+        """Generate forecast and anomaly analysis.
 
         Args:
             df: The time-series data. Can be one of:
@@ -1900,16 +796,11 @@ class TimeCopilot:
             query: Optional natural-language prompt that will be shown to the
                 agent. You can embed `freq`, `h` or `seasonality` here in
                 plain English, they take precedence over the keyword
-                arguments. Examples:
-                - "forecast next 12 months"
-                - "detect anomalies with 95% confidence"
-                - "plot the time series data"
-                - "forecast and detect anomalies"
+                arguments.
 
         Returns:
             A result object whose `output` attribute is a fully
-                populated [`TimeCopilotAgentOutput`][timecopilot.agent.
-                TimeCopilotAgentOutput]
+                populated [`ForecastAgentOutput`][timecopilot.agent.ForecastAgentOutput]
                 instance. Use `result.output` to access typed fields or
                 `result.output.prettify()` to print a nicely formatted
                 report.
@@ -1918,22 +809,67 @@ class TimeCopilot:
         experiment_dataset_parser = ExperimentDatasetParser(
             model=self.forecasting_agent.model,
         )
-        self.dataset = experiment_dataset_parser.parse(
+
+        # Check if we should re-run the workflow
+        new_dataset = experiment_dataset_parser.parse(
             df,
             freq,
             h,
             seasonality,
             query,
         )
-        result = self.forecasting_agent.run_sync(
-            user_prompt=query,
-            deps=self.dataset,
+
+        # Only re-run if parameters changed or first run
+        if self._should_rerun_workflow(new_dataset.h, new_dataset.freq):
+            self.dataset = new_dataset
+
+            result = self.forecasting_agent.run_sync(
+                user_prompt=query,
+                deps=self.dataset,
+            )
+
+            # Store parameters for future comparison
+            self._last_forecast_params = {
+                "h": new_dataset.h,
+                "freq": new_dataset.freq,
+            }
+
+            result.fcst_df = self.fcst_df
+            result.eval_df = self.eval_df
+            result.features_df = self.features_df
+            result.anomalies_df = self.anomalies_df
+            return result
+        else:
+            # Reuse existing results - no need to re-run expensive workflow
+            print(f"Reusing cached analysis (h={new_dataset.h})")
+            return self._create_cached_result()
+
+    def _create_cached_result(self) -> AgentRunResult[ForecastAgentOutput]:
+        """Create a cached result without re-running the workflow."""
+        from pydantic_ai.agent import AgentRunResult
+
+        # Create a simple cached output
+        cached_output = ForecastAgentOutput(
+            tsfeatures_analysis="Using cached feature analysis",
+            selected_model=getattr(self, "_last_selected_model", "Cached Model"),
+            model_details="Using cached model analysis",
+            model_comparison="Using cached model comparison",
+            is_better_than_seasonal_naive=True,  # Assume true for cached
+            reason_for_selection="Using cached model selection",
+            forecast_analysis="Using cached forecast analysis",
+            anomaly_analysis="Using cached anomaly analysis",
+            user_query_response="Using cached results",
         )
-        # Attach dataframes if they exist (depends on workflow)
-        result.fcst_df = getattr(self, "fcst_df", None)
-        result.eval_df = getattr(self, "eval_df", None)
-        result.features_df = getattr(self, "features_df", None)
-        result.anomalies_df = getattr(self, "anomalies_df", None)
+
+        result = AgentRunResult(
+            output=cached_output,
+            all_messages=[],  # Empty for cached results
+            usage=None,
+        )
+        result.fcst_df = self.fcst_df
+        result.eval_df = self.eval_df
+        result.features_df = self.features_df
+        result.anomalies_df = self.anomalies_df
         return result
 
     def forecast(
@@ -1943,7 +879,7 @@ class TimeCopilot:
         freq: str | None = None,
         seasonality: int | None = None,
         query: str | None = None,
-    ) -> AgentRunResult[TimeCopilotAgentOutput]:
+    ) -> AgentRunResult[ForecastAgentOutput]:
         """Generate forecast and analysis.
 
         .. deprecated:: 0.1.0
@@ -1972,8 +908,8 @@ class TimeCopilot:
 
         Returns:
             A result object whose `output` attribute is a fully
-                populated [`TimeCopilotAgentOutput`][timecopilot.agent.
-                TimeCopilotAgentOutput]
+                populated [`ForecastAgentOutput`][timecopilot.agent.
+                ForecastAgentOutput]
                 instance. Use `result.output` to access typed fields or
                 `result.output.prettify()` to print a nicely formatted
                 report.
@@ -2088,7 +1024,7 @@ class AsyncTimeCopilot(TimeCopilot):
         freq: str | None = None,
         seasonality: int | None = None,
         query: str | None = None,
-    ) -> AgentRunResult[TimeCopilotAgentOutput]:
+    ) -> AgentRunResult[ForecastAgentOutput]:
         """
         Asynchronously analyze time series data with forecasting, anomaly detection,
         or visualization.
@@ -2129,8 +1065,8 @@ class AsyncTimeCopilot(TimeCopilot):
 
         Returns:
             A result object whose `output` attribute is a fully
-                populated [`TimeCopilotAgentOutput`][timecopilot.agent.
-                TimeCopilotAgentOutput]
+                populated [`ForecastAgentOutput`][timecopilot.agent.
+                ForecastAgentOutput]
                 instance. Use `result.output` to access typed fields or
                 `result.output.prettify()` to print a nicely formatted
                 report.
@@ -2164,7 +1100,7 @@ class AsyncTimeCopilot(TimeCopilot):
         freq: str | None = None,
         seasonality: int | None = None,
         query: str | None = None,
-    ) -> AgentRunResult[TimeCopilotAgentOutput]:
+    ) -> AgentRunResult[ForecastAgentOutput]:
         """
         Asynchronously generate forecast and analysis for the provided
         time series data.
@@ -2199,8 +1135,8 @@ class AsyncTimeCopilot(TimeCopilot):
 
         Returns:
             A result object whose `output` attribute is a fully
-                populated [`TimeCopilotAgentOutput`][timecopilot.agent.
-                TimeCopilotAgentOutput]
+                populated [`ForecastAgentOutput`][timecopilot.agent.
+                ForecastAgentOutput]
                 instance. Use `result.output` to access typed fields or
                 `result.output.prettify()` to print a nicely formatted
                 report.
