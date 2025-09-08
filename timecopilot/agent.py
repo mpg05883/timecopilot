@@ -1061,6 +1061,91 @@ class TimeCopilot:
             or self._last_forecast_params.get("freq") != freq
         )
 
+    def _get_maybe_rerun_agent(self, query: str) -> tuple[Agent, str]:
+        context_parts = []
+        if hasattr(self, "conversation_history") and self.conversation_history:
+            recent_context = self.conversation_history[-3:]  # Last 3 exchanges
+            context_parts.append("Recent conversation context:")
+            for msg in recent_context:
+                context_parts.append(f"User: {msg.get('user', '')}")
+                context_parts.append(f"Assistant: {msg.get('assistant', '')}")
+
+        # Build current analysis context
+        analysis_context = []
+        if hasattr(self, "eval_df") and self.eval_df is not None:
+            models_used = [col for col in self.eval_df.columns if col != "metric"]
+            analysis_context.append(
+                f"Current analysis used models: {', '.join(models_used)}"
+            )
+
+        if hasattr(self, "fcst_df") and self.fcst_df is not None:
+            horizon = len(self.fcst_df)
+            analysis_context.append(f"Current forecast horizon: {horizon} periods")
+
+        if hasattr(self, "anomalies_df") and self.anomalies_df is not None:
+            analysis_context.append("Anomaly detection was performed")
+
+        # Create the decision prompt
+        context_text = (
+            "\n".join(context_parts) if context_parts else "No previous context"
+        )
+        analysis_text = (
+            "\n".join(analysis_context) if analysis_context else "No previous analysis"
+        )
+
+        decision_prompt = f"""
+You are a time series analysis assistant. You need to determine if a user's query 
+requires re-running the analysis workflow.
+
+CURRENT USER QUERY: "{query}"
+
+CONVERSATION CONTEXT:
+{context_text}
+
+CURRENT ANALYSIS STATE:
+{analysis_text}
+
+AVAILABLE ACTIONS:
+1. RERUN ANALYSIS: Generate new forecasts, try different models, detect anomalies,
+   change parameters
+2. QUERY EXISTING: Answer questions about existing results, show plots, explain findings
+
+DECISION CRITERIA - RERUN ANALYSIS if the user wants to:
+- Try different models (e.g., "try Chronos", "use ARIMA instead", "switch to TimesFM")
+- Change forecast parameters (e.g., "forecast next 12 months", "change horizon to 6")
+- Detect anomalies (e.g., "find anomalies", "detect outliers")
+- Compare models (e.g., "compare Chronos vs ARIMA", "which is better")
+- Load new data (e.g., "use this new dataset", "analyze different file")
+- Re-analyze with different approach (e.g., "analyze again", "try different method")
+
+DO NOT RERUN if the user wants to:
+- Ask questions about existing results (e.g., "what does this mean", 
+  "explain the forecast")
+- Show visualizations (e.g., "plot the results", "show me the chart")
+- Get explanations (e.g., "why did you choose this model", "what are the trends")
+- Request summaries (e.g., "summarize the findings", "what did you find")
+
+Respond with ONLY True or False.
+"""
+
+        decision_agent = Agent(
+            model=self.llm,
+            system_prompt=(
+                "You are a decision-making assistant. Respond with only "
+                "True or False based on the user's intent."
+            ),
+            output_type=bool,
+        )
+        return decision_agent, decision_prompt
+
+    def _maybe_rerun(self, query: str) -> bool:
+        if not query:
+            return False
+
+        decision_agent, decision_prompt = self._get_maybe_rerun_agent(query)
+        result = decision_agent.run_sync(decision_prompt)
+        return result.output
+
     def is_queryable(self) -> bool:
         """
         Check if the class is queryable.
@@ -1281,6 +1366,9 @@ class TimeCopilot:
         # fmt: on
         self._maybe_raise_if_not_queryable()
 
+        if self._maybe_rerun(query):
+            self.analyze(df=self.dataset.df, query=query)
+
         # Build conversation context with history
         conversation_context = self._build_conversation_context(query)
 
@@ -1327,6 +1415,14 @@ class AsyncTimeCopilot(TimeCopilot):
         forecasting and querying.
         """
         super().__init__(**kwargs)
+
+    async def _maybe_rerun(self, query: str) -> bool:
+        if not query:
+            return False
+
+        decision_agent, decision_prompt = self._get_maybe_rerun_agent(query)
+        result = await decision_agent.run(decision_prompt)
+        return result.output
 
     async def analyze(
         self,
@@ -1454,7 +1550,11 @@ class AsyncTimeCopilot(TimeCopilot):
         """
         # Delegate to the new analyze method
         return await self.analyze(
-            df=df, h=h, freq=freq, seasonality=seasonality, query=query
+            df=df,
+            h=h,
+            freq=freq,
+            seasonality=seasonality,
+            query=query,
         )
 
     @asynccontextmanager
@@ -1508,6 +1608,8 @@ class AsyncTimeCopilot(TimeCopilot):
         """
         # fmt: on
         self._maybe_raise_if_not_queryable()
+        if await self._maybe_rerun(query):
+            await self.analyze(df=self.dataset.df, query=query)
 
         # Build conversation context with history
         conversation_context = self._build_conversation_context(query)
@@ -1577,6 +1679,8 @@ class AsyncTimeCopilot(TimeCopilot):
         """
         # fmt: on
         self._maybe_raise_if_not_queryable()
+        if await self._maybe_rerun(query):
+            await self.analyze(df=self.dataset.df, query=query)
 
         # Build conversation context with history
         conversation_context = self._build_conversation_context(query)
