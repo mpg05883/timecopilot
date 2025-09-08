@@ -12,7 +12,8 @@ from rich.panel import Panel
 from rich.prompt import Prompt
 from rich.status import Status
 
-from timecopilot.agent import AsyncTimeCopilot, TimeCopilot as TimeCopilotAgent
+from timecopilot.agent import AsyncTimeCopilot
+from timecopilot.agent import TimeCopilot as TimeCopilotAgent
 
 logfire.configure(send_to_logfire="if-token-present")
 logfire.instrument_pydantic_ai()

@@ -483,7 +483,11 @@ class TimeCopilot:
 
         2. Model Selection and Evaluation (REQUIRED - use cross_validation_tool):
            - ALWAYS call cross_validation_tool with multiple models
-           - Start with simple models that can potentially beat seasonal naive
+           - IMPORTANT: Check if user has requested specific models in their query
+           - If user mentioned specific models (e.g., "try Chronos and ARIMA"), 
+             PRIORITIZE those models in cross-validation
+           - If no specific models mentioned, start with simple models that can 
+             potentially beat seasonal naive
            - Select additional candidate models based on the time series 
                 values and features
            - Document each model's technical details and assumptions
