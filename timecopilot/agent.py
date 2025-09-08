@@ -629,8 +629,25 @@ class TimeCopilot:
                 in_tmux = bool(os.environ.get("TMUX"))
                 has_display = bool(os.environ.get("DISPLAY"))
 
-                if in_tmux:
-                    # In tmux - we'll save and try to display
+                # Check if any terminal image viewers are available
+                has_terminal_viewer = False
+                terminal_viewers = ["imgcat", "catimg", "timg", "chafa"]
+                for viewer in terminal_viewers:
+                    try:
+                        if (
+                            subprocess.run(
+                                ["which", viewer], capture_output=True
+                            ).returncode
+                            == 0
+                        ):
+                            has_terminal_viewer = True
+                            break
+                    except (subprocess.CalledProcessError, FileNotFoundError):
+                        continue
+
+                # Prefer terminal viewers if available, especially in tmux
+                if in_tmux or has_terminal_viewer:
+                    # Use terminal display - save file and display via terminal viewer
                     matplotlib.use("Agg")
                     save_and_display = True
                 elif not has_display:
@@ -638,7 +655,7 @@ class TimeCopilot:
                     matplotlib.use("Agg")
                     save_and_display = True
                 else:
-                    # Normal environment - try interactive
+                    # Normal environment without terminal viewer - use interactive
                     try:
                         matplotlib.use("TkAgg")
                         save_and_display = False
@@ -651,25 +668,9 @@ class TimeCopilot:
                             save_and_display = True
 
                 def try_display_plot(plot_file: str) -> str:
-                    """Try different methods to display plot in tmux/terminal."""
-                    display_methods = []
+                    """Try different methods to display plot, prioritizing terminal viewers."""
 
-                    # Method 1: Try to open with system default (macOS/Linux)
-                    try:
-                        if sys.platform == "darwin":  # macOS
-                            subprocess.run(
-                                ["open", plot_file], check=True, capture_output=True
-                            )
-                            display_methods.append("opened with system viewer")
-                        elif sys.platform.startswith("linux"):
-                            subprocess.run(
-                                ["xdg-open", plot_file], check=True, capture_output=True
-                            )
-                            display_methods.append("opened with system viewer")
-                    except (subprocess.CalledProcessError, FileNotFoundError):
-                        pass
-
-                    # Method 2: Try terminal image viewers
+                    # Priority 1: Try terminal image viewers first (best for tmux/terminal)
                     terminal_viewers = [
                         ("imgcat", [plot_file]),  # iTerm2
                         ("catimg", [plot_file]),  # Terminal image viewer
@@ -686,31 +687,40 @@ class TimeCopilot:
                                 == 0
                             ):
                                 subprocess.run([viewer] + cmd, check=True)
-                                display_methods.append(f"displayed with {viewer}")
-                                break
+                                return f"Plot saved as '{plot_file}' and displayed with {viewer}"
                         except (subprocess.CalledProcessError, FileNotFoundError):
                             continue
 
-                    # Method 3: Try web browser (as fallback)
+                    # Priority 2: Try system default (only if no terminal viewer worked)
+                    try:
+                        if sys.platform == "darwin":  # macOS
+                            subprocess.run(
+                                ["open", plot_file], check=True, capture_output=True
+                            )
+                            return f"Plot saved as '{plot_file}' and opened with system viewer"
+                        elif sys.platform.startswith("linux"):
+                            subprocess.run(
+                                ["xdg-open", plot_file], check=True, capture_output=True
+                            )
+                            return f"Plot saved as '{plot_file}' and opened with system viewer"
+                    except (subprocess.CalledProcessError, FileNotFoundError):
+                        pass
+
+                    # Priority 3: Try web browser (as last resort)
                     try:
                         import webbrowser
 
                         webbrowser.open(f"file://{os.path.abspath(plot_file)}")
-                        display_methods.append("opened in web browser")
+                        return f"Plot saved as '{plot_file}' and opened in web browser"
                     except Exception:
                         pass
 
-                    if display_methods:
-                        return (
-                            f"Plot saved as '{plot_file}' and "
-                            f"{', '.join(display_methods)}"
-                        )
-                    else:
-                        return (
-                            f"Plot saved as '{plot_file}'. "
-                            "To view: 'open {plot_file}' (macOS) or install "
-                            "imgcat/catimg for terminal viewing"
-                        )
+                    # If nothing worked, just return the file location
+                    return (
+                        f"Plot saved as '{plot_file}'. "
+                        "To view: 'open {plot_file}' (macOS) or install "
+                        "imgcat/catimg for terminal viewing"
+                    )
 
                 # Determine what to plot based on available data and plot_type
                 if plot_type == "series" or plot_type == "raw":
