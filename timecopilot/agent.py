@@ -587,6 +587,9 @@ class TimeCopilot:
         # Cache for checking if parameters changed (for re-running workflow)
         self._last_forecast_params: dict = {}
 
+        # Conversation history for maintaining context between queries
+        self.conversation_history: list[dict] = []
+
         @self.query_agent.system_prompt
         async def add_experiment_info(
             ctx: RunContext[ExperimentDataset],
