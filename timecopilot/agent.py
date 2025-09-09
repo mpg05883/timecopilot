@@ -36,12 +36,6 @@ from .models.foundation.chronos import Chronos
 from .models.foundation.timesfm import TimesFM
 from .models.foundation.toto import Toto
 
-# Additional foundation models (commented out - may require extra setup):
-# from .models.foundation.moirai import Moirai
-# from .models.foundation.sundial import Sundial
-# from .models.foundation.tabpfn import TabPFN
-# from .models.foundation.timegpt import TimeGPT
-# from .models.foundation.tirex import TiRex
 from .models.prophet import Prophet
 from .models.stats import (
     ADIDA,
@@ -74,23 +68,15 @@ STATISTICAL_MODELS: list[Forecaster] = [
     Prophet(),
 ]
 
-# Foundation models (state-of-the-art, but may require more resources)
 FOUNDATION_MODELS: list[Forecaster] = [
     Chronos(),
     TimesFM(),
     Toto(),
-    # Note: Some models may require additional setup or API keys:
-    # Moirai(),     # Requires GluonTS
-    # Sundial(),    # May require specific dependencies
-    # TabPFN(),     # May require specific setup
-    # TimeGPT(),    # Requires API key
-    # TiRex(),      # May require specific dependencies
 ]
 
-# Default models (balanced set of statistical + selected foundation models)
 DEFAULT_MODELS: list[Forecaster] = STATISTICAL_MODELS + [
-    Chronos(),  # Add one reliable foundation model by default
-    TimesFM(),  # Add another popular foundation model
+    Chronos(),
+    TimesFM(),
 ]
 
 TSFEATURES: dict[str, Callable] = {
