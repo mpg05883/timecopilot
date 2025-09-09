@@ -287,6 +287,7 @@ You can ask other types of questions:
 
 Our pre-print paper is [available in arxiv](https://arxiv.org/abs/2509.00616).
 
+```
 @misc{garza2025timecopilot,
       title={TimeCopilot}, 
       author={Azul Garza and Reneé Rosillo},
@@ -296,6 +297,6 @@ Our pre-print paper is [available in arxiv](https://arxiv.org/abs/2509.00616).
       primaryClass={cs.LG},
       url={https://arxiv.org/abs/2509.00616}, 
 }
-
+```
 
 
