@@ -553,9 +553,9 @@ class TimeCopilot:
         - plot_tool(plot_type="both"): Shows both forecasts and anomalies in subplots
         - plot_tool(plot_type="raw"): Alternative to "series" for raw data
 
-        The plot tool automatically handles different environments (tmux, terminal, GUI) 
-        and will save plots and try to display them using available viewers (imgcat, 
-        catimg, system viewer, web browser).
+        The plot tool automatically handles different environments (tmux, terminal, 
+        GUI) and will save plots and try to display them using available viewers 
+        (imgcat, catimg, system viewer, web browser).
 
         When the user asks a follow-up question, use these dataframes to provide 
         detailed, data-driven answers. Reference specific values, trends, or metrics 
@@ -657,9 +657,10 @@ class TimeCopilot:
                             save_and_display = True
 
                 def try_display_plot(plot_file: str) -> str:
-                    """Try different methods to display plot, prioritizing terminal viewers."""
+                    """Try different methods to display plot,
+                    prioritizing terminal viewers."""
 
-                    # Priority 1: Try terminal image viewers first (best for tmux/terminal)
+                    # Priority 1: Try terminal image viewers first (for tmux/terminal)
                     terminal_viewers = [
                         ("imgcat", [plot_file]),  # iTerm2
                         ("catimg", [plot_file]),  # Terminal image viewer
@@ -676,7 +677,10 @@ class TimeCopilot:
                                 == 0
                             ):
                                 subprocess.run([viewer] + cmd, check=True)
-                                return f"Plot saved as '{plot_file}' and displayed with {viewer}"
+                                return (
+                                    f"Plot saved as '{plot_file}' and "
+                                    f"displayed with {viewer}"
+                                )
                         except (subprocess.CalledProcessError, FileNotFoundError):
                             continue
 
@@ -686,12 +690,18 @@ class TimeCopilot:
                             subprocess.run(
                                 ["open", plot_file], check=True, capture_output=True
                             )
-                            return f"Plot saved as '{plot_file}' and opened with system viewer"
+                            return (
+                                f"Plot saved as '{plot_file}' and "
+                                f"opened with system viewer"
+                            )
                         elif sys.platform.startswith("linux"):
                             subprocess.run(
                                 ["xdg-open", plot_file], check=True, capture_output=True
                             )
-                            return f"Plot saved as '{plot_file}' and opened with system viewer"
+                            return (
+                                f"Plot saved as '{plot_file}' and "
+                                f"opened with system viewer"
+                            )
                     except (subprocess.CalledProcessError, FileNotFoundError):
                         pass
 
@@ -1401,7 +1411,7 @@ class AsyncTimeCopilot(TimeCopilot):
         """
         super().__init__(**kwargs)
 
-    async def _maybe_rerun(self, query: str) -> bool:
+    async def _maybe_rerun(self, query: str) -> bool:  # type: ignore
         if not query:
             return False
 

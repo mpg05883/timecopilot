@@ -256,7 +256,8 @@ Ready to dive into your data? Just tell me what you'd like to explore! 🚀
                         "\n[bold green]Great! I've completed the analysis.[/bold green]"
                     )
                     self.console.print(
-                        f"[cyan]Selected Model:[/cyan] {selected_model} ({performance_msg})"
+                        f"[cyan]Selected Model:[/cyan] {selected_model} "
+                        f"({performance_msg})"
                     )
 
                     if horizon > 0:
@@ -281,10 +282,12 @@ Ready to dive into your data? Just tell me what you'd like to explore! 🚀
                             total_points = len(result.anomalies_df)
                             anomaly_rate = (total_anomalies / total_points) * 100
                             self.console.print(
-                                f"[red]Found {total_anomalies} anomalies ({anomaly_rate:.1f}%)[/red]"
+                                f"[red]Found {total_anomalies} anomalies "
+                                f"({anomaly_rate:.1f}%)[/red]"
                             )
                             self.console.print(
-                                "[dim yellow]So the same workflow can be used for monitoring as well as forecasting.[/dim yellow]"
+                                "[dim yellow]So the same workflow can be used for "
+                                "monitoring as well as forecasting.[/dim yellow]"
                             )
                     # User response
                     user_response = result.output.user_query_response
@@ -298,14 +301,16 @@ Ready to dive into your data? Just tell me what you'd like to explore! 🚀
                         self.console.print(response_panel)
 
                     self.console.print(
-                        "\n[dim]💡 Try: 'show me the plot', 'explain this', or try a different model[/dim]"
+                        "\n[dim]💡 Try: 'show me the plot', 'explain this', "
+                        "or try a different model[/dim]"
                     )
 
                 except Exception as e:
                     self.console.print(f"[bold red]Error loading data:[/bold red] {e}")
             else:
                 self.console.print(
-                    "[bold yellow]Please provide a file path or URL to get started.[/bold yellow]"
+                    "[bold yellow]Please provide a file path or URL to get started."
+                    "[/bold yellow]"
                 )
                 self.console.print("[dim]Example: forecast /path/to/data.csv[/dim]")
 
@@ -338,7 +343,8 @@ Ready to dive into your data? Just tell me what you'd like to explore! 🚀
             pass
         finally:
             self.console.print(
-                "\n[bold blue]👋 Thanks for using TimeCopilot! See you next time![/bold blue]"
+                "\n[bold blue]👋 Thanks for using TimeCopilot! "
+                "See you next time![/bold blue]"
             )
 
 
