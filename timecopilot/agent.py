@@ -35,7 +35,6 @@ from .forecaster import Forecaster, TimeCopilotForecaster
 from .models.foundation.chronos import Chronos
 from .models.foundation.timesfm import TimesFM
 from .models.foundation.toto import Toto
-
 from .models.prophet import Prophet
 from .models.stats import (
     ADIDA,
