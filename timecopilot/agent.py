@@ -32,9 +32,6 @@ from tsfeatures import (
 from tsfeatures.tsfeatures import _get_feats
 
 from .forecaster import Forecaster, TimeCopilotForecaster
-from .models.foundation.chronos import Chronos
-from .models.foundation.timesfm import TimesFM
-from .models.foundation.toto import Toto
 from .models.prophet import Prophet
 from .models.stats import (
     ADIDA,
@@ -51,8 +48,7 @@ from .models.stats import (
 )
 from .utils.experiment_handler import ExperimentDataset, ExperimentDatasetParser
 
-# Statistical and classical models (fast, reliable baselines)
-STATISTICAL_MODELS: list[Forecaster] = [
+DEFAULT_MODELS: list[Forecaster] = [
     ADIDA(),
     AutoARIMA(),
     AutoCES(),
@@ -65,17 +61,6 @@ STATISTICAL_MODELS: list[Forecaster] = [
     Theta(),
     ZeroModel(),
     Prophet(),
-]
-
-FOUNDATION_MODELS: list[Forecaster] = [
-    Chronos(),
-    TimesFM(),
-    Toto(),
-]
-
-DEFAULT_MODELS: list[Forecaster] = STATISTICAL_MODELS + [
-    Chronos(),
-    TimesFM(),
 ]
 
 TSFEATURES: dict[str, Callable] = {
