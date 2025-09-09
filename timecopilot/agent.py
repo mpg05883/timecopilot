@@ -1089,39 +1089,45 @@ class TimeCopilot:
         )
 
         decision_prompt = f"""
-You are a time series analysis assistant. You need to determine if a user's query 
-requires re-running the analysis workflow.
+        You are a time series analysis assistant. 
+        You need to determine if a user's query 
+        requires re-running the analysis workflow.
 
-CURRENT USER QUERY: "{query}"
+        CURRENT USER QUERY: "{query}"
 
-CONVERSATION CONTEXT:
-{context_text}
+        CONVERSATION CONTEXT:
+        {context_text}
 
-CURRENT ANALYSIS STATE:
-{analysis_text}
+        CURRENT ANALYSIS STATE:
+        {analysis_text}
 
-AVAILABLE ACTIONS:
-1. RERUN ANALYSIS: Generate new forecasts, try different models, detect anomalies,
-   change parameters
-2. QUERY EXISTING: Answer questions about existing results, show plots, explain findings
+        AVAILABLE ACTIONS:
+        1. RERUN ANALYSIS: Generate new forecasts, try different models, 
+        detect anomalies, change parameters
+        2. QUERY EXISTING: Answer questions about existing results, show plots, 
+        explain findings
 
-DECISION CRITERIA - RERUN ANALYSIS if the user wants to:
-- Try different models (e.g., "try Chronos", "use ARIMA instead", "switch to TimesFM")
-- Change forecast parameters (e.g., "forecast next 12 months", "change horizon to 6")
-- Detect anomalies (e.g., "find anomalies", "detect outliers")
-- Compare models (e.g., "compare Chronos vs ARIMA", "which is better")
-- Load new data (e.g., "use this new dataset", "analyze different file")
-- Re-analyze with different approach (e.g., "analyze again", "try different method")
+        DECISION CRITERIA - RERUN ANALYSIS if the user wants to:
+        - Try different models (e.g., "try Chronos", "use ARIMA instead", 
+            "switch to TimesFM")
+        - Change forecast parameters (e.g., "forecast next 12 months",
+             "change horizon to 6")
+        - Detect anomalies (e.g., "find anomalies", "detect outliers")
+        - Compare models (e.g., "compare Chronos vs ARIMA", "which is better")
+        - Load new data (e.g., "use this new dataset", "analyze different file")
+        - Re-analyze with different approach (e.g., "analyze again", 
+            "try different method")
 
-DO NOT RERUN if the user wants to:
-- Ask questions about existing results (e.g., "what does this mean", 
-  "explain the forecast")
-- Show visualizations (e.g., "plot the results", "show me the chart")
-- Get explanations (e.g., "why did you choose this model", "what are the trends")
-- Request summaries (e.g., "summarize the findings", "what did you find")
+        DO NOT RERUN if the user wants to:
+        - Ask questions about existing results (e.g., "what does this mean", 
+        "explain the forecast")
+        - Show visualizations (e.g., "plot the results", "show me the chart")
+        - Get explanations (e.g., "why did you choose this model",
+             "what are the trends")
+        - Request summaries (e.g., "summarize the findings", "what did you find")
 
-Respond with ONLY True or False.
-"""
+        Respond with ONLY True or False.
+        """
 
         decision_agent = Agent(
             model=self.llm,
@@ -1345,14 +1351,10 @@ Respond with ONLY True or False.
             import pandas as pd
             from timecopilot import TimeCopilot
 
-            df = pd.read_csv("data.csv") 
+            df = pd.read_csv("https://timecopilot.s3.amazonaws.com/public/data/air_passengers.csv") 
             tc = TimeCopilot(llm="openai:gpt-4o")
-            
-            # Run anomaly detection
-            tc.analyze(df, query="detect anomalies")
-            
-            # Follow-up with conversation history
-            answer = tc.query("plot them")  # "them" refers to the anomalies
+            tc.forecast(df, h=12, freq="MS")
+            answer = tc.query("Which model performed best?")
             print(answer.output)
             ```
         Note:
