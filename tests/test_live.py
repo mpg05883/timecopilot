@@ -10,11 +10,13 @@ from utilsforecast.data import generate_series
 
 from timecopilot import TimeCopilot
 from timecopilot.agent import AsyncTimeCopilot
-from timecopilot.models.stats import ZeroModel
+from timecopilot.models.stats import SeasonalNaive, ZeroModel
 
 load_dotenv()
 logfire.configure(send_to_logfire="if-token-present")
 logfire.instrument_pydantic_ai()
+
+default_forecasters = [ZeroModel(), SeasonalNaive()]
 
 
 @pytest.mark.live
@@ -56,6 +58,7 @@ def test_forecast_returns_expected_output(n_series):
     )
     tc = TimeCopilot(
         llm="openai:gpt-4o-mini",
+        forecasters=default_forecasters,
         retries=3,
     )
     result = tc.forecast(
@@ -108,6 +111,7 @@ async def test_async_forecast_returns_expected_output(n_series):
     )
     tc = AsyncTimeCopilot(
         llm="openai:gpt-4o-mini",
+        forecasters=default_forecasters,
         retries=3,
     )
     result = await tc.forecast(
@@ -135,6 +139,7 @@ async def test_async_is_queryable():
     )
     tc = AsyncTimeCopilot(
         llm="openai:gpt-4o-mini",
+        forecasters=default_forecasters,
         retries=3,
     )
     assert not tc.is_queryable()
@@ -160,6 +165,7 @@ async def test_async_query_stream():
     )
     tc = AsyncTimeCopilot(
         llm="openai:gpt-4o-mini",
+        forecasters=default_forecasters,
         retries=3,
     )
     await tc.forecast(

@@ -29,12 +29,14 @@ def test_forecast_returns_expected_output(query):
         "is_better_than_seasonal_naive": True,
         "reason_for_selection": "reason",
         "forecast_analysis": "analysis",
+        "anomaly_analysis": "anomaly",
         "user_query_response": query,
     }
     tc = TimeCopilot(llm=build_stub_llm(expected_output))
     tc.fcst_df = None
     tc.eval_df = None
     tc.features_df = None
+    tc.anomalies_df = None
     result = tc.forecast(df=df, h=2, freq="D", seasonality=7, query=query)
 
     assert result.output == ForecastAgentOutput(**expected_output)
