@@ -1206,67 +1206,21 @@ class TimeCopilot:
         experiment_dataset_parser = ExperimentDatasetParser(
             model=self.forecasting_agent.model,
         )
-
-        # Check if we should re-run the workflow
-        new_dataset = experiment_dataset_parser.parse(
+        self.dataset = experiment_dataset_parser.parse(
             df,
             freq,
             h,
             seasonality,
             query,
         )
-
-        # Only re-run if parameters changed or first run
-        if self._should_rerun_workflow(new_dataset.h, new_dataset.freq):
-            self.dataset = new_dataset
-
-            result = self.forecasting_agent.run_sync(
-                user_prompt=query,
-                deps=self.dataset,
-            )
-
-            # Store parameters for future comparison
-            self._last_forecast_params = {
-                "h": new_dataset.h,
-                "freq": new_dataset.freq,
-            }
-
-            result.fcst_df = self.fcst_df
-            result.eval_df = self.eval_df
-            result.features_df = self.features_df
-            result.anomalies_df = self.anomalies_df
-            return result
-        else:
-            # Reuse existing results - no need to re-run expensive workflow
-            print(f"Reusing cached analysis (h={new_dataset.h})")
-            return self._create_cached_result()
-
-    def _create_cached_result(self) -> AgentRunResult[ForecastAgentOutput]:
-        """Create a cached result without re-running the workflow."""
-        from pydantic_ai.agent import AgentRunResult
-
-        # Create a simple cached output
-        cached_output = ForecastAgentOutput(
-            tsfeatures_analysis="Using cached feature analysis",
-            selected_model=getattr(self, "_last_selected_model", "Cached Model"),
-            model_details="Using cached model analysis",
-            model_comparison="Using cached model comparison",
-            is_better_than_seasonal_naive=True,  # Assume true for cached
-            reason_for_selection="Using cached model selection",
-            forecast_analysis="Using cached forecast analysis",
-            anomaly_analysis="Using cached anomaly analysis",
-            user_query_response="Using cached results",
+        result = self.forecasting_agent.run_sync(
+            user_prompt=query,
+            deps=self.dataset,
         )
-
-        result = AgentRunResult(
-            output=cached_output,
-            all_messages=[],  # Empty for cached results
-            usage=None,
-        )
-        result.fcst_df = self.fcst_df
-        result.eval_df = self.eval_df
-        result.features_df = self.features_df
-        result.anomalies_df = self.anomalies_df
+        result.fcst_df = getattr(self, "fcst_df", None)
+        result.eval_df = getattr(self, "eval_df", None)
+        result.features_df = getattr(self, "features_df", None)
+        result.anomalies_df = getattr(self, "anomalies_df", None)
         return result
 
     def forecast(
