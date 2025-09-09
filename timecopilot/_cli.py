@@ -131,20 +131,11 @@ class InteractiveChat:
     def _print_welcome(self):
         """Print welcome message and instructions."""
         welcome_text = """
-# 👋 Hi there! I'm TimeCopilot, your AI forecasting companion!
+# 👋 Hi there! I'm TimeCopilot, the GenAI Forecasting Agent!
 
 I'm here to help you understand your data and predict the future. Just talk to me 
 naturally - no complex commands needed! I can seamlessly work with different models 
 and explain why forecasts look the way they do, not just give you numbers.
-
-## 🚀 **Try this demo flow:**
-
-**Step 1:** "forecast the next 12 months"  
-**Step 2:** "now try this with Chronos"  
-**Step 3:** "now with TimesFM"  
-**Step 4:** "highlight anomalies in this series"
-
-Notice how seamless it is to switch models and workflows!
 
 ## 💭 **Natural conversation examples:**
 - "I have sales data at /path/to/sales.csv, forecast the next 6 months"
@@ -273,16 +264,6 @@ Ready to dive into your data? Just tell me what you'd like to explore! 🚀
                             f"[cyan]Forecast:[/cyan] Generated {horizon} future periods"
                         )
 
-                    # Add demo messaging for foundation models
-                    if selected_model in ["Chronos", "TimesFM", "Moirai"]:
-                        self.console.print(
-                            f"[dim yellow]✨ Using state-of-the-art foundation model {selected_model}[/dim yellow]"
-                        )
-                        self.console.print(
-                            "[dim yellow]Notice how seamless it is to switch models. "
-                            "You can ask why a forecast looks the way it does, not just get the numbers.[/dim yellow]"
-                        )
-
                     # Check for anomalies
                     if (
                         hasattr(result, "anomalies_df")
@@ -305,6 +286,16 @@ Ready to dive into your data? Just tell me what you'd like to explore! 🚀
                             self.console.print(
                                 "[dim yellow]So the same workflow can be used for monitoring as well as forecasting.[/dim yellow]"
                             )
+                    # User response
+                    user_response = result.output.user_query_response
+                    if user_response:
+                        response_panel = Panel(
+                            user_response,
+                            title="[bold cyan]TimeCopilot Response[/bold cyan]",
+                            border_style="cyan",
+                            padding=(1, 2),
+                        )
+                        self.console.print(response_panel)
 
                     self.console.print(
                         "\n[dim]💡 Try: 'show me the plot', 'explain this', or try a different model[/dim]"
