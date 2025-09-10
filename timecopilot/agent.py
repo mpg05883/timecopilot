@@ -32,6 +32,8 @@ from tsfeatures import (
 from tsfeatures.tsfeatures import _get_feats
 
 from .forecaster import Forecaster, TimeCopilotForecaster
+from .models.foundation.chronos import Chronos
+from .models.foundation.timesfm import TimesFM
 from .models.prophet import Prophet
 from .models.stats import (
     ADIDA,
@@ -61,6 +63,8 @@ DEFAULT_MODELS: list[Forecaster] = [
     Theta(),
     ZeroModel(),
     Prophet(),
+    Chronos(repo_id="amazon/chronos-bolt-base"),
+    TimesFM(),
 ]
 
 TSFEATURES: dict[str, Callable] = {
