@@ -15,7 +15,7 @@
 
 ---
 
-TimeCopilot is an open-source forecasting agent that combines the power of large language models with state-of-the-art time series foundation models. It automates and explains complex forecasting workflows, making time series analysis more accessible while maintaining professional-grade accuracy.
+TimeCopilot is an open-source forecasting agent that combines the power of large language models with state-of-the-art time series foundation models (Amazon Chronos, Salesforce Moirai, Google TimesFM, Nixtla TimeGPT, etc.). It automates and explains complex forecasting workflows, making time series analysis more accessible while maintaining professional-grade accuracy.
 
 Developed with 💙 at [timecopilot.dev](https://timecopilot.dev/).
 
