@@ -32,32 +32,35 @@ from tsfeatures import (
 from tsfeatures.tsfeatures import _get_feats
 
 from .forecaster import Forecaster, TimeCopilotForecaster
-from .models.foundation.chronos import Chronos
+from .models.prophet import Prophet
 from .models.stats import (
+    ADIDA,
+    IMAPA,
     AutoARIMA,
     AutoCES,
     AutoETS,
+    CrostonClassic,
     DynamicOptimizedTheta,
+    HistoricAverage,
     SeasonalNaive,
     Theta,
+    ZeroModel,
 )
 from .utils.experiment_handler import ExperimentDataset, ExperimentDatasetParser
 
 DEFAULT_MODELS: list[Forecaster] = [
-    # ADIDA(),
+    ADIDA(),
     AutoARIMA(),
     AutoCES(),
     AutoETS(),
-    # CrostonClassic(),
+    CrostonClassic(),
     DynamicOptimizedTheta(),
-    # HistoricAverage(),
-    # IMAPA(),
+    HistoricAverage(),
+    IMAPA(),
     SeasonalNaive(),
     Theta(),
-    # ZeroModel(),
-    # Prophet(),
-    Chronos(repo_id="amazon/chronos-bolt-base"),
-    # TimesFM(),
+    ZeroModel(),
+    Prophet(),
 ]
 
 TSFEATURES: dict[str, Callable] = {
