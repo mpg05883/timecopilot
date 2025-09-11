@@ -462,13 +462,14 @@ class TimeCopilot:
                 values and features
            - Document each model's technical details and assumptions
            - Explain why these models are suitable for the identified features
-           - Compare models quantitatively and qualitatively against seasonal naive
            - If initial models don't beat seasonal naive, try more complex models
            - Prioritize finding a model that outperforms seasonal naive benchmark
            - Balance model complexity with forecast accuracy
 
         3. Final Model Selection and Forecasting (REQUIRED - use forecast_tool):
-           - Choose the best performing model with clear justification
+           - Choose the best performing model based on the cross-validation results,
+             specifically chose the one with the lowest MASE
+           - If the user asks for a specific model, use that model
            - ALWAYS call forecast_tool with the selected model
            - Generate the forecast using just the selected model
            - Interpret trends and patterns in the forecast
