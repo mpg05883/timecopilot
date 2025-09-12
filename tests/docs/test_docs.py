@@ -1,4 +1,5 @@
 import re
+import sys
 from pathlib import Path
 
 import nbformat
@@ -13,13 +14,13 @@ from nbclient import NotebookClient
     [p for p in Path("docs").rglob("*.md") if "changelogs" not in p.parts],
     ids=str,
 )
-@pytest.mark.flaky(reruns=3, reruns_delay=5)
+@pytest.mark.flaky(reruns=3, reruns_delay=80)
 def test_docs(fpath):
     check_md_file(fpath=fpath, memory=True)
 
 
 @pytest.mark.docs
-@pytest.mark.flaky(reruns=3, reruns_delay=5)
+@pytest.mark.flaky(reruns=3, reruns_delay=80)
 def test_readme():
     check_md_file("README.md", memory=True)
 
@@ -40,7 +41,7 @@ def test_latest_changelog():
 
 
 @pytest.mark.docs
-@pytest.mark.flaky(reruns=3, reruns_delay=5)
+@pytest.mark.flaky(reruns=3, reruns_delay=80)
 @pytest.mark.parametrize(
     "fpath",
     Path("timecopilot").glob("**/*.py"),
@@ -50,11 +51,23 @@ def test_py_examples(fpath):
     check_md_file(fpath=fpath, memory=True)
 
 
+skip_gift_eval_mark = pytest.mark.skipif(
+    sys.version_info >= (3, 13),
+    reason="gift-eval notebook not supported on Python 3.13",
+)
+
+
+def maybe_skip_gift_eval(fpath):
+    out = str(fpath)
+    if out == "docs/examples/gift-eval.ipynb":
+        out = pytest.param(out, marks=skip_gift_eval_mark)
+    return out
+
+
 @pytest.mark.docs
 @pytest.mark.parametrize(
     "fpath",
-    Path("docs").rglob("*.ipynb"),
-    ids=str,
+    [maybe_skip_gift_eval(f) for f in Path("docs").rglob("*.ipynb")],
 )
 def test_notebooks(fpath):
     nb = nbformat.read(fpath, as_version=4)
