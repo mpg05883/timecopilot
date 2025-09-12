@@ -58,7 +58,7 @@ query = """
   use 12 as seasonality and MS as freq
 """ 
 
-tc = TimeCopilot(llm="gpt-4o", retries=3)
+tc = TimeCopilot(llm="gpt-5-mini", retries=3)
 
 # Passing `None` simply uses the defaults; they are shown
 # here for clarity but can be omitted.
