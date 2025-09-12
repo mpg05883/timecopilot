@@ -13,7 +13,7 @@ from nbclient import NotebookClient
     [p for p in Path("docs").rglob("*.md") if "changelogs" not in p.parts],
     ids=str,
 )
-@pytest.mark.flaky(reruns=3, reruns_delay=5)
+@pytest.mark.flaky(reruns=3, reruns_delay=60)
 def test_docs(fpath):
     check_md_file(fpath=fpath, memory=True)
 
@@ -40,7 +40,7 @@ def test_latest_changelog():
 
 
 @pytest.mark.docs
-@pytest.mark.flaky(reruns=3, reruns_delay=5)
+@pytest.mark.flaky(reruns=3, reruns_delay=60)
 @pytest.mark.parametrize(
     "fpath",
     Path("timecopilot").glob("**/*.py"),
