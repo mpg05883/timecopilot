@@ -6795,7 +6795,7 @@ requires-dist = [
     { name = "statsforecast" },
     { name = "tabpfn-time-series", marker = "python_full_version < '3.13'", specifier = ">=1.0.3" },
     { name = "timecopilot-chronos-forecasting", specifier = ">=0.1.0" },
-    { name = "timecopilot-timesfm", specifier = ">=0.1.0" },
+    { name = "timecopilot-timesfm", specifier = ">=0.2.0" },
     { name = "timecopilot-tirex", marker = "python_full_version >= '3.11'", specifier = ">=0.1.0" },
     { name = "timecopilot-toto", specifier = ">=0.1.3" },
     { name = "timecopilot-uni2ts", marker = "python_full_version < '3.14'", specifier = ">=0.1.2" },
@@ -6844,7 +6844,7 @@ wheels = [
 
 [[package]]
 name = "timecopilot-timesfm"
-version = "0.1.0"
+version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "absl-py" },
@@ -6862,9 +6862,9 @@ dependencies = [
     { name = "utilsforecast" },
     { name = "wandb" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c9/83/a04e5548ebe86515aeed34cf0d8605c0240ec9097c2988ae7d2379871b38/timecopilot_timesfm-0.1.0.tar.gz", hash = "sha256:bd03a4ce80ef0ae01bfd67f9f0a62570813f4e3a1cb81e1752afc3b016c72c6f", size = 43686, upload-time = "2025-07-14T20:19:28.81Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0e/2a/8950544853372341df65745c5c4a8c1d0058a43e06274d7b128597b8c58a/timecopilot_timesfm-0.2.0.tar.gz", hash = "sha256:b425944d34ca0cf5a13c9d3977fa71f7cbbe4c58210614673916715cafa5a420", size = 47450, upload-time = "2025-09-19T01:31:27.59Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/86/cc/85f97c945aac57e860863b898abe54cd68a0dd29e5a3c4f0b2a5bcaf5895/timecopilot_timesfm-0.1.0-py3-none-any.whl", hash = "sha256:4c88bedabbea252274cbd9886d763fd1f1c32820e415ac5dfa0c62c444bfd480", size = 59186, upload-time = "2025-07-14T20:19:27.354Z" },
+    { url = "https://files.pythonhosted.org/packages/74/01/7de21489b39bef007381b08985f700dd5d9c4e0acb25692c10afd736941b/timecopilot_timesfm-0.2.0-py3-none-any.whl", hash = "sha256:ee34652571eaf949786a256b7587fdfcbce1afa825e2067949a624cad3005040", size = 67992, upload-time = "2025-09-19T01:31:26.232Z" },
 ]
 
 [[package]]
