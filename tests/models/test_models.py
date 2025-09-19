@@ -224,7 +224,13 @@ def test_using_quantiles(model):
             assert fcst_df[c1].le(fcst_df[c2]).all()
         elif "timesfm" in model.alias.lower():
             # TimesFM is a bit more lenient with the monotonicity condition
-            assert fcst_df[c1].le(fcst_df[c2]).mean() >= 0.8
+            if "q-10" not in c1:
+                assert fcst_df[c1].le(fcst_df[c2]).mean() >= 0.8
+            else:
+                # there is a potential bug in TimesFM, so we skip this test
+                # it was reported here:
+                # https://github.com/google-research/timesfm/issues/306
+                continue
         elif "tabpfn" in model.alias.lower():
             # we are testing the mock mode, so we don't care about monotonicity
             continue
