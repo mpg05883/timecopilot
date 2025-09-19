@@ -1,78 +1,36 @@
 from contextlib import contextmanager
 
+import numpy as np
 import pandas as pd
 import timesfm
+import timesfm_v1
 import torch
-from timesfm.timesfm_base import DEFAULT_QUANTILES as DEFAULT_QUANTILES_TFM
+from timesfm_v1.timesfm_base import DEFAULT_QUANTILES as DEFAULT_QUANTILES_TFM
+from tqdm import tqdm
 
 from ..utils.forecaster import Forecaster, QuantileConverter
+from .utils import TimeSeriesDataset
 
 
-class TimesFM(Forecaster):
-    """
-    TimesFM is a large time series model for time series forecasting, supporting both
-    probabilistic and point forecasts. See the [official repo](https://github.com/
-    google-research/timesfm) for more details.
-    """
-
+class _TimesFMV1(Forecaster):
     def __init__(
         self,
-        repo_id: str = "google/timesfm-2.0-500m-pytorch",
-        context_length: int = 2048,
-        batch_size: int = 64,
-        alias: str = "TimesFM",
+        repo_id: str,
+        context_length: int,
+        batch_size: int,
+        alias: str,
     ):
-        """
-        Args:
-            repo_id (str, optional): The Hugging Face Hub model ID or local path to
-                load the TimesFM model from. Examples include
-                "google/timesfm-2.0-500m-pytorch". Defaults to
-                "google/timesfm-2.0-500m-pytorch". See the full list of models at
-                [Hugging Face](https://huggingface.co/collections/google/timesfm-release-
-                66e4be5fdb56e960c1e482a6).
-            context_length (int, optional): Maximum context length (input window size)
-                for the model. Defaults to 2048. For TimesFM 2.0 models, max is 2048
-                (must be a multiple of 32). For TimesFM 1.0 models, max is 512. See
-                [TimesFM docs](https://github.com/google-research/timesfm#loading-the-
-                model) for details.
-            batch_size (int, optional): Batch size for inference. Defaults to 64.
-                Adjust based on available memory and model size.
-            alias (str, optional): Name to use for the model in output DataFrames and
-                logs. Defaults to "TimesFM".
-
-        Notes:
-            **Academic Reference:**
-
-            - Paper: [A decoder-only foundation model for time-series forecasting](https://arxiv.org/abs/2310.10688)
-
-            **Resources:**
-
-            - GitHub: [google-research/timesfm](https://github.com/google-research/timesfm)
-            - HuggingFace: [google/timesfm-release](https://huggingface.co/collections/google/timesfm-release-66e4be5fdb56e960c1e482a6)
-
-            **Technical Details:**
-
-            - Only PyTorch checkpoints are currently supported. JAX is not supported.
-            - The model is loaded onto the best available device (GPU if available,
-              otherwise CPU).
-        """
-        if "pytorch" not in repo_id:
-            raise ValueError(
-                "TimesFM only supports pytorch models, "
-                "if you'd like to use jax, please open an issue"
-            )
-
         self.repo_id = repo_id
         self.context_length = context_length
         self.batch_size = batch_size
         self.alias = alias
 
     @contextmanager
-    def get_predictor(
+    def _get_predictor(
         self,
         prediction_length: int,
         quantiles: list[float] | None = None,
-    ) -> timesfm.TimesFm:
+    ) -> timesfm_v1.TimesFm:
         backend = "gpu" if torch.cuda.is_available() else "cpu"
         # these values are based on
         # https://github.com/google-research/timesfm/blob/ba034ae71c2fc88eaf59f80b4a778cc2c0dca7d6/experiments/extended_benchmarks/run_timesfm.py#L91
@@ -83,7 +41,7 @@ class TimesFM(Forecaster):
         num_layers = 50 if v2_version else 20
         use_positional_embedding = not v2_version
 
-        tfm_hparams = timesfm.TimesFmHparams(
+        tfm_hparams = timesfm_v1.TimesFmHparams(
             backend=backend,
             horizon_len=prediction_length,
             quantiles=quantiles,
@@ -92,8 +50,8 @@ class TimesFM(Forecaster):
             use_positional_embedding=use_positional_embedding,
             per_core_batch_size=self.batch_size,
         )
-        tfm_checkpoint = timesfm.TimesFmCheckpoint(huggingface_repo_id=self.repo_id)
-        tfm = timesfm.TimesFm(
+        tfm_checkpoint = timesfm_v1.TimesFmCheckpoint(huggingface_repo_id=self.repo_id)
+        tfm = timesfm_v1.TimesFm(
             hparams=tfm_hparams,
             checkpoint=tfm_checkpoint,
         )
@@ -111,52 +69,6 @@ class TimesFM(Forecaster):
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
     ) -> pd.DataFrame:
-        """Generate forecasts for time series data using the model.
-
-        This method produces point forecasts and, optionally, prediction
-        intervals or quantile forecasts. The input DataFrame can contain one
-        or multiple time series in stacked (long) format.
-
-        Args:
-            df (pd.DataFrame):
-                DataFrame containing the time series to forecast. It must
-                include as columns:
-
-                    - "unique_id": an ID column to distinguish multiple series.
-                    - "ds": a time column indicating timestamps or periods.
-                    - "y": a target column with the observed values.
-
-            h (int):
-                Forecast horizon specifying how many future steps to predict.
-            freq (str, optional):
-                Frequency of the time series (e.g. "D" for daily, "M" for
-                monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
-                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values. If not provided, the frequency will be inferred
-                from the data.
-            level (list[int | float], optional):
-                Confidence levels for prediction intervals, expressed as
-                percentages (e.g. [80, 95]). If provided, the returned
-                DataFrame will include lower and upper interval columns for
-                each specified level.
-            quantiles (list[float], optional):
-                List of quantiles to forecast, expressed as floats between 0
-                and 1. Should not be used simultaneously with `level`. When
-                provided, the output DataFrame will contain additional columns
-                named in the format "model-q-{percentile}", where {percentile}
-                = 100 × quantile value.
-
-        Returns:
-            pd.DataFrame:
-                DataFrame containing forecast results. Includes:
-
-                    - point forecasts for each timestamp and series.
-                    - prediction intervals if `level` is specified.
-                    - quantile forecasts if `quantiles` is specified.
-
-                For multi-series data, the output retains the same unique
-                identifiers as the input DataFrame.
-        """
         freq = self._maybe_infer_freq(df, freq)
         qc = QuantileConverter(level=level, quantiles=quantiles)
         if qc.quantiles is not None and len(qc.quantiles) != len(DEFAULT_QUANTILES_TFM):
@@ -165,7 +77,7 @@ class TimesFM(Forecaster):
                 "please use the default quantiles or default level, "
                 "see https://github.com/google-research/timesfm/issues/286"
             )
-        with self.get_predictor(
+        with self._get_predictor(
             prediction_length=h,
             quantiles=qc.quantiles or DEFAULT_QUANTILES_TFM,
         ) as predictor:
@@ -189,3 +101,206 @@ class TimesFM(Forecaster):
         else:
             fcst_df = fcst_df[["unique_id", "ds", self.alias]]
         return fcst_df
+
+
+class _TimesFMV2_p5(Forecaster):
+    def __init__(
+        self,
+        repo_id: str,
+        context_length: int,
+        batch_size: int,
+        alias: str,
+        **kwargs: dict,
+    ):
+        self.repo_id = repo_id
+        self.context_length = context_length
+        self.batch_size = batch_size
+        self.alias = alias
+        self.kwargs = kwargs
+
+    @contextmanager
+    def _get_predictor(
+        self,
+        prediction_length: int,
+    ) -> timesfm.TimesFM_2p5_200M_torch:
+        tfm = timesfm.TimesFM_2p5_200M_torch()
+        # automatically detect the best device
+        # https://github.com/AzulGarza/timesfm/blob/b810bbdf9f8a1e66396e7bd5cdb3b005e9116d86/src/timesfm/timesfm_2p5/timesfm_2p5_torch.py#L71
+        tfm.load_checkpoint(hf_repo_id=self.repo_id)
+        default_kwargs = {
+            "max_context": self.context_length,
+            "max_horizon": prediction_length,
+            "normalize_inputs": True,
+            "use_continuous_quantile_head": True,
+            "fix_quantile_crossing": True,
+        }
+        passed_kwargs = self.kwargs or {}
+        kwargs = {**default_kwargs, **passed_kwargs}
+        config = timesfm.ForecastConfig(**kwargs)
+        tfm.compile(config)
+        try:
+            yield tfm
+        finally:
+            del tfm
+            torch.cuda.empty_cache()
+
+    def _predict(
+        self,
+        model: timesfm.TimesFM_2p5_200M_torch,
+        dataset: TimeSeriesDataset,
+        h: int,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        fcsts = [
+            model.forecast(
+                inputs=batch,
+                horizon=h,
+            )
+            for batch in tqdm(dataset)
+        ]
+        fcsts_mean, fcsts_quantiles = zip(*fcsts, strict=False)
+        fcsts_mean_np = np.concatenate(fcsts_mean)
+        fcsts_quantiles_np = np.concatenate(fcsts_quantiles)
+        return fcsts_mean_np, fcsts_quantiles_np
+
+    def forecast(
+        self,
+        df: pd.DataFrame,
+        h: int,
+        freq: str | None = None,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
+    ) -> pd.DataFrame:
+        freq = self._maybe_infer_freq(df, freq)
+        qc = QuantileConverter(level=level, quantiles=quantiles)
+        if qc.quantiles is not None and len(qc.quantiles) != len(DEFAULT_QUANTILES_TFM):
+            raise ValueError(
+                "TimesFM only supports the default quantiles, "
+                "please use the default quantiles or default level, "
+                "see https://github.com/google-research/timesfm/issues/286"
+            )
+        dataset = TimeSeriesDataset.from_df(
+            df,
+            batch_size=self.batch_size,
+            dtype=torch.float32,
+        )
+        fcst_df = dataset.make_future_dataframe(h=h, freq=freq)
+        with self._get_predictor(prediction_length=h) as model:
+            fcsts_mean_np, fcsts_quantiles_np = self._predict(
+                model,
+                dataset,
+                h,
+            )
+        fcst_df[self.alias] = fcsts_mean_np.reshape(-1, 1)
+        if qc.quantiles is not None:
+            for i, q in enumerate(qc.quantiles):
+                fcst_df[f"{self.alias}-q-{int(q * 100)}"] = fcsts_quantiles_np[
+                    ..., i
+                ].reshape(-1, 1)
+            fcst_df = qc.maybe_convert_quantiles_to_level(
+                fcst_df,
+                models=[self.alias],
+            )
+        return fcst_df
+
+
+class TimesFM(Forecaster):
+    """
+    TimesFM is a large time series model for time series forecasting, supporting both
+    probabilistic and point forecasts. See the [official repo](https://github.com/
+    google-research/timesfm) for more details.
+    """
+
+    def __new__(
+        cls,
+        repo_id: str = "google/timesfm-2.0-500m-pytorch",
+        context_length: int = 2048,
+        batch_size: int = 64,
+        alias: str = "TimesFM",
+        **kwargs: dict,
+    ):
+        if "pytorch" not in repo_id:
+            raise ValueError(
+                "TimesFM only supports pytorch models, "
+                "if you'd like to use jax, please open an issue"
+            )
+        if "1.0" in repo_id or "2.0" in repo_id:
+            return _TimesFMV1(
+                repo_id=repo_id,
+                context_length=context_length,
+                batch_size=batch_size,
+                alias=alias,
+            )
+        elif "2.5" in repo_id:
+            return _TimesFMV2_p5(
+                repo_id=repo_id,
+                context_length=context_length,
+                batch_size=batch_size,
+                alias=alias,
+                **kwargs,
+            )
+        else:
+            raise ValueError(
+                "TimesFM only supports 1.0, 2.0 and 2.5 models, please use a "
+                "valid model id"
+            )
+
+    def __init__(
+        self,
+        repo_id: str = "google/timesfm-2.0-500m-pytorch",
+        context_length: int = 2048,
+        batch_size: int = 64,
+        alias: str = "TimesFM",
+        kwargs: dict | None = None,
+    ):
+        """
+        Args:
+            repo_id (str, optional): The Hugging Face Hub model ID or local path to
+                load the TimesFM model from. Examples include
+                `google/timesfm-2.0-500m-pytorch`. Defaults to
+                `google/timesfm-2.0-500m-pytorch`. See the full list of models at
+                [Hugging Face](https://huggingface.co/collections/google/timesfm-release-
+                66e4be5fdb56e960c1e482a6). Supported models:
+
+                - `google/timesfm-1.0-200m-pytorch`
+                - `google/timesfm-2.0-500m-pytorch`
+                - `google/timesfm-2.5-200m-pytorch`
+            context_length (int, optional): Maximum context length (input window size)
+                for the model. Defaults to 2048. For TimesFM 2.0 models, max is 2048
+                (must be a multiple of 32). For TimesFM 1.0 models, max is 512. See
+                [TimesFM docs](https://github.com/google-research/timesfm#loading-the-
+                model) for details.
+            batch_size (int, optional): Batch size for inference. Defaults to 64.
+                Adjust based on available memory and model size.
+            alias (str, optional): Name to use for the model in output DataFrames and
+                logs. Defaults to `TimesFM`.
+            kwargs (dict, optional): Additional keyword arguments to pass to the model.
+                Defaults to None. Only used for TimesFM 2.5 models.
+
+        Warning:
+            - TimesFM 2.5 models may have a bug in the quantile head, so the
+              monotonicity of the quantiles is not guaranteed. See
+              https://github.com/google-research/timesfm/issues/306 for more details.
+
+        Notes:
+            **Academic Reference:**
+
+            - Paper: [A decoder-only foundation model for time-series forecasting](https://arxiv.org/abs/2310.10688)
+
+            **Resources:**
+
+            - GitHub: [google-research/timesfm](https://github.com/google-research/timesfm)
+            - HuggingFace: [google/timesfm-release](https://huggingface.co/collections/google/timesfm-release-66e4be5fdb56e960c1e482a6)
+
+            **Technical Details:**
+
+            - Only PyTorch checkpoints are currently supported. JAX is not supported.
+            - The model is loaded onto the best available device (GPU if available,
+              otherwise CPU).
+
+            **Supported Models:**
+
+            - `google/timesfm-1.0-200m-pytorch`
+            - `google/timesfm-2.0-500m-pytorch`
+            - `google/timesfm-2.5-200m-pytorch`
+        """
+        pass
