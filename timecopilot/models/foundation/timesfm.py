@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 
 import pandas as pd
-import timesfm_v1 as timesfm
+import timesfm_v1
 import torch
 from timesfm_v1.timesfm_base import DEFAULT_QUANTILES as DEFAULT_QUANTILES_TFM
 
@@ -26,7 +26,7 @@ class _TimesFMV1(Forecaster):
         self,
         prediction_length: int,
         quantiles: list[float] | None = None,
-    ) -> timesfm.TimesFm:
+    ) -> timesfm_v1.TimesFm:
         backend = "gpu" if torch.cuda.is_available() else "cpu"
         # these values are based on
         # https://github.com/google-research/timesfm/blob/ba034ae71c2fc88eaf59f80b4a778cc2c0dca7d6/experiments/extended_benchmarks/run_timesfm.py#L91
@@ -37,7 +37,7 @@ class _TimesFMV1(Forecaster):
         num_layers = 50 if v2_version else 20
         use_positional_embedding = not v2_version
 
-        tfm_hparams = timesfm.TimesFmHparams(
+        tfm_hparams = timesfm_v1.TimesFmHparams(
             backend=backend,
             horizon_len=prediction_length,
             quantiles=quantiles,
@@ -46,8 +46,8 @@ class _TimesFMV1(Forecaster):
             use_positional_embedding=use_positional_embedding,
             per_core_batch_size=self.batch_size,
         )
-        tfm_checkpoint = timesfm.TimesFmCheckpoint(huggingface_repo_id=self.repo_id)
-        tfm = timesfm.TimesFm(
+        tfm_checkpoint = timesfm_v1.TimesFmCheckpoint(huggingface_repo_id=self.repo_id)
+        tfm = timesfm_v1.TimesFm(
             hparams=tfm_hparams,
             checkpoint=tfm_checkpoint,
         )
