@@ -1,9 +1,9 @@
 from contextlib import contextmanager
 
 import pandas as pd
-import timesfm
+import timesfm_v1 as timesfm
 import torch
-from timesfm.timesfm_base import DEFAULT_QUANTILES as DEFAULT_QUANTILES_TFM
+from timesfm_v1.timesfm_base import DEFAULT_QUANTILES as DEFAULT_QUANTILES_TFM
 
 from ..utils.forecaster import Forecaster, QuantileConverter
 
