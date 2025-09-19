@@ -23,11 +23,16 @@ class TimeSeriesDataset:
         self.current_batch = 0
 
     @classmethod
-    def from_df(cls, df: pd.DataFrame, batch_size: int):
+    def from_df(
+        cls,
+        df: pd.DataFrame,
+        batch_size: int,
+        dtype: torch.dtype = torch.bfloat16,
+    ):
         tensors = []
         df_sorted = df.sort_values(by=["unique_id", "ds"])
         for _, group in df_sorted.groupby("unique_id"):
-            tensors.append(torch.tensor(group["y"].values, dtype=torch.bfloat16))
+            tensors.append(torch.tensor(group["y"].values, dtype=dtype))
         uids = df_sorted["unique_id"].unique()
         last_times = df_sorted.groupby("unique_id")["ds"].tail(1)
         return cls(tensors, uids, last_times, batch_size)
