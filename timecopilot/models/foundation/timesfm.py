@@ -194,7 +194,7 @@ class _TimesFMV2_p5(Forecaster):
         if qc.quantiles is not None:
             for i, q in enumerate(qc.quantiles):
                 fcst_df[f"{self.alias}-q-{int(q * 100)}"] = fcsts_quantiles_np[
-                    ..., i
+                    ..., i + 1  # skip the first quantile (mean)
                 ].reshape(-1, 1)
             fcst_df = qc.maybe_convert_quantiles_to_level(
                 fcst_df,
@@ -275,11 +275,6 @@ class TimesFM(Forecaster):
                 logs. Defaults to `TimesFM`.
             kwargs (dict, optional): Additional keyword arguments to pass to the model.
                 Defaults to None. Only used for TimesFM 2.5 models.
-
-        Warning:
-            - TimesFM 2.5 models may have a bug in the quantile head, so the
-              monotonicity of the quantiles is not guaranteed. See
-              https://github.com/google-research/timesfm/issues/306 for more details.
 
         Notes:
             **Academic Reference:**
