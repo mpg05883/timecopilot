@@ -70,7 +70,7 @@ dependencies = [
   "tsfeatures",
   "utilsforecast[plotting]",
 ]
-description = "The GenAI Forecasting Agent · LLMs × Foundation Time Series Models"
+description = "The GenAI Forecasting Agent · LLMs × Time Series Foundation Models"
 license = "MIT"
 name = "timecopilot"
 readme = "README.md"
