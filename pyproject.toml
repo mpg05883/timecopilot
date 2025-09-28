@@ -48,6 +48,7 @@ classifiers = [
 dependencies = [
   "fire",
   "gluonts[torch]",
+  "huggingface-hub>=0.34.4",
   "lightgbm>=4.6.0",
   "logfire>=4.7.0",
   "mlforecast>=1.0.2",
@@ -57,6 +58,7 @@ dependencies = [
   "pandas>=2.2.0 ; python_full_version >= '3.13'",
   "prophet>=1.1.7",
   "pydantic-ai>=0.7.0",
+  "pytest-mock>=3.15.1",
   "scipy<=1.15.3",
   "statsforecast",
   "tabpfn-time-series>=1.0.3 ; python_full_version < '3.13'",

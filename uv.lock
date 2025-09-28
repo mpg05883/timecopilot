@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'linux'",
@@ -5413,6 +5413,18 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-mock"
+version = "3.15.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/68/14/eb014d26be205d38ad5ad20d9a80f7d201472e08167f0bb4361e251084a9/pytest_mock-3.15.1.tar.gz", hash = "sha256:1849a238f6f396da19762269de72cb1814ab44416fa73a8686deac10b0d87a0f", size = 34036, upload-time = "2025-09-16T16:37:27.081Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5a/cc/06253936f4a7fa2e0f48dfe6d851d9c56df896a9ab09ac019d70b760619c/pytest_mock-3.15.1-py3-none-any.whl", hash = "sha256:0a25e2eb88fe5168d535041d09a4529a188176ae608a6d249ee65abc0949630d", size = 10095, upload-time = "2025-09-16T16:37:25.734Z" },
+]
+
+[[package]]
 name = "pytest-rerunfailures"
 version = "15.1"
 source = { registry = "https://pypi.org/simple" }
@@ -6776,6 +6788,7 @@ source = { editable = "." }
 dependencies = [
     { name = "fire" },
     { name = "gluonts", extra = ["torch"] },
+    { name = "huggingface-hub" },
     { name = "lightgbm" },
     { name = "logfire" },
     { name = "mlforecast" },
@@ -6785,6 +6798,7 @@ dependencies = [
     { name = "pandas", version = "2.3.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
     { name = "prophet" },
     { name = "pydantic-ai" },
+    { name = "pytest-mock" },
     { name = "scipy" },
     { name = "statsforecast" },
     { name = "tabpfn-time-series", marker = "python_full_version < '3.13'" },
@@ -6825,6 +6839,7 @@ docs = [
 requires-dist = [
     { name = "fire" },
     { name = "gluonts", extras = ["torch"] },
+    { name = "huggingface-hub", specifier = ">=0.34.4" },
     { name = "lightgbm", specifier = ">=4.6.0" },
     { name = "logfire", specifier = ">=4.7.0" },
     { name = "mlforecast", specifier = ">=1.0.2" },
@@ -6834,6 +6849,7 @@ requires-dist = [
     { name = "pandas", marker = "python_full_version >= '3.13'", specifier = ">=2.2.0" },
     { name = "prophet", specifier = ">=1.1.7" },
     { name = "pydantic-ai", specifier = ">=0.7.0" },
+    { name = "pytest-mock", specifier = ">=3.15.1" },
     { name = "scipy", specifier = "<=1.15.3" },
     { name = "statsforecast" },
     { name = "tabpfn-time-series", marker = "python_full_version < '3.13'", specifier = ">=1.0.3" },
