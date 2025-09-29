@@ -1,3 +1,4 @@
+import os
 from contextlib import contextmanager
 
 import numpy as np
@@ -5,6 +6,7 @@ import pandas as pd
 import timesfm
 import timesfm_v1
 import torch
+from huggingface_hub import repo_exists
 from timesfm_v1.timesfm_base import DEFAULT_QUANTILES as DEFAULT_QUANTILES_TFM
 from tqdm import tqdm
 
@@ -50,11 +52,27 @@ class _TimesFMV1(Forecaster):
             use_positional_embedding=use_positional_embedding,
             per_core_batch_size=self.batch_size,
         )
-        tfm_checkpoint = timesfm_v1.TimesFmCheckpoint(huggingface_repo_id=self.repo_id)
-        tfm = timesfm_v1.TimesFm(
-            hparams=tfm_hparams,
-            checkpoint=tfm_checkpoint,
-        )
+        if os.path.exists(self.repo_id):
+            path = os.path.join(self.repo_id, "torch_model.ckpt")
+            tfm_checkpoint = timesfm_v1.TimesFmCheckpoint(path=path)
+            tfm = timesfm_v1.TimesFm(
+                hparams=tfm_hparams,
+                checkpoint=tfm_checkpoint,
+            )
+        elif repo_exists(self.repo_id):
+            tfm_checkpoint = timesfm_v1.TimesFmCheckpoint(
+                huggingface_repo_id=self.repo_id
+            )
+            tfm = timesfm_v1.TimesFm(
+                hparams=tfm_hparams,
+                checkpoint=tfm_checkpoint,
+            )
+        else:
+            raise OSError(
+                f"Failed to load model. Searched for '{self.repo_id}' "
+                "as a local path to model directory and as a Hugging Face repo_id."
+            )
+
         try:
             yield tfm
         finally:
@@ -126,7 +144,16 @@ class _TimesFMV2_p5(Forecaster):
         tfm = timesfm.TimesFM_2p5_200M_torch()
         # automatically detect the best device
         # https://github.com/AzulGarza/timesfm/blob/b810bbdf9f8a1e66396e7bd5cdb3b005e9116d86/src/timesfm/timesfm_2p5/timesfm_2p5_torch.py#L71
-        tfm.load_checkpoint(hf_repo_id=self.repo_id)
+        if os.path.exists(self.repo_id):
+            path = os.path.join(self.repo_id, "model.safetensors")
+            tfm.load_checkpoint(path=path)
+        elif repo_exists(self.repo_id):
+            tfm.load_checkpoint(hf_repo_id=self.repo_id)
+        else:
+            raise OSError(
+                f"Failed to load model. Searched for '{self.repo_id}' "
+                "as a local path to model directory and as a Hugging Face repo_id."
+            )
         default_kwargs = {
             "max_context": self.context_length,
             "max_horizon": prediction_length,

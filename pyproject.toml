@@ -9,6 +9,7 @@ dev = [
   "pytest",
   "pytest-asyncio>=1.1.0",
   "pytest-cov",
+  "pytest-mock>=3.15.1",
   "pytest-rerunfailures>=15.1",
   "pytest-xdist>=3.8.0",
   "s3fs>=2025.3.0",
@@ -48,6 +49,7 @@ classifiers = [
 dependencies = [
   "fire",
   "gluonts[torch]",
+  "huggingface-hub>=0.34.4",
   "lightgbm>=4.6.0",
   "logfire>=4.7.0",
   "mlforecast>=1.0.2",
