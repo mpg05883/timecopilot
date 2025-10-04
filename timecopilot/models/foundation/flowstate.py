@@ -68,21 +68,22 @@ class FlowState(Forecaster):
             - The model is only available for Python < 3.13.
         """
         self.repo_id = repo_id
-        self.scale_factor = scale_factor or get_fixed_factor(scale_factor)
+        self.scale_factor = scale_factor
         self.context_length = context_length
         self.batch_size = batch_size
         self.alias = alias
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.dtype = torch.bfloat16
+        self.dtype = torch.float32
 
     @contextmanager
-    def _get_model(self) -> FlowStateForPrediction:
+    def _get_model(self, scale_factor: float) -> FlowStateForPrediction:
         model = FlowStateForPrediction.from_pretrained(
             self.repo_id,
             torch_dtype=self.dtype,
-            scale_factor=self.scale_factor,
+            scale_factor=scale_factor,
         ).to(self.device)
         try:
+            model.eval()
             yield model
         finally:
             del model
@@ -159,8 +160,8 @@ class FlowState(Forecaster):
                 -1, -2
             )  # now shape is (batch, h, quantiles)
         fcst_mean = fcst[..., supported_quantiles.index(0.5)].squeeze()
-        fcst_mean_np = fcst_mean.cpu().numpy()
-        fcst_quantiles_np = fcst.cpu().numpy() if quantiles is not None else None
+        fcst_mean_np = fcst_mean.detach().numpy()
+        fcst_quantiles_np = fcst.detach().numpy() if quantiles is not None else None
         return fcst_mean_np, fcst_quantiles_np
 
     def _predict(
@@ -241,9 +242,10 @@ class FlowState(Forecaster):
         qc = QuantileConverter(level=level, quantiles=quantiles)
         dataset = TimeSeriesDataset.from_df(df, batch_size=self.batch_size)
         fcst_df = dataset.make_future_dataframe(h=h, freq=freq)
-        with self._get_model() as model:
+        scale_factor = self.scale_factor or get_fixed_factor(freq)
+        with self._get_model(scale_factor) as model:
             cfg = model.config
-            supported_quantiles = cfg["quantiles"]
+            supported_quantiles = cfg.quantiles
             if qc.quantiles is not None and not np.allclose(
                 qc.quantiles,
                 supported_quantiles,
