@@ -240,7 +240,11 @@ class FlowState(Forecaster):
         """
         freq = self._maybe_infer_freq(df, freq)
         qc = QuantileConverter(level=level, quantiles=quantiles)
-        dataset = TimeSeriesDataset.from_df(df, batch_size=self.batch_size)
+        dataset = TimeSeriesDataset.from_df(
+            df,
+            batch_size=self.batch_size,
+            dtype=self.dtype,
+        )
         fcst_df = dataset.make_future_dataframe(h=h, freq=freq)
         scale_factor = self.scale_factor or get_fixed_factor(freq)
         with self._get_model(scale_factor) as model:
