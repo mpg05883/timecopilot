@@ -76,12 +76,8 @@ class FlowState(Forecaster):
         self.dtype = torch.float32
 
     @contextmanager
-    def _get_model(self, scale_factor: float) -> FlowStateForPrediction:
-        model = FlowStateForPrediction.from_pretrained(
-            self.repo_id,
-            torch_dtype=self.dtype,
-            scale_factor=scale_factor,
-        ).to(self.device)
+    def _get_model(self) -> FlowStateForPrediction:
+        model = FlowStateForPrediction.from_pretrained(self.repo_id).to(self.device)
         try:
             model.eval()
             yield model
@@ -139,6 +135,7 @@ class FlowState(Forecaster):
         h: int,
         quantiles: list[float] | None,
         supported_quantiles: list[float],
+        scale_factor: float,
     ) -> tuple[np.ndarray, np.ndarray | None]:
         context = self._prepare_and_validate_context(batch)
         if context.shape[1] > self.context_length:
@@ -148,17 +145,14 @@ class FlowState(Forecaster):
         # then we convert it to (context_length, batch, 1)
         context = context.unsqueeze(-1).transpose(0, 1)
         context = context.to(self.device)
-        with torch.autocast(device_type=self.device, dtype=self.dtype):
-            # (batch, quantiles, h, n_ch)
-            fcst = model(
-                context,
-                prediction_length=h,
-                scale_factor=self.scale_factor,
-                batch_first=False,
-            ).prediction_outputs
-            fcst = fcst.squeeze(-1).transpose(
-                -1, -2
-            )  # now shape is (batch, h, quantiles)
+        # (batch, quantiles, h, n_ch)
+        fcst = model(
+            context,
+            prediction_length=h,
+            scale_factor=scale_factor,
+            batch_first=False,
+        ).prediction_outputs
+        fcst = fcst.squeeze(-1).transpose(-1, -2)  # now shape is (batch, h, quantiles)
         fcst_mean = fcst[..., supported_quantiles.index(0.5)].squeeze()
         fcst_mean_np = fcst_mean.detach().numpy()
         fcst_quantiles_np = fcst.detach().numpy() if quantiles is not None else None
@@ -171,9 +165,17 @@ class FlowState(Forecaster):
         h: int,
         quantiles: list[float] | None,
         supported_quantiles: list[float],
+        scale_factor: float,
     ) -> tuple[np.ndarray, np.ndarray | None]:
         fcsts = [
-            self._predict_batch(model, batch, h, quantiles, supported_quantiles)
+            self._predict_batch(
+                model,
+                batch,
+                h,
+                quantiles,
+                supported_quantiles,
+                scale_factor,
+            )
             for batch in tqdm(dataset)
         ]  # list of tuples
         fcsts_mean_tp, fcsts_quantiles_tp = zip(*fcsts, strict=False)
@@ -247,7 +249,7 @@ class FlowState(Forecaster):
         )
         fcst_df = dataset.make_future_dataframe(h=h, freq=freq)
         scale_factor = self.scale_factor or get_fixed_factor(freq)
-        with self._get_model(scale_factor) as model:
+        with self._get_model() as model:
             cfg = model.config
             supported_quantiles = cfg.quantiles
             if qc.quantiles is not None and not np.allclose(
@@ -265,6 +267,7 @@ class FlowState(Forecaster):
                 h,
                 quantiles=qc.quantiles,
                 supported_quantiles=supported_quantiles,
+                scale_factor=scale_factor,
             )
         fcst_df[self.alias] = fcsts_mean_np.reshape(-1, 1)
         if qc.quantiles is not None and fcsts_quantiles_np is not None:
