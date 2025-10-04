@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'linux'",
@@ -1287,6 +1287,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/0f/d5/c66da9b79e5bdb124974bfe172b4daf3c984ebd9c2a06e2b8a4dc7331c72/defusedxml-0.7.1.tar.gz", hash = "sha256:1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69", size = 75520, upload-time = "2021-03-08T10:59:26.269Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/07/6c/aa3f2f849e01cb6a001cd8554a88d4c77c5c1a31c95bdf1cf9301e6d9ef4/defusedxml-0.7.1-py2.py3-none-any.whl", hash = "sha256:a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61", size = 25604, upload-time = "2021-03-08T10:59:24.45Z" },
+]
+
+[[package]]
+name = "deprecated"
+version = "1.2.18"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "wrapt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/98/97/06afe62762c9a8a86af0cfb7bfdab22a43ad17138b07af5b1a58442690a2/deprecated-1.2.18.tar.gz", hash = "sha256:422b6f6d859da6f2ef57857761bfb392480502a64c3028ca9bbe86085d72115d", size = 2928744, upload-time = "2025-01-27T10:46:25.7Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6e/c6/ac0b6c1e2d138f1002bcf799d330bd6d85084fece321e662a14223794041/Deprecated-1.2.18-py2.py3-none-any.whl", hash = "sha256:bd5011788200372a32418f888e326a09ff80d0214bd961147cfed01b5c018eec", size = 9998, upload-time = "2025-01-27T10:46:09.186Z" },
 ]
 
 [[package]]
@@ -6802,6 +6814,7 @@ dependencies = [
     { name = "statsforecast" },
     { name = "tabpfn-time-series", marker = "python_full_version < '3.13'" },
     { name = "timecopilot-chronos-forecasting" },
+    { name = "timecopilot-granite-tsfm" },
     { name = "timecopilot-timesfm" },
     { name = "timecopilot-tirex", marker = "python_full_version >= '3.11'" },
     { name = "timecopilot-toto" },
@@ -6853,6 +6866,7 @@ requires-dist = [
     { name = "statsforecast" },
     { name = "tabpfn-time-series", marker = "python_full_version < '3.13'", specifier = ">=1.0.3" },
     { name = "timecopilot-chronos-forecasting", specifier = ">=0.1.0" },
+    { name = "timecopilot-granite-tsfm", specifier = ">=0.1.0" },
     { name = "timecopilot-timesfm", specifier = ">=0.2.0" },
     { name = "timecopilot-tirex", marker = "python_full_version >= '3.11'", specifier = ">=0.1.0" },
     { name = "timecopilot-toto", specifier = ">=0.1.3" },
@@ -6899,6 +6913,29 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/44/c1/6ef992112661a1fed5f4260e4537b41a5b5b4d5ace3aac17e770a50c0afd/timecopilot_chronos_forecasting-0.1.0.tar.gz", hash = "sha256:197605fb26762778f4d18baadb06d6d39dba575e79eb361a2643d84cb8fc5926", size = 711305, upload-time = "2025-08-06T01:38:43.71Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/75/60/1daae0232e635d19dd92c194dbf89dd952af9995af0494485ba25b3582ee/timecopilot_chronos_forecasting-0.1.0-py3-none-any.whl", hash = "sha256:d0e7363d686b6f035302042071c9d1247110bd862d1e5f850bf869bfd2fe0b66", size = 29538, upload-time = "2025-08-06T01:38:41.789Z" },
+]
+
+[[package]]
+name = "timecopilot-granite-tsfm"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "datasets" },
+    { name = "deprecated" },
+    { name = "numpy", version = "1.26.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
+    { name = "numpy", version = "2.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
+    { name = "pandas", version = "2.1.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
+    { name = "pandas", version = "2.3.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
+    { name = "scikit-learn", version = "1.6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
+    { name = "scikit-learn", version = "1.7.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
+    { name = "torch" },
+    { name = "transformers", version = "4.40.1", source = { registry = "https://pypi.org/simple" }, extra = ["torch"], marker = "python_full_version < '3.13'" },
+    { name = "transformers", version = "4.55.0", source = { registry = "https://pypi.org/simple" }, extra = ["torch"], marker = "python_full_version >= '3.13'" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/da/1a/17dc6d09753cae0fdb0ed72985d143343e1fd0e69f40b7d64a73d79335ed/timecopilot_granite_tsfm-0.1.0.tar.gz", hash = "sha256:cdc6ab974ff59f70e23a09fe563ecb35c6173b487c44cc73a73be0af0f50bf3a", size = 16593110, upload-time = "2025-10-04T19:18:58.368Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/20/a8/23756ff5b1c26ef6d627ee52607412b08bb9bf784557a5f0408867c23c62/timecopilot_granite_tsfm-0.1.0-py3-none-any.whl", hash = "sha256:72d9a7307b1ff27e4f85763f90f7d5d569736b68842b082c79903dfb91d87771", size = 3814630, upload-time = "2025-10-04T19:18:54.856Z" },
 ]
 
 [[package]]
@@ -7344,6 +7381,12 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/cf/90/2596ac2ab49c4df6ff1fceaf7f5afb18401ba2f326348ce1a6261a65e7ed/transformers-4.40.1-py3-none-any.whl", hash = "sha256:9d5ee0c8142a60501faf9e49a0b42f8e9cb8611823bce4f195a9325a6816337e", size = 8998636, upload-time = "2024-04-23T22:01:10.479Z" },
 ]
 
+[package.optional-dependencies]
+torch = [
+    { name = "accelerate", marker = "python_full_version < '3.13'" },
+    { name = "torch", marker = "python_full_version < '3.13'" },
+]
+
 [[package]]
 name = "transformers"
 version = "4.55.0"
@@ -7369,6 +7412,12 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/27/5d/f7dc746eef83336a6b34197311fe0c1da0d1192f637c726c6a5cf0d83502/transformers-4.55.0.tar.gz", hash = "sha256:15aa138a05d07a15b30d191ea2c45e23061ebf9fcc928a1318e03fe2234f3ae1", size = 9569089, upload-time = "2025-08-05T16:13:48.997Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1c/93/bcb22fb52ed65084c0199270832aa4cdd4b41296d896f3e7ade188bccb68/transformers-4.55.0-py3-none-any.whl", hash = "sha256:29d9b8800e32a4a831bb16efb5f762f6a9742fef9fce5d693ed018d19b106490", size = 11267905, upload-time = "2025-08-05T16:13:34.814Z" },
+]
+
+[package.optional-dependencies]
+torch = [
+    { name = "accelerate", marker = "python_full_version >= '3.13'" },
+    { name = "torch", marker = "python_full_version >= '3.13'" },
 ]
 
 [[package]]

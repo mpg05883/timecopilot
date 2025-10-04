@@ -63,6 +63,7 @@ dependencies = [
   "statsforecast",
   "tabpfn-time-series>=1.0.3 ; python_full_version < '3.13'",
   "timecopilot-chronos-forecasting>=0.1.0",
+  "timecopilot-granite-tsfm>=0.1.0",
   "timecopilot-timesfm>=0.2.0",
   "timecopilot-tirex>=0.1.0 ; python_full_version >= '3.11'",
   "timecopilot-toto>=0.1.3",
