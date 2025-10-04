@@ -14,12 +14,14 @@ from .utils import TimeSeriesDataset
 
 class FlowState(Forecaster):
     """
-    Sundial is a family of generative time series foundation models,
-    pre-trained on TimeBench (10^12 time points). It uses the TimeFlow Loss to
-    predict next-patch distributions, allowing Transformers to be trained without
-    discrete tokenization and make non-deterministic predictions. The model supports
-    both point and probabilistic zero-shot forecasting. See the
-    [official repo](https://github.com/thuml/Sundial) for more details.
+    FlowState is the first time-scale adjustable Time Series Foundation Model (TSFM),
+    open-sourced by IBM Research. Combining a State Space Model (SSM) Encoder with a
+    Functional Basis Decoder allows FlowState to transition into a timescale invariant
+    coefficient space and make a continuous forecast from this space. This allows
+    FlowState to seamlessly adjust to all possible sampling rates.
+
+    See the [official repo](https://github.com/ibm-granite/granite-tsfm) and
+    [paper](https://arxiv.org/abs/2508.05287) for more details.
     """
 
     def __init__(
@@ -31,41 +33,53 @@ class FlowState(Forecaster):
         alias: str = "FlowState",
     ):
         """
+        Initialize FlowState time series foundation model.
+
         Args:
             repo_id (str, optional): The Hugging Face Hub model ID or local path to
-                load the Sundial model from. Examples include
-                "thuml/sundial-base-128m". Defaults to "thuml/sundial-base-128m".
-                See the full list of models at [Hugging Face](https://huggingface.co/
-                thuml/sundial-base-128m).
-            num_samples (int, optional): Number of samples to generate for
-                probabilistic forecasting. More samples provide better distribution
-                estimates but increase computation time. Defaults to 100.
+                load the FlowState model from. Supported models:
+
+                - `ibm-research/flowstate` (default)
+                - `ibm-granite/granite-timeseries-flowstate-r1`.
+
+            scale_factor (float, optional): Scale factor for temporal adaptation.
+                If None, will be automatically determined based on the time series
+                frequency. The scale factor adjusts the model to different sampling
+                rates. For example, if your data has seasonality every N=96 time steps
+                (quarter hourly with daily cycle), scale_factor = 24/96 = 0.25.
             context_length (int, optional): Maximum context length (input window size)
                 for the model. Controls how much history is used for each forecast.
-                Defaults to 2,880. The model supports different lookback lengths.
+                Defaults to 2,048. The model supports flexible context lengths.
             batch_size (int, optional): Batch size for inference. Defaults to 1,024.
                 Adjust based on available memory and model size. Larger batch sizes
                 can improve throughput but require more GPU memory.
             alias (str, optional): Name to use for the model in output DataFrames and
-                logs. Defaults to "Sundial".
+                logs. Defaults to "FlowState".
 
         Notes:
             **Academic Reference:**
 
-            - Paper: [Sundial: A Family of Highly Capable Time Series Foundation Models](https://arxiv.org/abs/2502.00816)
+            - Paper: [FlowState: Sampling Rate Invariant Time Series Forecasting](https://arxiv.org/abs/2508.05287)
 
             **Resources:**
 
-            - GitHub: [thuml/Sundial](https://github.com/thuml/Sundial)
-            - HuggingFace: [thuml/sundial-base-128m](https://huggingface.co/thuml/sundial-base-128m)
+            - GitHub: [ibm-granite/granite-tsfm](https://github.com/ibm-granite/granite-tsfm)
+            - HuggingFace Models: [ibm-granite/granite-timeseries-flowstate-r1](
+                https://huggingface.co/ibm-granite/granite-timeseries-flowstate-r1
+              ), [ibm-research/flowstate](https://huggingface.co/ibm-research/flowstate).
 
             **Technical Details:**
 
             - The model is loaded onto the best available device (GPU if
               available, otherwise CPU).
-            - The model weights are loaded with torch_dtype=torch.bfloat16 for
-              efficiency on supported hardware.
-            - The model is only available for Python < 3.13.
+            - FlowState uses State Space Model (SSM) encoder with Functional
+              Basis Decoder (FBD) for time-scale invariant forecasting.
+            - Recommended forecasting horizon: no more than 30 seasons.
+
+            **Supported Models:**
+
+            - `ibm-research/flowstate` (default)
+            - `ibm-granite/granite-timeseries-flowstate-r1`.
         """
         self.repo_id = repo_id
         self.scale_factor = scale_factor
