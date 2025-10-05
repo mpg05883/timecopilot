@@ -163,6 +163,7 @@ class GIFTEval:
             storage_path=storage_path,
         )
         self.dataset_name = dataset_name
+        self.term = term
         self.seasonality = get_seasonality(self.dataset.freq)
         self.output_path = output_path
 
@@ -171,6 +172,7 @@ class GIFTEval:
         predictor: RepresentablePredictor | GluonTSPredictor,
         batch_size: int | None = None,
         overwrite_results: bool = False,
+        verbose: bool = True,
     ):
         """
         Evaluate a GluonTS predictor on the loaded dataset and save results.
@@ -182,6 +184,7 @@ class GIFTEval:
                 predictor's default.
             overwrite_results (bool): Whether to overwrite the existing results CSV
                 file.
+            verbose (bool): Whether to print progress information.
         """
         if batch_size is None:
             if isinstance(predictor, GluonTSPredictor):
@@ -225,6 +228,11 @@ class GIFTEval:
             ]
         ]
 
+        if verbose:
+            mase = res["MASE[0.5]"][0]
+            crps = res["mean_weighted_sum_quantile_loss"][0]
+            logging.info(f"MASE: {mase:.4f}, CRPS: {crps:.4f}")
+
         # Create a DataFrame and write to CSV
         results_df = pd.DataFrame(
             results_data,
@@ -247,12 +255,15 @@ class GIFTEval:
             ],
         )
         if self.output_path is not None:
-            csv_file_path = Path(self.output_path) / "all_results.csv"
+            csv_file_path = Path(self.output_path) / "results.csv"
             csv_file_path.parent.mkdir(parents=True, exist_ok=True)
             if csv_file_path.exists() and not overwrite_results:
-                results_df = pd.concat([pd.read_csv(csv_file_path), results_df])
+                results_df = pd.concat(
+                    [pd.read_csv(csv_file_path), results_df],
+                )
             results_df.to_csv(csv_file_path, index=False)
 
             logger.info(
-                f"Results for {self.dataset_name} have been written to {csv_file_path}"
+                f"Results for {self.dataset_name} ({self.term}) have been "
+                f"written to {csv_file_path}"
             )
