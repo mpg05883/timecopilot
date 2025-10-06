@@ -126,6 +126,9 @@ class MedianEnsemble(Forecaster):
             level=None,
             quantiles=qc.quantiles,
         )
+        
+        print(f"_fcst_df columns: {_fcst_df.columns.tolist()}")
+        
         fcst_df = _fcst_df[["unique_id", "ds"]]
         model_cols = [model.alias for model in self.tcf.models]
         fcst_df[self.alias] = _fcst_df[model_cols].median(axis=1)

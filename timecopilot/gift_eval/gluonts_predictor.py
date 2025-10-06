@@ -227,7 +227,13 @@ class GluonTSPredictor(RepresentablePredictor):
                     n_windows=n_windows,
                     **kwargs,
                 )
-                all_results.append(results)
+                merged_results = pd.merge(
+                    left=df,
+                    right=results,
+                    on=["unique_id", "ds"],
+                    how="inner",
+                )
+                all_results.append(merged_results)
                 batch = []
 
         if len(batch) > 0:
@@ -241,8 +247,14 @@ class GluonTSPredictor(RepresentablePredictor):
                 n_windows=n_windows,
                 **kwargs,
             )
-            all_results.append(results)
+            merged_results = pd.merge(
+                    left=df,
+                    right=results,
+                    on=["unique_id", "ds"],
+                    how="inner",
+                )
+            all_results.append(merged_results)
 
-        # Combine all cross-validation results into a single DataFrame
+        # Stack all cross-validation results into a single DataFrame
         return pd.concat(all_results, ignore_index=True)
         

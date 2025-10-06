@@ -14,10 +14,8 @@ logging.basicConfig(
     datefmt="%b %d, %Y %I:%M:%S%p",
 )
 
-seed_everything(42)
-
-
 def main(args):
+    seed_everything(args.seed)
     logging.info(f"Loading dataset: {args.name} ({args.term})")
     dataset = Dataset(
         name=args.name,
@@ -55,7 +53,7 @@ def main(args):
         output_dir=args.output_dir,
         dataset_config=dataset.config,
     )
-    output_path = output_dir / "cross_validation_results.csv"
+    output_path = output_dir / "cross_validation.csv"
     
     logging.info(f"Finished cross-validation! Saving results to {output_path}")
     df.to_csv(output_path, index=False)
@@ -64,9 +62,15 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Random seed for reproducibility",
+    )
+    parser.add_argument(
         "--name",
         type=str,
-        default="ett1/15T",
+        default="m4_hourly",
         help="Name of the dataset to load",
     )
     parser.add_argument(
@@ -98,6 +102,12 @@ if __name__ == "__main__":
         type=int,
         default=1,
         help="Number of windows to use for cross-validation"
+    )
+    parser.add_argument(
+        "--include_input",
+        type=bool,
+        default=True,
+        help="Whether to include input window in cross-validation results",
     )
     parser.add_argument(
         "--output_dir",
