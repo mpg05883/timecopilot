@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
@@ -182,3 +182,67 @@ class GluonTSPredictor(RepresentablePredictor):
                 raise ValueError("frequency `freq` must be provided")
             fcsts.extend(self._predict_batch(batch=batch, h=h, freq=freq))
         return fcsts
+    
+    def cross_validation(
+            self, 
+            dataset: Dataset, 
+            n_windows: int = 1, 
+            **kwargs: Any,
+        ) -> pd.DataFrame:
+        """
+        Perform cross-validation on a GluonTS Dataset.
+
+        Args:
+            dataset (Dataset): GluonTS Dataset to perform cross-validation on.
+            n_windows (int): Number of windows to use for cross-validation.
+                Defaults to 1.
+            **kwargs: Additional keyword arguments (e.g., n_windows, step_size).
+
+        Returns:
+            pd.DataFrame: DataFrame containing cross-validation results.
+        """
+        all_results = []
+        batch: list[Dataset] = []
+        h = self.h or dataset.test_data.prediction_length
+        if h is None:
+            raise ValueError("horizon `h` must be provided")
+        freq = self.freq
+        validation_dataset = dataset.validation_dataset
+        tqdm_kwargs = {
+            "iterable": enumerate(validation_dataset),
+            "desc": "Performing cross-validation",
+            "total": len(validation_dataset),
+            "unit": "series",
+        }
+        for _, entry in tqdm.tqdm(**tqdm_kwargs):
+            if freq is None:
+                freq = entry["freq"]
+            batch.append(entry)
+            if len(batch) == self.batch_size:
+                df, _ = self._gluonts_dataset_to_df(batch)
+                results = self.forecaster.cross_validation(
+                    df=df,
+                    h=h,
+                    freq=freq,
+                    n_windows=n_windows,
+                    **kwargs,
+                )
+                all_results.append(results)
+                batch = []
+
+        if len(batch) > 0:
+            if freq is None:
+                raise ValueError("frequency `freq` must be provided")
+            df, _ = self._gluonts_dataset_to_df(batch)
+            results = self.forecaster.cross_validation(
+                df=df,
+                h=h,
+                freq=freq,
+                n_windows=n_windows,
+                **kwargs,
+            )
+            all_results.append(results)
+
+        # Combine all cross-validation results into a single DataFrame
+        return pd.concat(all_results, ignore_index=True)
+        

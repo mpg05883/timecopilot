@@ -2,6 +2,7 @@
 
 import math
 import os
+import requests
 from collections.abc import Iterable, Iterator
 from enum import Enum
 from functools import cached_property
@@ -18,6 +19,7 @@ from gluonts.time_feature import norm_freq_str
 from gluonts.transform import Transformation
 from pandas.tseries.frequencies import to_offset
 from toolz import compose
+from .utils import MED_LONG_DATASETS
 
 TEST_SPLIT = 0.1
 MAX_WINDOW = 20
@@ -51,6 +53,7 @@ TFB_PRED_LENGTH_MAP = {
     "T": 8,
 }
 
+DATASET_PROPERTIES_URL = "https://raw.githubusercontent.com/SalesforceAIResearch/gift-eval/refs/heads/main/notebooks/dataset_properties.json"
 
 class Term(Enum):
     SHORT = "short"
@@ -118,7 +121,6 @@ class Dataset:
         self,
         name: str,
         term: Term | str = Term.SHORT,
-        to_univariate: bool = False,
         storage_path: Path | str | None = None,
         storage_env_var: str = "GIFT_EVAL",
     ):
@@ -135,13 +137,37 @@ class Dataset:
         )
 
         self.gluonts_dataset = Map(compose(process, itemize_start), self.hf_dataset)
-        if to_univariate:
+        if self.target_dim != 1:
             self.gluonts_dataset = MultivariateToUnivariate("target").apply(
                 self.gluonts_dataset
             )
 
         self.term = Term(term)
         self.name = name
+        
+        res_dataset_properties = requests.get(DATASET_PROPERTIES_URL)
+        res_dataset_properties.raise_for_status()  # Raise an error for bad responses
+        self.dataset_properties_map = res_dataset_properties.json()
+        pretty_names = {
+            "saugeenday": "saugeen",
+            "temperature_rain_with_missing": "temperature_rain",
+            "kdd_cup_2018_with_missing": "kdd_cup_2018",
+            "car_parts_with_missing": "car_parts",
+        }
+        if (
+            term == "medium" or term == "long"
+        ) and name not in MED_LONG_DATASETS:
+            raise ValueError(f"Dataset {name} is not a medium or long dataset")
+        if "/" in name:
+            ds_key = name.split("/")[0]
+            ds_freq = name.split("/")[1]
+            ds_key = ds_key.lower()
+            ds_key = pretty_names.get(ds_key, ds_key)
+        else:
+            ds_key = name.lower()
+            ds_key = pretty_names.get(ds_key, ds_key)
+            ds_freq = self.dataset_properties_map[ds_key]["frequency"]
+        self.config = f"{ds_key}/{ds_freq}/{term}"
 
     @cached_property
     def prediction_length(self) -> int:

@@ -158,3 +158,117 @@ class MedianEnsemble(Forecaster):
                 models=[self.alias],
             )
         return fcst_df
+
+    def cross_validation(
+        self,
+        df: pd.DataFrame,
+        h: int,
+        freq: str | None = None,
+        n_windows: int = 1,
+        step_size: int | None = None,
+        level: list[int | float] | None = None,
+        quantiles: list[float] | None = None,
+    ) -> pd.DataFrame:
+        """
+        Perform cross-validation for time series data using the ensemble.
+
+        This method splits the time series into multiple training and testing
+        windows and generates forecasts for each window using the base models.
+        The forecasts are ensembled by taking the median of their predictions.
+
+        Args:
+            df (pd.DataFrame):
+                DataFrame containing the time series to forecast. It must
+                include as columns:
+
+                    - "unique_id": an ID column to distinguish multiple series.
+                    - "ds": a time column indicating timestamps or periods.
+                    - "y": a target column with the observed values.
+
+            h (int):
+                Forecast horizon specifying how many future steps to predict in
+                each window.
+            freq (str, optional):
+                Frequency of the time series (e.g. "D" for daily, "M" for
+                monthly). If not provided, the frequency will be inferred
+                from the data.
+            n_windows (int, optional):
+                Number of cross-validation windows to generate. Defaults to 1.
+            step_size (int, optional):
+                Step size between the start of consecutive windows. If None, it
+                defaults to `h`.
+            level (list[int | float], optional):
+                Confidence levels for prediction intervals, expressed as
+                percentages (e.g. [80, 95]).
+            quantiles (list[float], optional):
+                Quantiles to forecast, expressed as floats between 0 and 1.
+
+        Returns:
+            pd.DataFrame:
+                DataFrame containing the cross-validation results. Includes:
+
+                    - point forecasts for each timestamp and series.
+                    - prediction intervals if `level` is specified.
+                    - quantile forecasts if `quantiles` is specified.
+                    - forecasts for each base model.
+        """
+        qc = QuantileConverter(level=level, quantiles=quantiles)
+
+        # Perform cross-validation with each base model
+        _cv_df = self.tcf._call_models(
+            "cross_validation",
+            merge_on=["unique_id", "ds", "cutoff"],
+            df=df,
+            h=h,
+            freq=freq,
+            n_windows=n_windows,
+            step_size=step_size,
+            level=None,
+            quantiles=qc.quantiles,
+        )
+
+        # Initialize the output DataFrame 
+        cv_df = _cv_df[["unique_id", "ds", "cutoff"]].copy()
+        model_cols = [model.alias for model in self.tcf.models]
+
+        # Add forecasts for each base model to the output DataFrame
+        for col in _cv_df.columns:
+            for model in model_cols:
+                if model in col:
+                    cv_df[col] = _cv_df[col]
+                    
+        # Ensemble the point forecasts by taking the median
+        cv_df[self.alias] = _cv_df[model_cols].median(axis=1)
+
+        if qc.quantiles is not None:
+            qs = sorted(qc.quantiles)
+            q_cols = []
+            for q in qs:
+                pct = int(q * 100)
+                models_q_cols = [f"{col}-q-{pct}" for col in model_cols]
+                q_col = f"{self.alias}-q-{pct}"
+                cv_df[q_col] = _cv_df[models_q_cols].median(axis=1)
+                q_cols.append(q_col)
+
+            # Enforce monotonicity using isotonic regression
+            ir = IsotonicRegression(increasing=True)
+
+            def apply_isotonic(row):
+                return ir.fit_transform(qs, row)
+
+            vals_monotonic = cv_df[q_cols].apply(
+                apply_isotonic,
+                axis=1,
+                result_type="expand",
+            )
+            cv_df[q_cols] = vals_monotonic
+
+            if 0.5 in qc.quantiles:
+                cv_df[self.alias] = cv_df[f"{self.alias}-q-50"].values
+
+            cv_df = qc.maybe_convert_quantiles_to_level(
+                cv_df,
+                models=[self.alias],
+            )
+
+        return cv_df
