@@ -15,7 +15,7 @@ MODEL_PARAMS = [
     (
         _TimesFMV2_p5,
         [
-            "timecopilot.models.foundation.timesfm.timesfm.TimesFM_2p5_200M_torch",
+            "timecopilot.models.foundation.timesfm.TimesFM_2p5_200M_torch",
         ],
     ),
 ]
@@ -31,7 +31,10 @@ def test_load_model_from_local_path(mocker, model_class, mock_paths):
     local_path = "/fake/local/path"
 
     model_instance = model_class(
-        repo_id=local_path, context_length=64, batch_size=32, alias="test"
+        repo_id=local_path,
+        context_length=64,
+        batch_size=32,
+        alias="test",
     )
 
     with model_instance._get_predictor(prediction_length=12) as p:
@@ -44,9 +47,12 @@ def test_load_model_from_local_path(mocker, model_class, mock_paths):
         expected_path = os.path.join(local_path, "torch_model.ckpt")
         mock_loader[0].assert_called_once_with(path=expected_path)
     elif model_class is _TimesFMV2_p5:
-        assert predictor is mock_loader[0].return_value
-        mock_loader[0].return_value.load_checkpoint.assert_called_once_with(
-            path=os.path.join(local_path, "model.safetensors")
+        expected_predictor = mock_loader[
+            0
+        ].return_value.model.load_checkpoint.return_value
+        assert predictor is expected_predictor
+        mock_loader[0].return_value.model.load_checkpoint.assert_called_once_with(
+            os.path.join(local_path, "model.safetensors")
         )
 
 
@@ -61,7 +67,10 @@ def test_load_model_from_hf_repo(mocker, model_class, mock_paths):
     repo_id = "/fake/google/repo-id"
 
     model_instance = model_class(
-        repo_id=repo_id, context_length=64, batch_size=32, alias="test"
+        repo_id=repo_id,
+        context_length=64,
+        batch_size=32,
+        alias="test",
     )
 
     with model_instance._get_predictor(prediction_length=12) as p:
@@ -74,10 +83,8 @@ def test_load_model_from_hf_repo(mocker, model_class, mock_paths):
         assert predictor is mock_loader[1].return_value
         mock_loader[0].assert_called_once_with(huggingface_repo_id=repo_id)
     elif model_class is _TimesFMV2_p5:
-        assert predictor is mock_loader[0].return_value
-        mock_loader[0].return_value.load_checkpoint.assert_called_once_with(
-            hf_repo_id=repo_id
-        )
+        assert predictor is mock_loader[0].from_pretrained.return_value
+        mock_loader[0].from_pretrained.assert_called_once_with(repo_id)
 
 
 @pytest.mark.parametrize("model_class, _", MODEL_PARAMS)
@@ -91,7 +98,10 @@ def test_model_raises_OSError_on_failed_load(mocker, model_class, _):
     repo_id = "/this-is-a-fake/google/repo-id"
 
     model_instance = model_class(
-        repo_id=repo_id, context_length=64, batch_size=32, alias="test"
+        repo_id=repo_id,
+        context_length=64,
+        batch_size=32,
+        alias="test",
     )
     with (
         pytest.raises(OSError, match="Failed to load model"),

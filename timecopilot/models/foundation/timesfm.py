@@ -142,14 +142,13 @@ class _TimesFMV2_p5(Forecaster):
         self,
         prediction_length: int,
     ) -> TimesFM_2p5_200M_torch:
-        tfm = TimesFM_2p5_200M_torch()
         # automatically detect the best device
         # https://github.com/AzulGarza/timesfm/blob/b810bbdf9f8a1e66396e7bd5cdb3b005e9116d86/src/timesfm/timesfm_2p5/timesfm_2p5_torch.py#L71
         if os.path.exists(self.repo_id):
             path = os.path.join(self.repo_id, "model.safetensors")
-            tfm.from_pretrained(path)
+            tfm = TimesFM_2p5_200M_torch().model.load_checkpoint(path)
         elif repo_exists(self.repo_id):
-            tfm.from_pretrained(self.repo_id)
+            tfm = TimesFM_2p5_200M_torch.from_pretrained(self.repo_id)
         else:
             raise OSError(
                 f"Failed to load model. Searched for '{self.repo_id}' "
