@@ -4,6 +4,7 @@ import pytest
 
 from timecopilot.models.ensembles.median import MedianEnsemble
 from timecopilot.models.foundation.chronos import Chronos
+from timecopilot.models.foundation.flowstate import FlowState
 from timecopilot.models.foundation.moirai import Moirai
 from timecopilot.models.foundation.timesfm import TimesFM
 from timecopilot.models.foundation.toto import Toto
@@ -61,6 +62,11 @@ models = [
     ADIDA(),
     Prophet(),
     Chronos(repo_id="amazon/chronos-bolt-tiny", alias="Chronos-Bolt"),
+    FlowState(repo_id="ibm-research/flowstate"),
+    FlowState(
+        repo_id="ibm-granite/granite-timeseries-flowstate-r1",
+        alias="FlowState-Granite",
+    ),
     Toto(context_length=256, batch_size=2),
     Moirai(
         context_length=256,

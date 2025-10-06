@@ -91,6 +91,12 @@ TimeCopilot uses some forked Python packages, maintained under custom names on P
     - TimeCopilot fork: [AzulGarza/chronos-forecasting](https://github.com/AzulGarza/chronos-forecasting/tree/feat/timecopilot-chronos-forecasting)
     - Published on PyPI as: [`timecopilot-chronos-forecasting`](https://pypi.org/project/timecopilot-chronos-forecasting/)
 
+
+- **granite-tsfm**
+    - Forked from: [ibm-granite/granite-tsfm](https://github.com/ibm-granite/granite-tsfm)
+    - TimeCopilot fork: [AzulGarza/granite-tsfm](https://github.com/AzulGarza/granite-tsfm)
+    - Published on PyPI as: [`timecopilot-granite-tsfm`](https://pypi.org/project/timecopilot-granite-tsfm/)
+
 - **timesfm**
     - Forked from: [google-research/timesfm](https://github.com/google-research/timesfm)
     - TimeCopilot fork: [AzulGarza/timesfm](https://github.com/AzulGarza/timesfm)
