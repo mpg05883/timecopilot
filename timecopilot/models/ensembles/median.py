@@ -233,6 +233,8 @@ class MedianEnsemble(Forecaster):
         # Initialize the output DataFrame 
         cv_df = _cv_df[["unique_id", "ds", "cutoff"]].copy()
         model_cols = [model.alias for model in self.tcf.models]
+        
+        print(f"_cv_df cols: {_cv_df.columns.tolist()}")
 
         # Add forecasts for each base model to the output DataFrame
         for col in _cv_df.columns:

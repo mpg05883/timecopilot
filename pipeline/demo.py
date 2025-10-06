@@ -5,7 +5,7 @@ from pytorch_lightning import seed_everything
 from timecopilot.gift_eval.data import Dataset
 from timecopilot.gift_eval.gluonts_predictor import GluonTSPredictor
 from timecopilot.models.ensembles import MedianEnsemble
-from timecopilot.models.foundation import Moirai, Sundial, TimesFM
+from timecopilot.models.foundation import Moirai, Sundial, TimesFM, Toto
 from timecopilot.utils.path import resolve_output_path, resolve_storage_path
 
 logging.basicConfig(
@@ -37,6 +37,7 @@ def main(args):
             repo_id="google/timesfm-2.0-500m-pytorch",
             batch_size=args.batch_size,
         ),
+        Toto(batch_size=args.batch_size),
     ]
     forecaster = MedianEnsemble(models=models)
     
@@ -70,7 +71,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--name",
         type=str,
-        default="m4_hourly",
+        default="ett1/15T",
         help="Name of the dataset to load",
     )
     parser.add_argument(
