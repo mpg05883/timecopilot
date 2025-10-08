@@ -1290,6 +1290,18 @@ wheels = [
 ]
 
 [[package]]
+name = "deprecated"
+version = "1.2.18"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "wrapt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/98/97/06afe62762c9a8a86af0cfb7bfdab22a43ad17138b07af5b1a58442690a2/deprecated-1.2.18.tar.gz", hash = "sha256:422b6f6d859da6f2ef57857761bfb392480502a64c3028ca9bbe86085d72115d", size = 2928744, upload-time = "2025-01-27T10:46:25.7Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6e/c6/ac0b6c1e2d138f1002bcf799d330bd6d85084fece321e662a14223794041/Deprecated-1.2.18-py2.py3-none-any.whl", hash = "sha256:bd5011788200372a32418f888e326a09ff80d0214bd961147cfed01b5c018eec", size = 9998, upload-time = "2025-01-27T10:46:09.186Z" },
+]
+
+[[package]]
 name = "dill"
 version = "0.3.8"
 source = { registry = "https://pypi.org/simple" }
@@ -6802,6 +6814,7 @@ dependencies = [
     { name = "statsforecast" },
     { name = "tabpfn-time-series", marker = "python_full_version < '3.13'" },
     { name = "timecopilot-chronos-forecasting" },
+    { name = "timecopilot-granite-tsfm" },
     { name = "timecopilot-timesfm" },
     { name = "timecopilot-tirex", marker = "python_full_version >= '3.11'" },
     { name = "timecopilot-toto" },
@@ -6851,8 +6864,9 @@ requires-dist = [
     { name = "pydantic-ai", specifier = ">=0.7.0" },
     { name = "scipy", specifier = "<=1.15.3" },
     { name = "statsforecast" },
-    { name = "tabpfn-time-series", marker = "python_full_version < '3.13'", specifier = ">=1.0.3" },
+    { name = "tabpfn-time-series", marker = "python_full_version < '3.13'", specifier = "==1.0.3" },
     { name = "timecopilot-chronos-forecasting", specifier = ">=0.1.0" },
+    { name = "timecopilot-granite-tsfm", specifier = ">=0.1.1" },
     { name = "timecopilot-timesfm", specifier = ">=0.2.1" },
     { name = "timecopilot-tirex", marker = "python_full_version >= '3.11'", specifier = ">=0.1.0" },
     { name = "timecopilot-toto", specifier = ">=0.1.3" },
@@ -6899,6 +6913,29 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/44/c1/6ef992112661a1fed5f4260e4537b41a5b5b4d5ace3aac17e770a50c0afd/timecopilot_chronos_forecasting-0.1.0.tar.gz", hash = "sha256:197605fb26762778f4d18baadb06d6d39dba575e79eb361a2643d84cb8fc5926", size = 711305, upload-time = "2025-08-06T01:38:43.71Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/75/60/1daae0232e635d19dd92c194dbf89dd952af9995af0494485ba25b3582ee/timecopilot_chronos_forecasting-0.1.0-py3-none-any.whl", hash = "sha256:d0e7363d686b6f035302042071c9d1247110bd862d1e5f850bf869bfd2fe0b66", size = 29538, upload-time = "2025-08-06T01:38:41.789Z" },
+]
+
+[[package]]
+name = "timecopilot-granite-tsfm"
+version = "0.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "datasets" },
+    { name = "deprecated" },
+    { name = "numpy", version = "1.26.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
+    { name = "numpy", version = "2.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
+    { name = "pandas", version = "2.1.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
+    { name = "pandas", version = "2.3.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
+    { name = "scikit-learn", version = "1.6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
+    { name = "scikit-learn", version = "1.7.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
+    { name = "torch" },
+    { name = "transformers", version = "4.40.1", source = { registry = "https://pypi.org/simple" }, extra = ["torch"], marker = "python_full_version < '3.13'" },
+    { name = "transformers", version = "4.55.0", source = { registry = "https://pypi.org/simple" }, extra = ["torch"], marker = "python_full_version >= '3.13'" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/01/03/485fe233a13d63f53be40681a5fc84fef553ef4ce7ebcea4e8d6db553991/timecopilot_granite_tsfm-0.1.1.tar.gz", hash = "sha256:2de37c562a3d680cc339ae9501d0955c8116c0cc2529b59d420b098a8961b429", size = 16593234, upload-time = "2025-10-08T16:33:46.143Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/02/1a/66fe9f1e140c7fac0d8b9507696e739546cc89e87ff90bbd156cfa4a36d7/timecopilot_granite_tsfm-0.1.1-py3-none-any.whl", hash = "sha256:8967dc197373f5c1a7f72ae2f4669b21c4778d4e367c19c9e0c7f9033e0fbd85", size = 3814636, upload-time = "2025-10-08T16:33:42.611Z" },
 ]
 
 [[package]]
@@ -7344,6 +7381,12 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/cf/90/2596ac2ab49c4df6ff1fceaf7f5afb18401ba2f326348ce1a6261a65e7ed/transformers-4.40.1-py3-none-any.whl", hash = "sha256:9d5ee0c8142a60501faf9e49a0b42f8e9cb8611823bce4f195a9325a6816337e", size = 8998636, upload-time = "2024-04-23T22:01:10.479Z" },
 ]
 
+[package.optional-dependencies]
+torch = [
+    { name = "accelerate", marker = "python_full_version < '3.13'" },
+    { name = "torch", marker = "python_full_version < '3.13'" },
+]
+
 [[package]]
 name = "transformers"
 version = "4.55.0"
@@ -7369,6 +7412,12 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/27/5d/f7dc746eef83336a6b34197311fe0c1da0d1192f637c726c6a5cf0d83502/transformers-4.55.0.tar.gz", hash = "sha256:15aa138a05d07a15b30d191ea2c45e23061ebf9fcc928a1318e03fe2234f3ae1", size = 9569089, upload-time = "2025-08-05T16:13:48.997Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1c/93/bcb22fb52ed65084c0199270832aa4cdd4b41296d896f3e7ade188bccb68/transformers-4.55.0-py3-none-any.whl", hash = "sha256:29d9b8800e32a4a831bb16efb5f762f6a9742fef9fce5d693ed018d19b106490", size = 11267905, upload-time = "2025-08-05T16:13:34.814Z" },
+]
+
+[package.optional-dependencies]
+torch = [
+    { name = "accelerate", marker = "python_full_version >= '3.13'" },
+    { name = "torch", marker = "python_full_version >= '3.13'" },
 ]
 
 [[package]]

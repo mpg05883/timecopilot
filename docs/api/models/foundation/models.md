@@ -5,6 +5,11 @@
         members:
             - Chronos
 
+::: timecopilot.models.foundation.flowstate
+    options:
+        members:
+            - FlowState
+
 ::: timecopilot.models.foundation.moirai
     options:
         members:
