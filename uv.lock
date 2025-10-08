@@ -6864,7 +6864,7 @@ requires-dist = [
     { name = "pydantic-ai", specifier = ">=0.7.0" },
     { name = "scipy", specifier = "<=1.15.3" },
     { name = "statsforecast" },
-    { name = "tabpfn-time-series", marker = "python_full_version < '3.13'", specifier = ">=1.0.3" },
+    { name = "tabpfn-time-series", marker = "python_full_version < '3.13'", specifier = "==1.0.3" },
     { name = "timecopilot-chronos-forecasting", specifier = ">=0.1.0" },
     { name = "timecopilot-granite-tsfm", specifier = ">=0.1.1" },
     { name = "timecopilot-timesfm", specifier = ">=0.2.1" },
