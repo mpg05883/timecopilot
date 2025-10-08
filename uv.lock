@@ -7317,9 +7317,9 @@ requires-dist = [
     { name = "pydantic-ai", specifier = ">=0.7.0" },
     { name = "scipy", specifier = "<=1.15.3" },
     { name = "statsforecast" },
-    { name = "tabpfn-time-series", marker = "python_full_version < '3.13'", specifier = ">=1.0.3" },
+    { name = "tabpfn-time-series", marker = "python_full_version < '3.13'", specifier = "==1.0.3" },
     { name = "timecopilot-chronos-forecasting", specifier = ">=0.1.0" },
-    { name = "timecopilot-granite-tsfm", specifier = ">=0.1.0" },
+    { name = "timecopilot-granite-tsfm", specifier = ">=0.1.1" },
     { name = "timecopilot-timesfm", specifier = ">=0.2.1" },
     { name = "timecopilot-tirex", marker = "python_full_version >= '3.11'", specifier = ">=0.1.0" },
     { name = "timecopilot-toto", specifier = ">=0.1.3" },
@@ -7370,7 +7370,7 @@ wheels = [
 
 [[package]]
 name = "timecopilot-granite-tsfm"
-version = "0.1.0"
+version = "0.1.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "datasets" },
@@ -7386,9 +7386,9 @@ dependencies = [
     { name = "transformers", version = "4.57.0", source = { registry = "https://pypi.org/simple" }, extra = ["torch"], marker = "python_full_version >= '3.13'" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/da/1a/17dc6d09753cae0fdb0ed72985d143343e1fd0e69f40b7d64a73d79335ed/timecopilot_granite_tsfm-0.1.0.tar.gz", hash = "sha256:cdc6ab974ff59f70e23a09fe563ecb35c6173b487c44cc73a73be0af0f50bf3a", size = 16593110, upload-time = "2025-10-04T19:18:58.368Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/01/03/485fe233a13d63f53be40681a5fc84fef553ef4ce7ebcea4e8d6db553991/timecopilot_granite_tsfm-0.1.1.tar.gz", hash = "sha256:2de37c562a3d680cc339ae9501d0955c8116c0cc2529b59d420b098a8961b429", size = 16593234, upload-time = "2025-10-08T16:33:46.143Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/20/a8/23756ff5b1c26ef6d627ee52607412b08bb9bf784557a5f0408867c23c62/timecopilot_granite_tsfm-0.1.0-py3-none-any.whl", hash = "sha256:72d9a7307b1ff27e4f85763f90f7d5d569736b68842b082c79903dfb91d87771", size = 3814630, upload-time = "2025-10-04T19:18:54.856Z" },
+    { url = "https://files.pythonhosted.org/packages/02/1a/66fe9f1e140c7fac0d8b9507696e739546cc89e87ff90bbd156cfa4a36d7/timecopilot_granite_tsfm-0.1.1-py3-none-any.whl", hash = "sha256:8967dc197373f5c1a7f72ae2f4669b21c4778d4e367c19c9e0c7f9033e0fbd85", size = 3814636, upload-time = "2025-10-08T16:33:42.611Z" },
 ]
 
 [[package]]
