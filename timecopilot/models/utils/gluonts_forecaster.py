@@ -16,7 +16,7 @@ from .forecaster import Forecaster, QuantileConverter
 
 def fix_freq(freq: str) -> str:
     # see https://github.com/awslabs/gluonts/pull/2462/files
-    replacer = {"MS": "M"}
+    replacer = {"MS": "M", "ME": "M"}
     return replacer.get(freq, freq)
 
 
