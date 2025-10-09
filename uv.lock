@@ -7111,10 +7111,9 @@ wheels = [
 
 [[package]]
 name = "tabpfn-time-series"
-version = "1.0.4"
+version = "1.0.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "backoff", marker = "python_full_version < '3.13'" },
     { name = "datasets", marker = "python_full_version < '3.13'" },
     { name = "gluonts", marker = "python_full_version < '3.13'" },
     { name = "pandas", version = "2.1.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
@@ -7125,9 +7124,9 @@ dependencies = [
     { name = "tabpfn-client", marker = "python_full_version < '3.13'" },
     { name = "tqdm", marker = "python_full_version < '3.13'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5b/cb/8e7405266dcb452fa42ef0bb9bb39a7e4df72f9817f19f803317e9e41c3e/tabpfn_time_series-1.0.4.tar.gz", hash = "sha256:d4714a4f6d9dc2960d3b6ac9a1fe9d02d30e1705031b68d1736eb9790a8a8d49", size = 471239, upload-time = "2025-09-19T13:31:50.829Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/33/8e/82cea00d409a298144b569e4ec4eeb057f89d79c9b2a17d6c5025a7570ac/tabpfn_time_series-1.0.3.tar.gz", hash = "sha256:f0922f73dc4760cc4919b76381443f1b7287f694bb832c5675b5f4f4929fdb6b", size = 468774, upload-time = "2025-07-16T13:21:44.809Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4f/e2/b73a1fc3baa50eda7252d7ce3ccf834cba506bd9ecd69b933a29db7865aa/tabpfn_time_series-1.0.4-py3-none-any.whl", hash = "sha256:535541c5004812286f709af9e43db5d1d1872bf9ea7d465ba3497f88b7317144", size = 34013, upload-time = "2025-09-19T13:31:49.81Z" },
+    { url = "https://files.pythonhosted.org/packages/c8/bf/13c7fdeeacaf7302b80755e85dcb01d8f47a9ddbac57adef263f0194820c/tabpfn_time_series-1.0.3-py3-none-any.whl", hash = "sha256:0f2436e1a3a87c91315852ab7f8151dcf15c3c2bee4d86e5ee569c0f7ee0f59a", size = 33340, upload-time = "2025-07-16T13:21:43.886Z" },
 ]
 
 [[package]]
