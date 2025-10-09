@@ -465,8 +465,8 @@ class Forecaster:
                     if f"{model}-lo-" in c
                 ]
                 level = [float(c) if "." in c else int(c) for c in lv_cols]
+                level = list(set(level))
                 plot_anomalies = True
-                models = models
         return plot_series(
             df=df,
             forecasts_df=forecasts_df,
