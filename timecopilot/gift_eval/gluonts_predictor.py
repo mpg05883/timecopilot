@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -9,7 +9,10 @@ from gluonts.dataset.util import forecast_start
 from gluonts.model import Forecast
 from gluonts.model.forecast import QuantileForecast
 from gluonts.model.predictor import RepresentablePredictor
-from gluonts.transform.feature import LastValueImputation, MissingValueImputation
+from gluonts.transform.feature import (
+    LastValueImputation,
+    MissingValueImputation,
+)
 
 from ..models.utils.forecaster import Forecaster
 from .utils import QUANTILE_LEVELS
@@ -182,13 +185,13 @@ class GluonTSPredictor(RepresentablePredictor):
                 raise ValueError("frequency `freq` must be provided")
             fcsts.extend(self._predict_batch(batch=batch, h=h, freq=freq))
         return fcsts
-    
+
     def cross_validation(
-            self, 
-            dataset: Dataset, 
-            n_windows: int = 1, 
-            **kwargs: Any,
-        ) -> pd.DataFrame:
+        self,
+        dataset: Dataset,
+        n_windows: int = 1,
+        **kwargs: Any,
+    ) -> pd.DataFrame:
         """
         Perform cross-validation on a GluonTS Dataset.
 
@@ -248,13 +251,12 @@ class GluonTSPredictor(RepresentablePredictor):
                 **kwargs,
             )
             merged_results = pd.merge(
-                    left=df,
-                    right=results,
-                    on=["unique_id", "ds"],
-                    how="inner",
-                )
+                left=df,
+                right=results,
+                on=["unique_id", "ds"],
+                how="inner",
+            )
             all_results.append(merged_results)
 
         # Stack all cross-validation results into a single DataFrame
         return pd.concat(all_results, ignore_index=True)
-        

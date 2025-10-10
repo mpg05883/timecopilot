@@ -126,9 +126,9 @@ class MedianEnsemble(Forecaster):
             level=None,
             quantiles=qc.quantiles,
         )
-        
+
         print(f"_fcst_df columns: {_fcst_df.columns.tolist()}")
-        
+
         fcst_df = _fcst_df[["unique_id", "ds"]]
         model_cols = [model.alias for model in self.tcf.models]
         fcst_df[self.alias] = _fcst_df[model_cols].median(axis=1)
@@ -230,10 +230,10 @@ class MedianEnsemble(Forecaster):
             quantiles=qc.quantiles,
         )
 
-        # Initialize the output DataFrame 
+        # Initialize the output DataFrame
         cv_df = _cv_df[["unique_id", "ds", "cutoff"]].copy()
         model_cols = [model.alias for model in self.tcf.models]
-        
+
         print(f"_cv_df cols: {_cv_df.columns.tolist()}")
 
         # Add forecasts for each base model to the output DataFrame
@@ -241,7 +241,7 @@ class MedianEnsemble(Forecaster):
             for model in model_cols:
                 if model in col:
                     cv_df[col] = _cv_df[col]
-                    
+
         # Ensemble the point forecasts by taking the median
         cv_df[self.alias] = _cv_df[model_cols].median(axis=1)
 
