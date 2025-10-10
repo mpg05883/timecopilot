@@ -173,7 +173,14 @@ class GluonTSPredictor(RepresentablePredictor):
         if h is None:
             raise ValueError("horizon `h` must be provided")
         freq = self.freq
-        for _, entry in tqdm.tqdm(enumerate(dataset), total=len(dataset)):
+        
+        tqdm_kwargs = {
+            "desc": f"[{self.__class__.__name__}] Predicting",
+            "total": len(dataset),
+            "unit": "series",
+        }
+        
+        for _, entry in tqdm.tqdm(enumerate(dataset), **tqdm_kwargs):
             if freq is None:
                 freq = entry["freq"]
             batch.append(entry)
@@ -213,7 +220,7 @@ class GluonTSPredictor(RepresentablePredictor):
         validation_dataset = dataset.validation_dataset
         tqdm_kwargs = {
             "iterable": enumerate(validation_dataset),
-            "desc": "Performing cross-validation",
+            "desc": f"[{self.__class__.__name__}] Cross-validating",
             "total": len(validation_dataset),
             "unit": "series",
         }

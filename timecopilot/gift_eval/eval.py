@@ -147,25 +147,15 @@ class GIFTEval:
         self.ds_key = ds_key
 
         # Initialize the dataset
-        to_univariate = (
-            Dataset(
-                name=dataset_name,
-                term=term,
-                to_univariate=False,
-                storage_path=storage_path,
-            ).target_dim
-            != 1
-        )
         self.dataset = Dataset(
             name=dataset_name,
             term=term,
-            to_univariate=to_univariate,
             storage_path=storage_path,
         )
         self.dataset_name = dataset_name
         self.term = term
         self.seasonality = get_seasonality(self.dataset.freq)
-        self.output_path = output_path
+        self.output_path = output_path 
 
     def evaluate_predictor(
         self,
@@ -264,6 +254,7 @@ class GIFTEval:
             results_df.to_csv(csv_file_path, index=False)
 
             logger.info(
+                "Finished evaluation! "
                 f"Results for {self.dataset_name} ({self.term}) have been "
                 f"written to {csv_file_path}"
             )
