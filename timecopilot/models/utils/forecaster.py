@@ -251,7 +251,14 @@ class Forecaster:
             freq=pd.tseries.frequencies.to_offset(freq),
             step_size=h if step_size is None else step_size,
         )
-        for _, (cutoffs, train, valid) in tqdm(enumerate(splits)):
+        
+        tqdm_kwargs = {
+            "desc": f"[{self.__class__.__name__}] Cross-validating",
+            "total": n_windows,
+            "unit": "window",
+        }
+        
+        for _, (cutoffs, train, valid) in tqdm(enumerate(splits), **tqdm_kwargs):
             if len(valid.columns) > 3:
                 raise NotImplementedError(
                     "Cross validation with exogenous variables is not yet supported."

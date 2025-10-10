@@ -7,6 +7,7 @@ import timesfm
 import timesfm_v1
 import torch
 from huggingface_hub import repo_exists
+from timesfm import TimesFM_2p5_200M_torch
 from timesfm_v1.timesfm_base import DEFAULT_QUANTILES as DEFAULT_QUANTILES_TFM
 from tqdm import tqdm
 
@@ -140,15 +141,14 @@ class _TimesFMV2_p5(Forecaster):
     def _get_predictor(
         self,
         prediction_length: int,
-    ) -> timesfm.TimesFM_2p5_200M_torch:
-        tfm = timesfm.TimesFM_2p5_200M_torch()
+    ) -> TimesFM_2p5_200M_torch:
         # automatically detect the best device
         # https://github.com/AzulGarza/timesfm/blob/b810bbdf9f8a1e66396e7bd5cdb3b005e9116d86/src/timesfm/timesfm_2p5/timesfm_2p5_torch.py#L71
         if os.path.exists(self.repo_id):
             path = os.path.join(self.repo_id, "model.safetensors")
-            tfm.load_checkpoint(path=path)
+            tfm = TimesFM_2p5_200M_torch().model.load_checkpoint(path)
         elif repo_exists(self.repo_id):
-            tfm.load_checkpoint(hf_repo_id=self.repo_id)
+            tfm = TimesFM_2p5_200M_torch.from_pretrained(self.repo_id)
         else:
             raise OSError(
                 f"Failed to load model. Searched for '{self.repo_id}' "
@@ -173,7 +173,7 @@ class _TimesFMV2_p5(Forecaster):
 
     def _predict(
         self,
-        model: timesfm.TimesFM_2p5_200M_torch,
+        model: TimesFM_2p5_200M_torch,
         dataset: TimeSeriesDataset,
         h: int,
     ) -> tuple[np.ndarray, np.ndarray]:

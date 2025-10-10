@@ -3,6 +3,7 @@ import logging
 
 from pytorch_lightning import seed_everything
 from timecopilot.gift_eval.data import Dataset
+from timecopilot.gift_eval.eval import GIFTEval
 from timecopilot.gift_eval.gluonts_predictor import GluonTSPredictor
 from timecopilot.models.ensembles import MedianEnsemble
 from timecopilot.models.foundation import Moirai, Sundial, TimesFM, Toto
@@ -34,7 +35,7 @@ def main(args):
             batch_size=args.batch_size,
         ),
         TimesFM(
-            repo_id="google/timesfm-2.0-500m-pytorch",
+            repo_id="google/timesfm-2.5-200m-pytorch",
             batch_size=args.batch_size,
         ),
         Toto(batch_size=args.batch_size),
@@ -50,14 +51,26 @@ def main(args):
     logging.info("Starting cross-validation...")
     df = predictor.cross_validation(dataset=dataset, n_windows=args.n_windows)
     
-    output_dir = resolve_output_path(
+    output_dirpath = resolve_output_path(
         output_dir=args.output_dir,
         dataset_config=dataset.config,
     )
-    output_path = output_dir / "cross_validation.csv"
+    output_path = output_dirpath / "cross_validation.csv"
     
     logging.info(f"Finished cross-validation! Saving results to {output_path}")
     df.to_csv(output_path, index=False)
+    
+    logging.info(f"Starting evaluation...")
+    gifteval = GIFTEval(
+        dataset_name=args.name,
+        term=args.term,
+        output_path=output_dirpath,
+        storage_path=resolve_storage_path(args.storage_env_var),
+    )
+    gifteval.evaluate_predictor(
+        predictor=predictor,
+        batch_size=args.batch_size,
+    )
     
 
 if __name__ == "__main__":
