@@ -245,7 +245,7 @@ class GIFTEval:
             ],
         )
         if self.output_path is not None:
-            csv_file_path = Path(self.output_path) / "results.csv"
+            csv_file_path = Path(self.output_path) / "evaluation_results.csv"
             csv_file_path.parent.mkdir(parents=True, exist_ok=True)
             if csv_file_path.exists() and not overwrite_results:
                 results_df = pd.concat(
@@ -254,7 +254,5 @@ class GIFTEval:
             results_df.to_csv(csv_file_path, index=False)
 
             logger.info(
-                "Finished evaluation! "
-                f"Results for {self.dataset_name} ({self.term}) have been "
-                f"written to {csv_file_path}"
+                f"Finished evaluation! Results saved to {csv_file_path}"
             )

@@ -20,6 +20,7 @@ from gluonts.transform import Transformation
 from pandas.tseries.frequencies import to_offset
 from toolz import compose
 from .utils import MED_LONG_DATASETS
+from timecopilot.utils.path import resolve_storage_path
 
 TEST_SPLIT = 0.1
 MAX_WINDOW = 20
@@ -110,13 +111,6 @@ class MultivariateToUnivariate(Transformation):
 
 
 class Dataset:
-    def _storage_path_from_env_var(self, env_var: str) -> Path:
-        load_dotenv()
-        env_var_value = os.getenv(env_var)
-        if env_var_value is None:
-            raise ValueError(f"Environment variable {env_var} is not set")
-        return Path(env_var_value)
-
     def __init__(
         self,
         name: str,
@@ -125,7 +119,7 @@ class Dataset:
         storage_env_var: str = "GIFT_EVAL",
     ):
         if storage_path is None:
-            storage_path = self._storage_path_from_env_var(storage_env_var)
+            storage_path = resolve_storage_path(storage_env_var)
         else:
             storage_path = Path(storage_path)
         self.hf_dataset = datasets.load_from_disk(str(storage_path / name)).with_format(

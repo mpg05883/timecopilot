@@ -92,3 +92,5 @@ DATASETS_WITH_TERMS += [
     (dataset_name, term)
     for dataset_name, term in product(MED_LONG_DATASETS, ["medium", "long"])
 ]
+
+NUM_DATASETS = len(DATASETS_WITH_TERMS)

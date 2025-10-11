@@ -1,5 +1,6 @@
 from typing import Any
 
+import logging
 import numpy as np
 import pandas as pd
 import tqdm
@@ -13,9 +14,12 @@ from gluonts.transform.feature import (
     LastValueImputation,
     MissingValueImputation,
 )
-
+from pathlib import Path
 from ..models.utils.forecaster import Forecaster
 from .utils import QUANTILE_LEVELS
+
+logger = logging.getLogger(__name__)
+
 
 
 class GluonTSPredictor(RepresentablePredictor):
@@ -197,8 +201,10 @@ class GluonTSPredictor(RepresentablePredictor):
         self,
         dataset: Dataset,
         n_windows: int = 1,
+        n_series: int = 10,
+        output_path: str | None = None,
         **kwargs: Any,
-    ) -> pd.DataFrame:
+    ) -> None:
         """
         Perform cross-validation on a GluonTS Dataset.
 
@@ -206,10 +212,11 @@ class GluonTSPredictor(RepresentablePredictor):
             dataset (Dataset): GluonTS Dataset to perform cross-validation on.
             n_windows (int): Number of windows to use for cross-validation.
                 Defaults to 1.
-            **kwargs: Additional keyword arguments (e.g., n_windows, step_size).
-
-        Returns:
-            pd.DataFrame: DataFrame containing cross-validation results.
+            n_series (int): Number of series to save forecasts for. Defaults to 
+                10.
+            output_path (str | None): If provided, saves the cross-validation
+                results to a CSV file.
+            **kwargs: Additional keyword arguments.
         """
         all_results = []
         batch: list[Dataset] = []
@@ -264,6 +271,28 @@ class GluonTSPredictor(RepresentablePredictor):
                 how="inner",
             )
             all_results.append(merged_results)
-
+        
+        if output_path is None:
+            return
+        
         # Stack all cross-validation results into a single DataFrame
-        return pd.concat(all_results, ignore_index=True)
+        cv_df = pd.concat(all_results, ignore_index=True)
+        
+        # Select a random subset of series to save
+        n_series = min(n_series, cv_df["unique_id"].nunique())
+        sampled_ids = np.random.choice(
+            cv_df["unique_id"].unique(),
+            size=n_series,
+            replace=False,
+        )
+        cv_df = cv_df[cv_df["unique_id"].isin(sampled_ids)]
+        
+        # Ensure the output directory exists and save the results to a CSV file
+        output_path = Path(output_path) / "cross_validation_results.csv"
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        cv_df.to_csv(output_path, index=False)
+        
+        logger.info(
+                f"Finished cross-validation! Results saved to {output_path}"
+            )
+        
