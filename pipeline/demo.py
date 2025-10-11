@@ -6,7 +6,7 @@ from timecopilot.gift_eval.data import Dataset
 from timecopilot.gift_eval.eval import GIFTEval
 from timecopilot.gift_eval.utils import DATASETS_WITH_TERMS, NUM_DATASETS
 from timecopilot.gift_eval.gluonts_predictor import GluonTSPredictor
-from timecopilot.models.ensembles import MedianEnsemble
+from timecopilot.models.ensembles import MedianEnsemble, SLSQPEnsemble
 from timecopilot.models.foundation import Moirai, Sundial, TimesFM, Toto
 from timecopilot.utils.path import resolve_output_path
 
@@ -22,7 +22,7 @@ def main(args):
     name, term = DATASETS_WITH_TERMS[args.task_id % NUM_DATASETS]
     logging.info(f"Loading dataset: {name} ({term})")
     dataset = Dataset(name=name, term=term)
-    
+
     models = [
         Moirai(
             repo_id="Salesforce/moirai-2.0-R-small",
@@ -39,7 +39,11 @@ def main(args):
         Toto(batch_size=args.batch_size),
     ]
     
-    forecaster = MedianEnsemble(models=models)
+    forecaster = SLSQPEnsemble(
+        models=models, 
+        opt_metric=args.opt_metric,
+        batch_size=args.batch_size,
+    )
     
     predictor = GluonTSPredictor(
         forecaster=forecaster,
@@ -51,10 +55,6 @@ def main(args):
         dataset_config=dataset.config,
     )
     
-    logging.info("Starting cross-validation...")
-    predictor.cross_validation(dataset=dataset, output_path=output_path)
-    
-    logging.info("Starting evaluation...")
     gifteval = GIFTEval(dataset_name=name, term=term, output_path=output_path)
     gifteval.evaluate_predictor(
         predictor=predictor,
@@ -75,6 +75,12 @@ if __name__ == "__main__":
         type=int,
         default=128,
         help="Batch size to use during cross-validation and evaluation",
+    )
+    parser.add_argument(
+        "--opt_metric",
+        choices=["mse", "mae", "smape", "mase", "crps"],
+        default="mse",
+        help="Metric to optimize during cross-validation",
     )
     args = parser.parse_args()
     main(args)

@@ -1,3 +1,4 @@
 from .median import MedianEnsemble
+from .slsqp import SLSQPEnsemble
 
-__all__ = ["MedianEnsemble"]
+__all__ = ["MedianEnsemble", "SLSQPEnsemble"]

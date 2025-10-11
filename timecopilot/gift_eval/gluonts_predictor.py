@@ -207,6 +207,8 @@ class GluonTSPredictor(RepresentablePredictor):
     ) -> None:
         """
         Perform cross-validation on a GluonTS Dataset.
+        
+        NOTE: This is only used for debugging.
 
         Args:
             dataset (Dataset): GluonTS Dataset to perform cross-validation on.
