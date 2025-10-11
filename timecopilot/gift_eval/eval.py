@@ -245,7 +245,7 @@ class GIFTEval:
             ],
         )
         if self.output_path is not None:
-            csv_file_path = Path(self.output_path) / "evaluation_results.csv"
+            csv_file_path = Path(self.output_path) / "results.csv"
             csv_file_path.parent.mkdir(parents=True, exist_ok=True)
             if csv_file_path.exists() and not overwrite_results:
                 results_df = pd.concat(
