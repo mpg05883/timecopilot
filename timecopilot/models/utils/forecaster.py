@@ -237,6 +237,9 @@ class Forecaster:
         """
         freq = self._maybe_infer_freq(df, freq)
         df = maybe_convert_col_to_datetime(df, "ds")
+
+        df = self._keep_shortest_series_per_item(df)
+
         # mlforecast cv code
         results = []
         sort_idxs = maybe_compute_sort_indices(df, "unique_id", "ds")
@@ -251,13 +254,13 @@ class Forecaster:
             freq=pd.tseries.frequencies.to_offset(freq),
             step_size=h if step_size is None else step_size,
         )
-        
+
         tqdm_kwargs = {
             "desc": f"[{self.__class__.__name__}] Cross-validating",
             "total": n_windows,
             "unit": "window",
         }
-        
+
         for _, (cutoffs, train, valid) in tqdm(enumerate(splits), **tqdm_kwargs):
             if len(valid.columns) > 3:
                 raise NotImplementedError(
@@ -494,6 +497,70 @@ class Forecaster:
             ax=ax,
         )
 
+    def _keep_shortest_series_per_item(
+        self,
+        df: pd.DataFrame,
+        strategy: str = "shortest",
+    ) -> pd.DataFrame:
+        """
+        For each item_id, keep only one time series based on the specified strategy.
+
+        Args:
+            df (pd.DataFrame): DataFrame with columns 'unique_id', 'ds', 'y'
+            strategy (str): Strategy to use when selecting series:
+                - "shortest": Keep shortest series, if tie then keep first by original index
+                - "first": Always keep first series by original index (ignores length)
+
+        Returns:
+            pd.DataFrame: DataFrame with selected series for each item_id
+        """
+        # Extract item_id from unique_id (format: item_id-forecast_start)
+        df_copy = df.copy()
+        df_copy["item_id"] = df_copy["unique_id"].str.split("-").str[0]
+
+        # Calculate length of each unique_id and keep original index
+        series_lengths = df_copy.groupby("unique_id").size().reset_index(name="length")
+
+        # Get the first occurrence index for each unique_id (for original order)
+        first_occurrence = (
+            df_copy.groupby("unique_id").first().reset_index()[["unique_id", "item_id"]]
+        )
+        first_occurrence["first_idx"] = (
+            df_copy.groupby("unique_id").apply(lambda x: x.index[0]).values
+        )
+
+        # Merge all information
+        series_lengths = series_lengths.merge(first_occurrence, on="unique_id")
+
+        # Apply selection strategy
+        if strategy == "shortest":
+            # Keep shortest series, if tie then keep first by original index
+            selected_series = series_lengths.loc[
+                series_lengths.groupby("item_id")
+                .apply(
+                    lambda x: x.loc[x["length"] == x["length"].min()].loc[
+                        x["first_idx"].idxmin()
+                    ]
+                )
+                .index
+            ]
+        elif strategy == "first":
+            # Always keep first series by original index (ignores length)
+            selected_series = series_lengths.loc[
+                series_lengths.groupby("item_id")["first_idx"].idxmin()
+            ]
+        else:
+            raise ValueError(
+                f"Unknown strategy: {strategy}. Available: shortest, first"
+            )
+
+        selected_unique_ids = selected_series["unique_id"].tolist()
+
+        # Filter original dataframe to keep only selected series
+        filtered_df = df[df["unique_id"].isin(selected_unique_ids)].copy()
+
+        return filtered_df
+
 
 class QuantileConverter:
     """Handles inputs and outputs for probabilistic forecasts."""
@@ -613,3 +680,65 @@ class QuantileConverter:
                     df = ufp.assign_columns(df, hi_tgt, df[hi_src])
                     out_cols.extend([lo_tgt, hi_tgt])
         return df[out_cols]
+
+    def _keep_shortest_series_per_item(
+        self, df: pd.DataFrame, strategy: str = "shortest"
+    ) -> pd.DataFrame:
+        """
+        For each item_id, keep only one time series based on the specified strategy.
+
+        Args:
+            df (pd.DataFrame): DataFrame with columns 'unique_id', 'ds', 'y'
+            strategy (str): Strategy to use when selecting series:
+                - "shortest": Keep shortest series, if tie then keep first by original index
+                - "first": Always keep first series by original index (ignores length)
+
+        Returns:
+            pd.DataFrame: DataFrame with selected series for each item_id
+        """
+        # Extract item_id from unique_id (format: item_id-forecast_start)
+        df_copy = df.copy()
+        df_copy["item_id"] = df_copy["unique_id"].str.split("-").str[0]
+
+        # Calculate length of each unique_id and keep original index
+        series_lengths = df_copy.groupby("unique_id").size().reset_index(name="length")
+
+        # Get the first occurrence index for each unique_id (for original order)
+        first_occurrence = (
+            df_copy.groupby("unique_id").first().reset_index()[["unique_id", "item_id"]]
+        )
+        first_occurrence["first_idx"] = (
+            df_copy.groupby("unique_id").apply(lambda x: x.index[0]).values
+        )
+
+        # Merge all information
+        series_lengths = series_lengths.merge(first_occurrence, on="unique_id")
+
+        # Apply selection strategy
+        if strategy == "shortest":
+            # Keep shortest series, if tie then keep first by original index
+            selected_series = series_lengths.loc[
+                series_lengths.groupby("item_id")
+                .apply(
+                    lambda x: x.loc[x["length"] == x["length"].min()].loc[
+                        x["first_idx"].idxmin()
+                    ]
+                )
+                .index
+            ]
+        elif strategy == "first":
+            # Always keep first series by original index (ignores length)
+            selected_series = series_lengths.loc[
+                series_lengths.groupby("item_id")["first_idx"].idxmin()
+            ]
+        else:
+            raise ValueError(
+                f"Unknown strategy: {strategy}. Available: shortest, first"
+            )
+
+        selected_unique_ids = selected_series["unique_id"].tolist()
+
+        # Filter original dataframe to keep only selected series
+        filtered_df = df[df["unique_id"].isin(selected_unique_ids)].copy()
+
+        return filtered_df
