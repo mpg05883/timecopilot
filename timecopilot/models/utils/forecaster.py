@@ -238,7 +238,7 @@ class Forecaster:
         freq = self._maybe_infer_freq(df, freq)
         df = maybe_convert_col_to_datetime(df, "ds")
 
-        df = self._keep_shortest_series_per_item(df)
+        # df = self._keep_shortest_series_per_item(df)
 
         # mlforecast cv code
         results = []

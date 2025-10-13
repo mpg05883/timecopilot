@@ -1,0 +1,41 @@
+#!/bin/bash
+#SBATCH --job-name=slsqp_ensemble_eval
+#SBATCH --array=0-194
+#SBATCH --partition=gpuA40x4     
+#SBATCH --mem=200G     
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=16   
+#SBATCH --constraint="scratch"
+#SBATCH --gpus-per-node=1
+#SBATCH --gpu-bind=closest
+#SBATCH --account=bdem-delta-gpu  
+#SBATCH --time=12:00:00
+#SBATCH --output=output/logs/%x/out/%A/%a.out
+#SBATCH --error=output/logs/%x/err/%A/%a.err
+#SBATCH --mail-user=mpgee@usc.edu
+#SBATCH --mail-type=BEGIN,END,FAIL
+
+mkdir -p ./output/logs
+source ./cli/utils.sh
+activate_timecopilot_env
+log_info "Starting $(get_slurm_message)"
+
+# Set SLURM_ARRAY_TASK_ID to 36 (Ett1 15T, short) if not set
+SLURM_ARRAY_TASK_ID=${SLURM_ARRAY_TASK_ID:-36}
+export SLURM_ARRAY_TASK_ID
+
+# Set opt_metric based on the task ID
+if [[ ${SLURM_ARRAY_TASK_ID} -lt 97 ]]; then
+    opt_metric="mse"
+else
+    opt_metric="mae"
+fi
+
+if python -m pipeline.demo --opt_metric="${opt_metric}"; then
+    log_info "Successfully finished $(get_slurm_message)!"
+    log_error "No errors!"
+    echo "[$(get_timestamp)] Done with $(get_slurm_message)" >"$(get_done_file)"
+else
+    log_error "Job failed for $(get_slurm_message)!" >&2
+fi

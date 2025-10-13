@@ -1,12 +1,13 @@
 import argparse
 import logging
+import os
 
 from pytorch_lightning import seed_everything
 from timecopilot.gift_eval.data import Dataset
 from timecopilot.gift_eval.eval import GIFTEval
 from timecopilot.gift_eval.utils import DATASETS_WITH_TERMS, NUM_DATASETS
 from timecopilot.gift_eval.gluonts_predictor import GluonTSPredictor
-from timecopilot.models.ensembles import MedianEnsemble, SLSQPEnsemble
+from timecopilot.models.ensembles import SLSQPEnsemble
 from timecopilot.models.foundation import Moirai, Sundial, TimesFM, Toto
 from timecopilot.utils.path import resolve_output_path
 
@@ -19,7 +20,9 @@ logging.basicConfig(
 seed_everything(seed=42, workers=True, verbose=True)
 
 def main(args):
-    name, term = DATASETS_WITH_TERMS[args.task_id % NUM_DATASETS]
+    m4_hourly_task_id= 5
+    task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", m4_hourly_task_id))
+    name, term = DATASETS_WITH_TERMS[task_id % NUM_DATASETS]
     logging.info(f"Loading dataset: {name} ({term})")
     dataset = Dataset(name=name, term=term)
 
@@ -65,12 +68,6 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--task_id",
-        type=int,
-        default=36,  # Defaults to the ett1/15T (short) dataset
-        help="SLURM ARRAY TASK ID used to select dataset name and term. ",
-    )
-    parser.add_argument(
         "--batch_size",
         type=int,
         default=128,
@@ -80,7 +77,7 @@ if __name__ == "__main__":
         "--opt_metric",
         choices=["mse", "mae", "smape", "mase", "crps"],
         default="mse",
-        help="Metric to optimize during cross-validation",
+        help="Metric to optimize when tuning ensemble during cross-validation",
     )
     args = parser.parse_args()
     main(args)

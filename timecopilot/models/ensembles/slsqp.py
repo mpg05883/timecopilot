@@ -257,16 +257,23 @@ class SLSQPEnsemble(Forecaster):
     def __init__(
         self,
         models: list[Forecaster],
-        alias: str = "SLSQPEnsemble",
         opt_metric: MetricName = "mse",
         batch_size: int = 64,
+        n_windows: int = 1,
     ) -> None:
         self.tcf = TimeCopilotForecaster(models=models, fallback_model=None)
-        self.alias = alias
         self.weights_: list[float] | None = None
         self.opt_result_: SLSQPOptimizationResult | None = None
         self.batch_size = batch_size
         self.opt_metric = opt_metric
+        self.n_windows = n_windows
+        self.alias = self.format_alias()
+        
+    def format_alias(self) -> str:
+        num_models_str = f"{len(self.tcf.models)}-models"
+        num_windows_str = f"{self.n_windows}-windows"
+        opt_metric_str = f"opt-{self.opt_metric}"
+        return f"SLSQPEnsemble_{num_models_str}_{opt_metric_str}_{num_windows_str}"
         
     @property
     def model_aliases(self) -> list[str]:
