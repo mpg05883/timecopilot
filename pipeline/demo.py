@@ -20,6 +20,10 @@ logging.basicConfig(
 seed_everything(seed=42, workers=True, verbose=True)
 
 def main(args):
+    print("Command-line arguments:")
+    for key, value in vars(args).items():
+        print(f"- {key}: {value}")
+    
     m4_hourly_task_id= 5
     task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", m4_hourly_task_id))
     name, term = DATASETS_WITH_TERMS[task_id % NUM_DATASETS]

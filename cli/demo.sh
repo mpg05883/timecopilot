@@ -10,7 +10,7 @@
 #SBATCH --gpus-per-node=1
 #SBATCH --gpu-bind=closest
 #SBATCH --account=bdem-delta-gpu  
-#SBATCH --time=12:00:00
+#SBATCH --time=24:00:00
 #SBATCH --output=output/logs/%x/out/%A/%a.out
 #SBATCH --error=output/logs/%x/err/%A/%a.err
 #SBATCH --mail-user=mpgee@usc.edu
@@ -21,12 +21,14 @@ source ./cli/utils.sh
 activate_timecopilot_env
 log_info "Starting $(get_slurm_message)"
 
-# Set SLURM_ARRAY_TASK_ID to 36 (Ett1 15T, short) if not set
-SLURM_ARRAY_TASK_ID=${SLURM_ARRAY_TASK_ID:-36}
+# Set SLURM_ARRAY_TASK_ID. Defaults to 36 (Ett1 15T, short) if not set
+ETT1_15T_SHORT_TASK_ID=36
+SLURM_ARRAY_TASK_ID=${SLURM_ARRAY_TASK_ID:-$ETT1_15T_SHORT_TASK_ID}
 export SLURM_ARRAY_TASK_ID
 
 # Set opt_metric based on the task ID
-if [[ ${SLURM_ARRAY_TASK_ID} -lt 97 ]]; then
+NUM_DATASETS=97
+if [[ ${SLURM_ARRAY_TASK_ID} -lt $NUM_DATASETS ]]; then
     opt_metric="mse"
 else
     opt_metric="mae"
@@ -36,6 +38,8 @@ if python -m pipeline.demo --opt_metric="${opt_metric}"; then
     log_info "Successfully finished $(get_slurm_message)!"
     log_error "No errors!"
     echo "[$(get_timestamp)] Done with $(get_slurm_message)" >"$(get_done_file)"
+    exit 0
 else
     log_error "Job failed for $(get_slurm_message)!" >&2
+    exti 1
 fi

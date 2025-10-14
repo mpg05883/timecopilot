@@ -1,0 +1,2 @@
+dataset,model,eval_metrics/MSE[mean],eval_metrics/MSE[0.5],eval_metrics/MAE[0.5],eval_metrics/MASE[0.5],eval_metrics/MAPE[0.5],eval_metrics/sMAPE[0.5],eval_metrics/MSIS,eval_metrics/RMSE[mean],eval_metrics/NRMSE[mean],eval_metrics/ND[0.5],eval_metrics/mean_weighted_sum_quantile_loss,domain,num_variates
+restaurant/D/short,SLSQPEnsemble_4-models_opt-mse_1-windows,140.9051099308671,140.9051099308671,7.187336248738159,0.6881386170206883,0.7046489711102629,0.395807859679258,4.954494512976544,11.870345821873393,0.5463008180375435,0.3307778670576986,0.2628569731688877,Sales,1
