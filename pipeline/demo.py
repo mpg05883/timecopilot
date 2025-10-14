@@ -3,10 +3,11 @@ import logging
 import os
 
 from pytorch_lightning import seed_everything
+
 from timecopilot.gift_eval.data import Dataset
 from timecopilot.gift_eval.eval import GIFTEval
-from timecopilot.gift_eval.utils import DATASETS_WITH_TERMS, NUM_DATASETS
 from timecopilot.gift_eval.gluonts_predictor import GluonTSPredictor
+from timecopilot.gift_eval.utils import DATASETS_WITH_TERMS, NUM_DATASETS
 from timecopilot.models.ensembles import SLSQPEnsemble
 from timecopilot.models.foundation import Moirai, Sundial, TimesFM, Toto
 from timecopilot.utils.path import resolve_output_path
@@ -19,12 +20,13 @@ logging.basicConfig(
 
 seed_everything(seed=42, workers=True, verbose=True)
 
+
 def main(args):
     print("Command-line arguments:")
     for key, value in vars(args).items():
         print(f"- {key}: {value}")
-    
-    m4_hourly_task_id= 5
+
+    m4_hourly_task_id = 5
     task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", m4_hourly_task_id))
     name, term = DATASETS_WITH_TERMS[task_id % NUM_DATASETS]
     logging.info(f"Loading dataset: {name} ({term})")
@@ -45,29 +47,29 @@ def main(args):
         ),
         Toto(batch_size=args.batch_size),
     ]
-    
+
     forecaster = SLSQPEnsemble(
-        models=models, 
+        models=models,
         opt_metric=args.opt_metric,
         batch_size=args.batch_size,
     )
-    
+
     predictor = GluonTSPredictor(
         forecaster=forecaster,
         batch_size=args.batch_size,
     )
-    
+
     output_path = resolve_output_path(
         alias=forecaster.alias,
         dataset_config=dataset.config,
     )
-    
+
     gifteval = GIFTEval(dataset_name=name, term=term, output_path=output_path)
     gifteval.evaluate_predictor(
         predictor=predictor,
         batch_size=args.batch_size,
     )
-    
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
