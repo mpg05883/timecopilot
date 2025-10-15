@@ -21,18 +21,21 @@ source ./cli/utils.sh
 activate_timecopilot_env
 log_info "Starting $(get_slurm_message)"
 
-# Set SLURM_ARRAY_TASK_ID. Defaults to 36 (Ett1 15T, short) if not set
+# Set SLURM_ARRAY_TASK_ID
 ETT1_15T_SHORT_TASK_ID=36
-SLURM_ARRAY_TASK_ID=${SLURM_ARRAY_TASK_ID:-$ETT1_15T_SHORT_TASK_ID}
+M4_HOURLY_TASK_ID=5
+DEFAULT_TASK_ID=$M4_HOURLY_TASK_ID
+SLURM_ARRAY_TASK_ID=${SLURM_ARRAY_TASK_ID:-$DEFAULT_TASK_ID}
 export SLURM_ARRAY_TASK_ID
 
 # Set opt_metric based on the task ID
 NUM_DATASETS=97
-if [[ ${SLURM_ARRAY_TASK_ID} -lt $NUM_DATASETS ]]; then
-    opt_metric="mse"
-else
-    opt_metric="mae"
-fi
+# if [[ ${SLURM_ARRAY_TASK_ID} -lt $NUM_DATASETS ]]; then
+#     opt_metric="mse"
+# else
+#     opt_metric="mae"
+# fi
+opt_metric="mae"
 
 if python -m pipeline.demo --opt_metric="${opt_metric}"; then
     log_info "Successfully finished $(get_slurm_message)!"

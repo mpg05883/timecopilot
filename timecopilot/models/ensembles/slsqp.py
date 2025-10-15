@@ -455,7 +455,6 @@ class SLSQPEnsemble(Forecaster):
         level: list[int | float] | None = None,
         quantiles: list[float] | None = None,
         weights: list[float] | None = None,
-        opt_metric: MetricName = "mse",
         opt_n_windows: int = 1,
         opt_step_size: int | None = None,
         opt_h: int | None = None,
@@ -515,7 +514,7 @@ class SLSQPEnsemble(Forecaster):
             y = cv_df["y"].to_numpy(dtype=float)
 
             # Handle special metrics that need additional processing
-            if opt_metric == "crps" and qc.quantiles is not None:
+            if self.opt_metric == "crps" and qc.quantiles is not None:
                 # Get quantile columns for each model
                 quantile_data = []
                 model_cols = [m.alias for m in self.tcf.models]
@@ -563,10 +562,10 @@ class SLSQPEnsemble(Forecaster):
                 opt_res = self._optimize_weights_quantile(
                     y_clean,
                     X_clean,
-                    opt_metric,
+                    self.opt_metric,
                 )
 
-            elif opt_metric == "mase":
+            elif self.opt_metric == "mase":
                 # Enhanced MASE calculation with training data context
                 X = cv_df[model_cols].to_numpy(dtype=float)
 
@@ -600,7 +599,7 @@ class SLSQPEnsemble(Forecaster):
                     f"DEBUG: MASE optimization - y_clean.shape: "
                     f"{y_clean.shape}, X_clean.shape: {X_clean.shape}"
                 )
-                opt_res = self._optimize_weights(y_clean, X_clean, opt_metric)
+                opt_res = self._optimize_weights(y_clean, X_clean, self.opt_metric)
 
             else:
                 # Original logic for point predictions
@@ -615,7 +614,7 @@ class SLSQPEnsemble(Forecaster):
                     raise RuntimeError(
                         "No valid rows available for weight optimization."
                     )
-                opt_res = self._optimize_weights(y_clean, X_clean, opt_metric)
+                opt_res = self._optimize_weights(y_clean, X_clean, self.opt_metric)
 
             weights = opt_res.weights
             self.opt_result_ = opt_res
@@ -646,7 +645,7 @@ class SLSQPEnsemble(Forecaster):
             )
             if self.opt_result_ is not None:
                 logging.info(
-                    f"[{self.alias}] optimized weights ({opt_metric}, "
+                    f"[{self.alias}] optimized weights ({self.opt_metric}, "
                     f"value={self.opt_result_.metric_value:.6f}): "
                     f"{weights_str}"
                 )
