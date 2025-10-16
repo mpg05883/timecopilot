@@ -29,12 +29,6 @@ SLURM_ARRAY_TASK_ID=${SLURM_ARRAY_TASK_ID:-$DEFAULT_TASK_ID}
 export SLURM_ARRAY_TASK_ID
 
 # Set opt_metric based on the task ID
-NUM_DATASETS=97
-# if [[ ${SLURM_ARRAY_TASK_ID} -lt $NUM_DATASETS ]]; then
-#     opt_metric="mse"
-# else
-#     opt_metric="mae"
-# fi
 opt_metric="mae"
 
 if python -m pipeline.demo --opt_metric="${opt_metric}"; then
