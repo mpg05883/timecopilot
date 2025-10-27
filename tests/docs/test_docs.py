@@ -2,10 +2,8 @@ import re
 import sys
 from pathlib import Path
 
-import nbformat
 import pytest
 from mktestdocs import check_md_file
-from nbclient import NotebookClient
 
 
 @pytest.mark.docs
@@ -64,12 +62,14 @@ def maybe_skip_gift_eval(fpath):
     return out
 
 
-@pytest.mark.docs
-@pytest.mark.parametrize(
-    "fpath",
-    [maybe_skip_gift_eval(f) for f in Path("docs").rglob("*.ipynb")],
-)
-def test_notebooks(fpath):
-    nb = nbformat.read(fpath, as_version=4)
-    client = NotebookClient(nb, timeout=600, kernel_name="python3")
-    client.execute()
+# skipping notebooks for now, as they rise a no space error
+# see: https://github.com/AzulGarza/timecopilot/actions/runs/18858375517/job/53811527062?pr=245
+# @pytest.mark.docs
+# @pytest.mark.parametrize(
+#    "fpath",
+#    [maybe_skip_gift_eval(f) for f in Path("docs").rglob("*.ipynb")],
+# )
+# def test_notebooks(fpath):
+#    nb = nbformat.read(fpath, as_version=4)
+#    client = NotebookClient(nb, timeout=600, kernel_name="python3")
+#    client.execute()
