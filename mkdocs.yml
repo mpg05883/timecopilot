@@ -24,6 +24,7 @@ nav:
           - examples/anomaly-detection-forecaster-quickstart.ipynb
           - examples/ts-foundation-models-comparison-quickstart.ipynb
           - examples/gift-eval.ipynb
+          - examples/chronos-family.ipynb
   - Experiments:
       - experiments/gift-eval.md
       - experiments/fev.md
