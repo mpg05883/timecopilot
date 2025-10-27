@@ -29,6 +29,7 @@ class Chronos(Forecaster):
         batch_size: int = 16,
         alias: str = "Chronos",
     ):
+        # ruff: noqa: E501
         """
         Args:
             repo_id (str, optional): The Hugging Face Hub model ID or local
@@ -46,6 +47,21 @@ class Chronos(Forecaster):
                 DataFrames and logs. Defaults to "Chronos".
 
         Notes:
+            **Available models:**
+
+            | Model ID                                                               | Parameters |
+            | ---------------------------------------------------------------------- | ---------- |
+            | [`s3://autogluon/chronos-2`](https://arxiv.org/abs/2510.15821)   | 120M         |
+            | [`amazon/chronos-bolt-tiny`](https://huggingface.co/amazon/chronos-bolt-tiny)   | 9M         |
+            | [`amazon/chronos-bolt-mini`](https://huggingface.co/amazon/chronos-bolt-mini)   | 21M        |
+            | [`amazon/chronos-bolt-small`](https://huggingface.co/amazon/chronos-bolt-small) | 48M        |
+            | [`amazon/chronos-bolt-base`](https://huggingface.co/amazon/chronos-bolt-base)   | 205M       |
+            | [`amazon/chronos-t5-tiny`](https://huggingface.co/amazon/chronos-t5-tiny)   | 8M         |
+            | [`amazon/chronos-t5-mini`](https://huggingface.co/amazon/chronos-t5-mini)   | 20M        |
+            | [`amazon/chronos-t5-small`](https://huggingface.co/amazon/chronos-t5-small) | 46M        |
+            | [`amazon/chronos-t5-base`](https://huggingface.co/amazon/chronos-t5-base)   | 200M       |
+            | [`amazon/chronos-t5-large`](https://huggingface.co/amazon/chronos-t5-large) | 710M       |
+
             **Academic Reference:**
 
             - Paper: [Chronos: Learning the Language of Time Series](https://arxiv.org/abs/2403.07815)
