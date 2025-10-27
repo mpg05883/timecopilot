@@ -62,6 +62,7 @@ models = [
     ADIDA(),
     Prophet(),
     Chronos(repo_id="amazon/chronos-bolt-tiny", alias="Chronos-Bolt"),
+    Chronos(repo_id="s3://autogluon/chronos-2", alias="Chronos-2"),
     FlowState(repo_id="ibm-research/flowstate"),
     FlowState(
         repo_id="ibm-granite/granite-timeseries-flowstate-r1",

@@ -3,7 +3,12 @@ from contextlib import contextmanager
 import numpy as np
 import pandas as pd
 import torch
-from chronos import BaseChronosPipeline
+from chronos import (
+    BaseChronosPipeline,
+    Chronos2Pipeline,
+    ChronosBoltPipeline,
+    ChronosPipeline,
+)
 from tqdm import tqdm
 
 from ..utils.forecaster import Forecaster, QuantileConverter
@@ -24,6 +29,7 @@ class Chronos(Forecaster):
         batch_size: int = 16,
         alias: str = "Chronos",
     ):
+        # ruff: noqa: E501
         """
         Args:
             repo_id (str, optional): The Hugging Face Hub model ID or local
@@ -41,6 +47,21 @@ class Chronos(Forecaster):
                 DataFrames and logs. Defaults to "Chronos".
 
         Notes:
+            **Available models:**
+
+            | Model ID                                                               | Parameters |
+            | ---------------------------------------------------------------------- | ---------- |
+            | [`s3://autogluon/chronos-2`](https://arxiv.org/abs/2510.15821)   | 120M         |
+            | [`amazon/chronos-bolt-tiny`](https://huggingface.co/amazon/chronos-bolt-tiny)   | 9M         |
+            | [`amazon/chronos-bolt-mini`](https://huggingface.co/amazon/chronos-bolt-mini)   | 21M        |
+            | [`amazon/chronos-bolt-small`](https://huggingface.co/amazon/chronos-bolt-small) | 48M        |
+            | [`amazon/chronos-bolt-base`](https://huggingface.co/amazon/chronos-bolt-base)   | 205M       |
+            | [`amazon/chronos-t5-tiny`](https://huggingface.co/amazon/chronos-t5-tiny)   | 8M         |
+            | [`amazon/chronos-t5-mini`](https://huggingface.co/amazon/chronos-t5-mini)   | 20M        |
+            | [`amazon/chronos-t5-small`](https://huggingface.co/amazon/chronos-t5-small) | 46M        |
+            | [`amazon/chronos-t5-base`](https://huggingface.co/amazon/chronos-t5-base)   | 200M       |
+            | [`amazon/chronos-t5-large`](https://huggingface.co/amazon/chronos-t5-large) | 710M       |
+
             **Academic Reference:**
 
             - Paper: [Chronos: Learning the Language of Time Series](https://arxiv.org/abs/2403.07815)
@@ -66,9 +87,10 @@ class Chronos(Forecaster):
 
     @contextmanager
     def _get_model(self) -> BaseChronosPipeline:
+        device_map = "gpu" if torch.cuda.is_available() else "cpu"
         model = BaseChronosPipeline.from_pretrained(
             self.repo_id,
-            device_map="auto",
+            device_map=device_map,
             torch_dtype=torch.bfloat16,
         )
         try:
@@ -95,6 +117,9 @@ class Chronos(Forecaster):
                 for batch in tqdm(dataset)
             ]  # list of tuples
             fcsts_quantiles, fcsts_mean = zip(*fcsts, strict=False)
+            if isinstance(model, Chronos2Pipeline):
+                fcsts_mean = fcsts_mean[0]
+                fcsts_quantiles = fcsts_quantiles[0]
             fcsts_mean_np = torch.cat(fcsts_mean).numpy()
             fcsts_quantiles_np = torch.cat(fcsts_quantiles).numpy()
         else:
@@ -105,8 +130,10 @@ class Chronos(Forecaster):
                 )
                 for batch in tqdm(dataset)
             ]
+            if isinstance(model, Chronos2Pipeline):
+                fcsts = fcsts[0]
             fcsts = torch.cat(fcsts)
-            if "t5" in self.repo_id:
+            if isinstance(model, ChronosPipeline):
                 # for t5 models, `predict` returns a tensor of shape
                 # (batch_size, num_samples, prediction_length).
                 # notice that the method return samples.
@@ -115,7 +142,7 @@ class Chronos(Forecaster):
                 # in the `predict_quantiles` method
                 # see https://github.com/amazon-science/chronos-forecasting/blob/6a9c8dadac04eb85befc935043e3e2cce914267f/src/chronos/chronos.py#L554
                 fcsts_mean = fcsts.mean(dim=1)  # type: ignore
-            elif "bolt" in self.repo_id:
+            elif isinstance(model, ChronosBoltPipeline | Chronos2Pipeline):
                 # for bolt models, `predict` returns a tensor of shape
                 # (batch_size, num_quantiles, prediction_length)
                 # notice that in this case, the method returns the default quantiles
@@ -125,6 +152,8 @@ class Chronos(Forecaster):
                 # as it can be seen in
                 # https://github.com/amazon-science/chronos-forecasting/blob/6a9c8dadac04eb85befc935043e3e2cce914267f/src/chronos/chronos_bolt.py#L615-L616
                 fcsts_mean = fcsts[:, model.quantiles.index(0.5), :]  # type: ignore
+            else:
+                raise ValueError(f"Unsupported model: {self.repo_id}")
             fcsts_mean_np = fcsts_mean.numpy()  # type: ignore
             fcsts_quantiles_np = None
         return fcsts_mean_np, fcsts_quantiles_np
