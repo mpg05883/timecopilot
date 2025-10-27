@@ -21,8 +21,9 @@ source ./cli/utils.sh
 activate_conda_env
 log_info "Starting $(get_slurm_message)"
 
-ETT1_15T_SHORT_TASK_ID=36  # TODO: Update this to work with your new dataset order 
-DEFAULT_TASK_ID=$ETT1_15T_SHORT_TASK_ID
+# Default to the M4 Hourly dataset (short-term) if not using SLURM
+M4_HOURLY_TASK_ID=38  
+DEFAULT_TASK_ID=$M4_HOURLY_TASK_ID
 
 # Ensure SLURM_ARRAY_TASK_ID is set
 SLURM_ARRAY_TASK_ID=${SLURM_ARRAY_TASK_ID:-$DEFAULT_TASK_ID}

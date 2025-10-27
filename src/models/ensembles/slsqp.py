@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import OptimizeResult, minimize
 from sklearn.isotonic import IsotonicRegression
+from tabulate import tabulate
 
 from ... import TimeCopilotForecaster
 from ..utils.forecaster import Forecaster, QuantileConverter
@@ -40,8 +41,8 @@ class SLSQPOptimizationResult:
 class SLSQPEnsemble(Forecaster):
     """Weighted ensemble with SLSQP constrained optimization.
 
-    This ensemble finds non-negative weights that sum to 1 for the underlying
-    base model forecasts by minimizing a chosen error metric over
+    This ensemble computes non-negative weights that sum to 1 for the
+    underlying models by minimizing a chosen error metric during
     cross-validation (CV) forecasts produced on the training data.
 
     Workflow (inside `forecast` when no explicit weights are supplied):
@@ -76,12 +77,12 @@ class SLSQPEnsemble(Forecaster):
         n_windows: int = 1,
     ) -> None:
         self.tcf = TimeCopilotForecaster(models=models, fallback_model=None)
-        self.weights_: list[float] | None = None
         self.opt_result_: SLSQPOptimizationResult | None = None
         self.batch_size = batch_size
         self.metric = metric
         self.n_windows = n_windows
         self.alias = self.format_alias()
+        self.weights_df = pd.DataFrame(columns=self.model_aliases)
 
     def format_alias(self) -> str:
         num_models_str = f"{len(self.tcf.models)}-models"
@@ -135,6 +136,7 @@ class SLSQPEnsemble(Forecaster):
                     f"SLSQP optimization failed: {res.message}. Defaulting to "
                     "equal weights.",
                     RuntimeWarning,
+                    stacklevel=2,
                 )
                 w = np.full(n_models, 1.0 / n_models)
                 mv = metric_fn(y, model_matrix @ w)
@@ -161,6 +163,7 @@ class SLSQPEnsemble(Forecaster):
                 f"SLSQP optimization failed: {res.message}. Defaulting to "
                 "equal weights.",
                 RuntimeWarning,
+                stacklevel=2,
             )
             w = np.full(n_models, 1.0 / n_models)
             mv = metric_fn(y, model_matrix @ w)
@@ -273,7 +276,6 @@ class SLSQPEnsemble(Forecaster):
         use_analogue: bool = False,
         verbose: bool = False,
     ) -> pd.DataFrame:
-        # TODO: Read this and decide how to split it into smaller functions
         qc = QuantileConverter(level=level, quantiles=quantiles)
 
         if weights is not None and len(weights) != len(self.tcf.models):
@@ -434,7 +436,17 @@ class SLSQPEnsemble(Forecaster):
                 strict=False,
             )
         }
-        self.weights_df = (pd.DataFrame([new_weights], columns=self.model_aliases),)
+
+        new_weights_df = pd.DataFrame(
+            [new_weights],
+            columns=self.model_aliases,
+        )
+
+        self.weights_df = pd.concat(
+            [self.weights_df, new_weights_df],
+            ignore_index=True,
+        )
+
         model_cols = [m.alias for m in self.tcf.models]
         if verbose:
             weights_str = ", ".join(
@@ -501,38 +513,14 @@ class SLSQPEnsemble(Forecaster):
 
         return out
 
-    def get_weights_df(self) -> pd.DataFrame:
-        """
-        Returns a DataFrame with model aliases and their weights and each
-        weight configuration's cross-validation error.
-
-        Returns:
-            pd.DataFrame: DataFrame with model aliases and their current
-                weights.
-        """
-        # TODO: Update this so it returns the weights across all cross-validation windows
-        self.weights_df[self.metric] = self.ensemble_cv_error_list
-        return self.weights_df
-
     def print_weights(self) -> None:
-        """Print current weights in a readable format (forecasts must have
-        been run)."""
-        # TODO: Update this so it prints the weights across all cross-validation windows
-        if self.weights_ is None:
-            logging.info(f"[{self.alias}] weights not available yet - run forecast().")
-            return
-        message = ", ".join(
-            f"{m}:{w:.4f}"
-            for m, w in zip(
-                self.model_aliases,
-                self.weights_,
-                strict=False,
+        """Prints the ensemble weights across all cross-validation windows."""
+        print(
+            tabulate(
+                self.weights_df,
+                headers="keys",
+                tablefmt="grid",
+                showindex=False,
+                floatfmt=".4f",
             )
         )
-        logging.info(
-            f"[{self.alias}] last cross-validation window's weights: {message}"
-        )
-
-
-# TODO: Move this to __init__.py
-__all__ = ["SLSQPEnsemble", "SLSQPOptimizationResult"]

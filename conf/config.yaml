@@ -22,7 +22,7 @@ seed: 42
 workers: true
 verbose: true
 
-# Use 32-bit floating point precision for PyTorch
+# Set floating point precision for PyTorch
 precision: highest
 
 # Batch size for evaluation

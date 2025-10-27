@@ -1,6 +1,5 @@
 import json
 import math
-from collections.abc import Iterable, Iterator
 from functools import cached_property
 from typing import Literal
 
@@ -9,72 +8,24 @@ from datasets import load_from_disk
 from datasets.utils.logging import disable_progress_bar
 from dotenv import load_dotenv
 from dotted_dict import DottedDict
-from gluonts.dataset import DataEntry
 from gluonts.dataset.common import ProcessDataEntry
-from gluonts.dataset.field_names import FieldName
 from gluonts.dataset.split import TestData, TrainingDataset, split
 from gluonts.itertools import Map
 from gluonts.time_feature import get_seasonality, norm_freq_str
-from gluonts.transform import Transformation
 from pandas.tseries.frequencies import to_offset
 from toolz import compose
 
+from src.gift_eval.utils import (
+    M4_PRED_LENGTH_MAP,
+    PRED_LENGTH_MAP,
+    MultivariateToUnivariate,
+    itemize_start,
+)
 from src.utils.enums import Domain, Term
 from src.utils.path import (
     resolve_dataset_properties_path,
     resolve_storage_path,
 )
-
-
-def itemize_start(data_entry: DataEntry) -> DataEntry:
-    """
-    Converts the `start` field into a native Python type.
-    """
-    data_entry[FieldName.START] = data_entry[FieldName.START].item()
-    return data_entry
-
-
-class MultivariateToUnivariate(Transformation):
-    """
-    Unpacks a single `D` dimensional multivariate time series into `D`
-    separate univariate time series.
-    """
-
-    def __init__(self, field: str = FieldName.TARGET):
-        self.field = field
-
-    def __call__(
-        self,
-        dataset: Iterable[DataEntry],
-        is_train: bool = False,
-    ) -> Iterator:
-        """
-        Converts a multivariate dataset into univariate by unpacking each
-        dimension into a separate entry.
-
-        Args:
-            dataset (Iterable[DataEntry]): The dataset to convert from
-                multivariate to univariate format.
-            is_train (bool, optional): Whether the transformation is being used
-                during training (not used in this case). Defaults to False.
-            NOTE: Keep `is_train=False` to maintain compatibility with GluonTS.
-
-
-        Yields:
-            Iterator: An iterator over the univariate entries, where each entry
-                has the same fields as the original dataset, but with the
-                target field containing only one dimension of the original
-                multivariate target, and the item_id field modified to reflect
-                the dimension.
-        """
-        for data_entry in dataset:
-            item_id = data_entry[FieldName.ITEM_ID]
-            multivariate_target = list(data_entry[self.field])
-            for id, univariate_target in enumerate(multivariate_target):
-                univariate_entry = data_entry.copy()
-                univariate_entry[self.field] = univariate_target
-                univariate_entry[FieldName.ITEM_ID] = f"{item_id}_dim{id}"
-                yield univariate_entry
 
 
 class Dataset:
@@ -262,9 +213,9 @@ class Dataset:
     @cached_property
     def prediction_length(self) -> int:
         pred_len = (
-            self.m4_pred_length_map[self.base_freq]
+            M4_PRED_LENGTH_MAP[self.base_freq]
             if "m4" in self.name
-            else self.pred_length_map[self.base_freq]
+            else PRED_LENGTH_MAP[self.base_freq]
         )
         return self.term.multiplier * pred_len
 
