@@ -1,6 +1,11 @@
 .env
 .vscode/
+
+# Ignore data directory (if not a symbolic link)
 /data/
+
+# Ignore data directory (if it's a symbolic link)
+data  
 output/
 __pycache__/
 *.pyc

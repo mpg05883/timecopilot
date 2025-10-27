@@ -1,6 +1,6 @@
 defaults:
   - logging: timestamp
-  - data: dataset # Load list of dataset configs
+  - data: dataset # List of dataset name-term pairs 
   - imputation: dummy_value
   - _self_
 
