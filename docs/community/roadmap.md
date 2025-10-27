@@ -1,1 +1,0 @@
-TimeCopilot is under active development with a clear roadmap ahead. Please visit our [issue tracker](https://github.com/AzulGarza/timecopilot/issues) on GitHub to stay updated on the latest features, report issues, and contribute to the project.

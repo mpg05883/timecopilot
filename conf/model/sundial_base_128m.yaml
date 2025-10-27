@@ -1,0 +1,6 @@
+_target_: src.models.foundational.sundial.Sundial
+repo_id: "thuml/sundial-base-128m"
+num_samples: 100
+context_length: 2880
+batch_size: 1024
+alias: "sundial_base_128m"

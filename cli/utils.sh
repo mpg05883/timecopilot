@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Returns the current PST timestamp in month day year, hour:minute:second AM/PM
-# format.
+# Returns the current timestamp (Pacific time) formatted as:
+# month day year, hour:minute:second AM/PM.
 get_timestamp() {
     TZ="America/Los_Angeles" date +"%b %d, %Y %I:%M:%S%p"
 }
@@ -12,34 +12,29 @@ log_info() {
     echo "[${timestamp}] $*"
 }
 
-# Prints timestamped error messages to stderr
+# Prints timestamped error messages to stderr.
 log_error() {
     timestamp=$(get_timestamp)
     echo "[${timestamp}] $*" >&2
 }
 
-# Deletes Lightning logs from previous runs
-delete_lightning_logs() {
-    if [ -d "lightning_logs" ]; then
-        rm -rf lightning_logs
-    fi
-}
 
-activate_timecopilot_env() {
+activate_conda_env() {
     source /sw/external/python/anaconda3/etc/profile.d/conda.sh
-    conda activate tcp
+    conda activate tso
 }
 
-# Logs the following slurm job information:
+# Logs the following SLURM job information:
 # - `SLURM_JOB_NAME`: The job's name.
 # - `SLURM_JOB_ID`: The unique job ID assigned by SLURM if the job is part of an
 #   array. E.g. 123456_0 for task 0, 123456_1 for task 1, etc.
-# - `SLURM_ARRAY_JOB_ID`: The array job's ID if the job's part of an array. Same
-#   for all tasks in the array. E.g. 123456.
-# - `SLURM_ARRAY_TASK_ID`: The specific task index within the array job (if
-#   applicable). E.g. 0 for task 0, 1 for task 1, etc.
-# - `SLURM_GPUS_ON_NODE`: Number of devices (e.g. GPUs) used per each node.
-# - `SLURM_JOB_NUM_NODES`: Number of nodes (i.e. machines) used for the job.
+# - `SLURM_ARRAY_JOB_ID`: The array job's ID if the job's part of an array. This
+#   is the same for all tasks in the array. E.g. 123456 for all jobs in the
+#   array.
+# - `SLURM_ARRAY_TASK_ID`: The specific task index within the array job, if the 
+#   job is part of an array. E.g. 0 for task 0, 1 for task 1, etc.
+# - `SLURM_GPUS_ON_NODE`: Number of GPUs used per node.
+# - `SLURM_JOB_NUM_NODES`: Number of nodes (i.e. machines) used.
 log_job_info() {
     # Check if SLURM variables are set. Otherwise, use "N/A".
     {
@@ -55,7 +50,7 @@ log_job_info() {
 }
 
 # Returns a "done" directory path for marking job completion and ensures the
-# directory exists using `mkdir -p`.
+# directory exists using.
 #
 # The directory path depends on whether the job is part of a SLURM array:
 # - If part of an array, the path is:
@@ -78,8 +73,8 @@ get_done_dir() {
     echo "$done_dir"
 }
 
-# Returns a file path to a "done" file to mark completion of a SLURM job or
-# array task and ensures the file exists using `touch`.
+# Returns a file path to a "done" file to mark completion of a SLURM job and
+# and ensures the file exists.
 #
 # The file name depends on whether the job is part of a SLURM array:
 # - If part of an array, the file is named:
@@ -110,9 +105,7 @@ get_done_file() {
     echo "$done_path"
 }
 
-# Returns a formatted string containing information about the SLURM job.
-#
-# The string includes:
+# Returns a formatted string containing information about the SLURM job like:
 # - `SLURM_JOB_NAME`: The name of the SLURM job, or "N/A" if not set.
 # - `SLURM_JOB_ID`: The unique SLURM job ID, or "N/A" if not set.
 # - `SLURM_ARRAY_JOB_ID`: The array job ID if the job is part of an array, or

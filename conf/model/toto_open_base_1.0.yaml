@@ -1,0 +1,7 @@
+_target_: timecopilot.models.foundational.toto.Toto
+repo_id: "Datadog/Toto-Open-Base-1.0"
+context_length: 4096
+batch_size: 16
+num_samples: 128
+samples_per_batch: 8
+alias: "toto_open_base_1.0"

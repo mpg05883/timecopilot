@@ -1,0 +1,35 @@
+defaults:
+  - logging: timestamp
+  - data: dataset # Load list of dataset configs
+  - imputation: dummy_value
+  - /model@models/0: moirai_2_r_small
+  - /model@models/1: sundial_base_128m
+  - /model@models/2: timesfm_2.5_200m
+  - /model@models/3: toto_open_base_1.0
+  - results: default
+  - _self_
+
+# Redirect hydra output
+hydra:
+  run:
+    dir: ./output/hydra
+
+# List of models to ensemble
+models: []
+
+# Seed for reproducibility
+seed: 42
+workers: true
+verbose: true
+
+# Use 32-bit floating point precision for PyTorch
+precision: highest
+
+# Batch size for evaluation
+batch_size: 128
+
+# Ensemble configuration
+ensemble:
+  metric: mae
+  n_windows: 1
+  batch_size: $batch_size
