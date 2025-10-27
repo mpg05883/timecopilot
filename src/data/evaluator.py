@@ -4,9 +4,9 @@ from pathlib import Path
 import pandas as pd
 from gluonts.model import evaluate_model
 
-from src.gift_eval.data import Dataset
-from src.gift_eval.gluonts_predictor import GluonTSPredictor
-from src.gift_eval.utils import get_metrics
+from src.data.dataset import Dataset
+from src.data.utils import get_metrics
+from src.models.gluonts_predictor import GluonTSPredictor
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +87,6 @@ class Evaluator:
             crps = res["mean_weighted_sum_quantile_loss"][0]
             logging.info(f"MASE: {mase:.4f}, CRPS: {crps:.4f}")
 
-        # Create a DataFrame and write to CSV
         results_df = pd.DataFrame(
             results_data,
             columns=[
@@ -113,5 +112,6 @@ class Evaluator:
         if csv_file_path.exists():
             results_df = pd.concat(
                 [pd.read_csv(csv_file_path), results_df],
+                ignore_index=True,
             )
         results_df.to_csv(csv_file_path, index=False)

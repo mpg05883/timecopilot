@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .models.utils.forecaster import Forecaster
+from .forecaster import Forecaster
 
 
 class TimeCopilotForecaster(Forecaster):
@@ -8,13 +8,10 @@ class TimeCopilotForecaster(Forecaster):
     Unified forecaster for multiple time series models.
 
     This class enables forecasting and cross-validation across a list of models
-    from different families (foundational, statistical, machine learning, neural, etc.)
-    using a single, consistent interface. It is designed to handle panel (multi-series)
-    data and to aggregate results from all models for easy comparison
-    and ensemble workflows.
-
-    The unified API ensures that users can call `forecast` or `cross_validation`
-    once, passing a list of models, and receive merged results for all models.
+    from different families (foundational, statistical, machine learning,
+    neural, etc.) using a single, consistent interface. It is designed to
+    handle panel (multi-series) data and to aggregate results from all models
+    for easy comparison and ensemble workflows.
     """
 
     def __init__(
@@ -35,7 +32,8 @@ class TimeCopilotForecaster(Forecaster):
                 Model to use as a fallback when a model fails.
 
         Raises:
-            ValueError: If duplicate model aliases are found in the models list.
+            ValueError: If duplicate model aliases are found in the models
+            list.
         """
         self._validate_unique_aliases(models)
         self.models = models
@@ -52,14 +50,16 @@ class TimeCopilotForecaster(Forecaster):
             ValueError: If duplicate aliases are found.
         """
         aliases = [model.alias for model in models]
-        duplicates = set([alias for alias in aliases if aliases.count(alias) > 1])
+        duplicates = set(
+            [alias for alias in aliases if aliases.count(alias) > 1],
+        )
 
         if duplicates:
             raise ValueError(
                 f"Duplicate model aliases found: {sorted(duplicates)}. "
-                f"Each model must have a unique alias to avoid column name conflicts. "
-                f"Please provide different aliases when instantiating models of the "
-                f"same class."
+                f"Each model must have a unique alias to avoid column name "
+                f"conflicts. Please provide different aliases when instantiating "
+                f"models of the same class."
             )
 
     def _call_models(
@@ -97,12 +97,15 @@ class TimeCopilotForecaster(Forecaster):
                     res_df_model = res_df_model.rename(
                         columns={
                             col: (
-                                col.replace(self.fallback_model.alias, model.alias)
+                                col.replace(
+                                    self.fallback_model.alias,
+                                    model.alias,
+                                )
                                 if col.startswith(self.fallback_model.alias)
                                 else col
                             )
                             for col in res_df_model.columns
-                        }
+                        },
                     )
                 except (ValueError, RuntimeError) as e:
                     raise e
@@ -150,9 +153,9 @@ class TimeCopilotForecaster(Forecaster):
             freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
-                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values. If not provided, the frequency will be inferred
-                from the data.
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases)
+                for valid values. If not provided, the frequency will be
+                inferred from the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned
@@ -163,7 +166,7 @@ class TimeCopilotForecaster(Forecaster):
                 and 1. Should not be used simultaneously with `level`. When
                 provided, the output DataFrame will contain additional columns
                 named in the format "model-q-{percentile}", where {percentile}
-                = 100 × quantile value.
+                = 100 * quantile value.
 
         Returns:
             pd.DataFrame:
@@ -216,10 +219,10 @@ class TimeCopilotForecaster(Forecaster):
                 each window.
             freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
-                monthly). See [Pandas frequency aliases](https://pandas.pydata.
-                org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases)
-                for valid values. If not provided, the frequency will be inferred
-                from the data.
+                monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases)
+                for valid values. If not provided, the frequency will be
+                inferred from the data.
             n_windows (int, optional):
                 Number of cross-validation windows to generate. Defaults to 1.
             step_size (int, optional):
@@ -234,7 +237,7 @@ class TimeCopilotForecaster(Forecaster):
                 Quantiles to forecast, expressed as floats between 0 and 1.
                 Should not be used simultaneously with `level`. If provided,
                 additional columns named "model-q-{percentile}" will appear in
-                the output, where {percentile} is 100 × quantile value.
+                the output, where {percentile} is 100 * quantile value.
 
         Returns:
             pd.DataFrame:
@@ -245,7 +248,7 @@ class TimeCopilotForecaster(Forecaster):
                     - "ds" column to indicate the timestamp.
                     - "y" column to indicate the target.
                     - "cutoff" column to indicate which window each forecast
-                      belongs to.
+                        belongs to.
                     - point forecasts for each timestamp, series and model.
                     - prediction intervals if `level` is specified.
                     - quantile forecasts if `quantiles` is specified.
@@ -275,23 +278,23 @@ class TimeCopilotForecaster(Forecaster):
 
         This method uses rolling-origin cross-validation to (1) produce
         adjusted (out-of-sample) predictions and (2) estimate the
-        standard deviation of forecast errors. It then computes a per-point z-score,
-        flags values outside a two-sided prediction interval (with confidence `level`),
-        and returns a DataFrame with results.
+        standard deviation of forecast errors. It then computes a per-point
+        z-score, flags values outside a two-sided prediction interval (with
+        confidence `level`), and returns a DataFrame with results.
 
         Args:
             df (pd.DataFrame):
                 DataFrame containing the time series to detect anomalies.
             h (int, optional):
                 Forecast horizon specifying how many future steps to predict.
-                In each cross validation window. If not provided, the seasonality
-                of the data (inferred from the frequency) is used.
+                In each cross validation window. If not provided, the
+                seasonality of the data (inferred from the frequency) is used.
             freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.
                 org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases)
-                for valid values. If not provided, the frequency will be inferred
-                from the data.
+                for valid values. If not provided, the frequency will be
+                inferred from the data.
             n_windows (int, optional):
                 Number of cross-validation windows to generate.
                 If not provided, the maximum number of windows
@@ -323,9 +326,9 @@ class TimeCopilotForecaster(Forecaster):
             "detect_anomalies",
             merge_on=["unique_id", "ds", "cutoff"],
             df=df,
-            h=h,  # type: ignore
+            h=h,
             freq=freq,
             n_windows=n_windows,
-            level=level,  # type: ignore
+            level=level,
             quantiles=None,
         )

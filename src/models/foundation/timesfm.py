@@ -11,8 +11,8 @@ from timesfm import TimesFM_2p5_200M_torch
 from timesfm_v1.timesfm_base import DEFAULT_QUANTILES as DEFAULT_QUANTILES_TFM
 from tqdm import tqdm
 
-from ..utils.forecaster import Forecaster, QuantileConverter
-from .utils import TimeSeriesDataset
+from src.models.common.forecaster import Forecaster, QuantileConverter
+from src.models.foundation.utils import TimeSeriesDataset
 
 
 class _TimesFMV1(Forecaster):

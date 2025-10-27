@@ -3,9 +3,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects
 import utilsforecast.processing as ufp
-from gluonts.time_feature.seasonality import (
-    DEFAULT_SEASONALITIES,
-)
+from gluonts.time_feature.seasonality import DEFAULT_SEASONALITIES
 from gluonts.time_feature.seasonality import (
     get_seasonality as _get_seasonality,
 )
@@ -27,14 +25,13 @@ def get_seasonality(
     freq: str,
     custom_seasonalities: dict[str, int] | None = None,
 ) -> int:
-    # fmt: off
     """
     Get the seasonality of a frequency.
 
     Args:
         freq (str): The frequency to get the seasonality of.
-        custom_seasonalities (dict[str, int] | None): Custom seasonalities to use.
-            If None, the default seasonalities are used.
+        custom_seasonalities (dict[str, int] | None): Custom seasonalities to
+            use. If None, the default seasonalities are used.
 
     Returns:
         int: The seasonality of the frequency.
@@ -49,7 +46,6 @@ def get_seasonality(
         # 1
         ```
     """
-    # fmt: on
     if custom_seasonalities is None:
         custom_seasonalities = dict()
     return _get_seasonality(
@@ -80,14 +76,17 @@ def maybe_infer_freq(df: pd.DataFrame, freq: str | None) -> str:
     inferred_freq = pd.infer_freq(times.values)
     if inferred_freq is None:
         raise RuntimeError(
-            "Could not infer the frequency of the time column. This could be due "
-            "to inconsistent intervals. Please check your data for missing, "
-            "duplicated or irregular timestamps"
+            "Could not infer the frequency of the time column. This could be "
+            "due to inconsistent intervals. Please check your data for "
+            "missing, duplicated or irregular timestamps."
         )
     return inferred_freq
 
 
-def maybe_convert_col_to_datetime(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
+def maybe_convert_col_to_datetime(
+    df: pd.DataFrame,
+    col_name: str,
+) -> pd.DataFrame:
     if not pd.api.types.is_datetime64_any_dtype(df[col_name]):
         df = df.copy()
         df[col_name] = pd.to_datetime(df[col_name])
@@ -141,9 +140,9 @@ class Forecaster:
             freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
-                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values. If not provided, the frequency will be inferred
-                from the data.
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases)
+                for valid values. If not provided, the frequency will be
+                inferred from the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned
@@ -154,7 +153,7 @@ class Forecaster:
                 and 1. Should not be used simultaneously with `level`. When
                 provided, the output DataFrame will contain additional columns
                 named in the format "model-q-{percentile}", where {percentile}
-                = 100 × quantile value.
+                = 100 * quantile value.
 
         Returns:
             pd.DataFrame:
@@ -167,7 +166,9 @@ class Forecaster:
                 For multi-series data, the output retains the same unique
                 identifiers as the input DataFrame.
         """
-        raise NotImplementedError("This method must be implemented in a subclass.")
+        raise NotImplementedError(
+            "This method must be implemented in a subclass.",
+        )
 
     def cross_validation(
         self,
@@ -203,8 +204,8 @@ class Forecaster:
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.
                 org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases)
-                for valid values. If not provided, the frequency will be inferred
-                from the data.
+                for valid values. If not provided, the frequency will be
+                inferred from the data.
             n_windows (int, optional):
                 Number of cross-validation windows to generate. Defaults to 1.
             step_size (int, optional):
@@ -219,7 +220,7 @@ class Forecaster:
                 Quantiles to forecast, expressed as floats between 0 and 1.
                 Should not be used simultaneously with `level`. If provided,
                 additional columns named "model-q-{percentile}" will appear in
-                the output, where {percentile} is 100 × quantile value.
+                the output, where {percentile} is 100 * quantile value.
 
         Returns:
             pd.DataFrame:
@@ -230,7 +231,7 @@ class Forecaster:
                     - "ds" column to indicate the timestamp.
                     - "y" column to indicate the target.
                     - "cutoff" column to indicate which window each forecast
-                      belongs to.
+                        belongs to.
                     - point forecasts for each timestamp and series.
                     - prediction intervals if `level` is specified.
                     - quantile forecasts if `quantiles` is specified.
@@ -264,7 +265,7 @@ class Forecaster:
         for _, (cutoffs, train, valid) in tqdm(enumerate(splits), **tqdm_kwargs):
             if len(valid.columns) > 3:
                 raise NotImplementedError(
-                    "Cross validation with exogenous variables is not yet supported."
+                    "Cross validation with exogenous variables is not yet supported.",
                 )
             y_pred = self.forecast(
                 df=train,
@@ -307,23 +308,23 @@ class Forecaster:
 
         This method uses rolling-origin cross-validation to (1) produce
         adjusted (out-of-sample) predictions and (2) estimate the
-        standard deviation of forecast errors. It then computes a per-point z-score,
-        flags values outside a two-sided prediction interval (with confidence `level`),
-        and returns a DataFrame with results.
+        standard deviation of forecast errors. It then computes a per-point
+        z-score, flags values outside a two-sided prediction interval (with
+        confidence `level`), and returns a DataFrame with results.
 
         Args:
             df (pd.DataFrame):
                 DataFrame containing the time series to detect anomalies.
             h (int, optional):
                 Forecast horizon specifying how many future steps to predict.
-                In each cross validation window. If not provided, the seasonality
-                of the data (inferred from the frequency) is used.
+                In each cross validation window. If not provided, the
+                seasonality of the data (inferred from the frequency) is used.
             freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.
                 org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases)
-                for valid values. If not provided, the frequency will be inferred
-                from the data.
+                for valid values. If not provided, the frequency will be
+                inferred from the data.
             n_windows (int, optional):
                 Number of cross-validation windows to generate.
                 If not provided, the maximum number of windows
@@ -380,7 +381,11 @@ class Forecaster:
             cv_results.groupby("unique_id")["residuals"].std().reset_index()
         )
         residual_stats.columns = ["unique_id", "residual_std"]
-        cv_results = cv_results.merge(residual_stats, on="unique_id", how="left")
+        cv_results = cv_results.merge(
+            residual_stats,
+            on="unique_id",
+            how="left",
+        )
         cv_results["z_score"] = cv_results["residuals"] / cv_results["residual_std"]
         alpha = 1 - level / 100
         critical_z = stats.norm.ppf(1 - alpha / 2)
@@ -429,30 +434,33 @@ class Forecaster:
                 [`unique_id`, `ds`, `y`]. Defaults to None.
             forecasts_df (pd.DataFrame, optional): DataFrame with
                 columns [`unique_id`, `ds`] and models. Defaults to None.
-            ids (list[str], optional): Time Series to plot. If None, time series
-                are selected randomly. Defaults to None.
+            ids (list[str], optional): Time Series to plot. If None, time
+                series are selected randomly. Defaults to None.
             plot_random (bool, optional): Select time series to plot randomly.
                 Defaults to True.
-            max_ids (int, optional): Maximum number of ids to plot. Defaults to 8.
+            max_ids (int, optional): Maximum number of ids to plot. Defaults
+                to 8.
             models (list[str], optional): Models to plot. Defaults to None.
             level (list[float], optional): Prediction intervals to plot.
                 Defaults to None.
-            max_insample_length (int, optional): Maximum number of train/insample
-                observations to be plotted. Defaults to None.
+            max_insample_length (int, optional): Maximum number of
+                train/insample observations to be plotted. Defaults to None.
             plot_anomalies (bool, optional): Plot anomalies for each prediction
                 interval. Defaults to False.
-            engine (str, optional): Library used to plot. 'plotly', 'plotly-resampler'
-                or 'matplotlib'. Defaults to 'matplotlib'.
-            palette (str, optional): Name of the matplotlib colormap to use for the
-                plots. If None, uses the current style. Defaults to None.
-            seed (int, optional): Seed used for the random number generator. Only
-                used if plot_random is True. Defaults to 0.
-            resampler_kwargs (dict, optional): Keyword arguments to be passed to
-                plotly-resampler constructor. For further custumization ("show_dash")
-                call the method, store the plotting object and add the extra arguments
-                to its `show_dash` method. Defaults to None.
-            ax (matplotlib axes, array of matplotlib axes or plotly Figure, optional):
-                Object where plots will be added. Defaults to None.
+            engine (str, optional): Library used to plot. 'plotly',
+                'plotly-resampler' or 'matplotlib'. Defaults to 'matplotlib'.
+            palette (str, optional): Name of the matplotlib colormap to use
+                for the plots. If None, uses the current style. Defaults to
+                None.
+            seed (int, optional): Seed used for the random number generator.
+                Only used if plot_random is True. Defaults to 0.
+            resampler_kwargs (dict, optional): Keyword arguments to be passed
+                to plotly-resampler constructor. For further custumization
+                ("show_dash") call the method, store the plotting object and
+                add the extra arguments to its `show_dash` method. Defaults to
+                None.
+            ax (matplotlib axes, array of matplotlib axes or plotly Figure,
+                optional): Object where plots will be added. Defaults to None.
         """
         df = ensure_time_dtype(df, time_col="ds")
         if forecasts_df is not None:
@@ -503,13 +511,16 @@ class Forecaster:
         strategy: str = "shortest",
     ) -> pd.DataFrame:
         """
-        For each item_id, keep only one time series based on the specified strategy.
+        For each item_id, keep only one time series based on the specified
+        strategy.
 
         Args:
             df (pd.DataFrame): DataFrame with columns 'unique_id', 'ds', 'y'
             strategy (str): Strategy to use when selecting series:
-                - "shortest": Keep shortest series, if tie then keep first by original index
-                - "first": Always keep first series by original index (ignores length)
+                - "shortest": Keep shortest series, if tie then keep first by
+                    original index
+                - "first": Always keep first series by original index (ignores
+                    length)
 
         Returns:
             pd.DataFrame: DataFrame with selected series for each item_id
@@ -519,11 +530,24 @@ class Forecaster:
         df_copy["item_id"] = df_copy["unique_id"].str.split("-").str[0]
 
         # Calculate length of each unique_id and keep original index
-        series_lengths = df_copy.groupby("unique_id").size().reset_index(name="length")
+        series_lengths = (
+            df_copy.groupby("unique_id")
+            .size()
+            .reset_index(
+                name="length",
+            )
+        )
 
-        # Get the first occurrence index for each unique_id (for original order)
+        # Get the first occurrence index for each unique_id for original order
         first_occurrence = (
-            df_copy.groupby("unique_id").first().reset_index()[["unique_id", "item_id"]]
+            df_copy.groupby("unique_id")
+            .first()
+            .reset_index()[
+                [
+                    "unique_id",
+                    "item_id",
+                ]
+            ]
         )
         first_occurrence["first_idx"] = (
             df_copy.groupby("unique_id").apply(lambda x: x.index[0]).values
@@ -680,65 +704,3 @@ class QuantileConverter:
                     df = ufp.assign_columns(df, hi_tgt, df[hi_src])
                     out_cols.extend([lo_tgt, hi_tgt])
         return df[out_cols]
-
-    def _keep_shortest_series_per_item(
-        self, df: pd.DataFrame, strategy: str = "shortest"
-    ) -> pd.DataFrame:
-        """
-        For each item_id, keep only one time series based on the specified strategy.
-
-        Args:
-            df (pd.DataFrame): DataFrame with columns 'unique_id', 'ds', 'y'
-            strategy (str): Strategy to use when selecting series:
-                - "shortest": Keep shortest series, if tie then keep first by original index
-                - "first": Always keep first series by original index (ignores length)
-
-        Returns:
-            pd.DataFrame: DataFrame with selected series for each item_id
-        """
-        # Extract item_id from unique_id (format: item_id-forecast_start)
-        df_copy = df.copy()
-        df_copy["item_id"] = df_copy["unique_id"].str.split("-").str[0]
-
-        # Calculate length of each unique_id and keep original index
-        series_lengths = df_copy.groupby("unique_id").size().reset_index(name="length")
-
-        # Get the first occurrence index for each unique_id (for original order)
-        first_occurrence = (
-            df_copy.groupby("unique_id").first().reset_index()[["unique_id", "item_id"]]
-        )
-        first_occurrence["first_idx"] = (
-            df_copy.groupby("unique_id").apply(lambda x: x.index[0]).values
-        )
-
-        # Merge all information
-        series_lengths = series_lengths.merge(first_occurrence, on="unique_id")
-
-        # Apply selection strategy
-        if strategy == "shortest":
-            # Keep shortest series, if tie then keep first by original index
-            selected_series = series_lengths.loc[
-                series_lengths.groupby("item_id")
-                .apply(
-                    lambda x: x.loc[x["length"] == x["length"].min()].loc[
-                        x["first_idx"].idxmin()
-                    ]
-                )
-                .index
-            ]
-        elif strategy == "first":
-            # Always keep first series by original index (ignores length)
-            selected_series = series_lengths.loc[
-                series_lengths.groupby("item_id")["first_idx"].idxmin()
-            ]
-        else:
-            raise ValueError(
-                f"Unknown strategy: {strategy}. Available: shortest, first"
-            )
-
-        selected_unique_ids = selected_series["unique_id"].tolist()
-
-        # Filter original dataframe to keep only selected series
-        filtered_df = df[df["unique_id"].isin(selected_unique_ids)].copy()
-
-        return filtered_df

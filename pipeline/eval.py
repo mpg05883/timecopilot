@@ -6,10 +6,8 @@ import torch
 from hydra.utils import instantiate
 from omegaconf import DictConfig
 from pytorch_lightning import seed_everything
-from src.gift_eval.data import Dataset
-from src.gift_eval.eval import Evaluator
-from src.gift_eval.gluonts_predictor import GluonTSPredictor
-from src.models.ensembles import SLSQPEnsemble
+from src.data import Dataset, Evaluator
+from src.models import GluonTSPredictor, SLSQPEnsemble
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")

@@ -11,8 +11,8 @@ from gluonts.transform import LastValueImputation
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM
 
-from ..utils.forecaster import Forecaster, QuantileConverter
-from .utils import TimeSeriesDataset
+from src.models.common.forecaster import Forecaster, QuantileConverter
+from src.models.foundation.utils import TimeSeriesDataset
 
 
 class Sundial(Forecaster):

@@ -21,11 +21,9 @@ from tabpfn_time_series.features import (
     CalendarFeature,
     RunningIndexFeature,
 )
-from tabpfn_time_series.features.feature_generator_base import (
-    FeatureGenerator,
-)
+from tabpfn_time_series.features.feature_generator_base import FeatureGenerator
 
-from ..utils.forecaster import Forecaster, QuantileConverter
+from src.models.common.forecaster import Forecaster, QuantileConverter
 
 
 class TabPFN(Forecaster):

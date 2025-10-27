@@ -8,8 +8,8 @@ from toto.inference.forecaster import TotoForecaster
 from toto.model.toto import Toto as TotoModel
 from tqdm import tqdm
 
-from ..utils.forecaster import Forecaster, QuantileConverter
-from .utils import TimeSeriesDataset
+from src.models.common.forecaster import Forecaster, QuantileConverter
+from src.models.foundation.utils import TimeSeriesDataset
 
 
 class Toto(Forecaster):

@@ -12,8 +12,8 @@ from tirex import load_model
 from tirex.base import PretrainedModel
 from tqdm import tqdm
 
-from ..utils.forecaster import Forecaster, QuantileConverter
-from .utils import TimeSeriesDataset
+from src.models.common.forecaster import Forecaster, QuantileConverter
+from src.models.foundation.utils import TimeSeriesDataset
 
 
 class TiRex(Forecaster):

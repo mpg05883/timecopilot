@@ -20,7 +20,10 @@ def fix_freq(freq: str) -> str:
     return replacer.get(freq, freq)
 
 
-def maybe_convert_col_to_float32(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
+def maybe_convert_col_to_float32(
+    df: pd.DataFrame,
+    col_name: str,
+) -> pd.DataFrame:
     if df[col_name].dtype != "float32":
         df = df.copy()
         df[col_name] = df[col_name].astype("float32")
@@ -138,8 +141,9 @@ class GluonTSForecaster(Forecaster):
             freq (str, optional):
                 Frequency of the time series (e.g. "D" for daily, "M" for
                 monthly). See [Pandas frequency aliases](https://pandas.pydata.org/
-                pandas-docs/stable/user_guide/timeseries.html#offset-aliases) for
-                valid values. If None, the frequency will be inferred from the data.
+                pandas-docs/stable/user_guide/timeseries.html#offset-aliases)
+                for valid values. If None, the frequency will be inferred from
+                the data.
             level (list[int | float], optional):
                 Confidence levels for prediction intervals, expressed as
                 percentages (e.g. [80, 95]). If provided, the returned
@@ -150,7 +154,7 @@ class GluonTSForecaster(Forecaster):
                 and 1. Should not be used simultaneously with `level`. When
                 provided, the output DataFrame will contain additional columns
                 named in the format "model-q-{percentile}", where {percentile}
-                = 100 × quantile value.
+                = 100 * quantile value.
 
         Returns:
             pd.DataFrame:

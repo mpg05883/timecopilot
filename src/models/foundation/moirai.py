@@ -6,19 +6,20 @@ from uni2ts.model.moirai import MoiraiForecast, MoiraiModule
 from uni2ts.model.moirai2 import Moirai2Forecast, Moirai2Module
 from uni2ts.model.moirai_moe import MoiraiMoEForecast, MoiraiMoEModule
 
-from ..utils.gluonts_forecaster import GluonTSForecaster
+from src.models.common.gluonts_forecaster import GluonTSForecaster
 
 
 class Moirai(GluonTSForecaster):
     """
-    Moirai is a universal foundation model for time series forecasting, designed to
-    handle a wide range of frequencies, multivariate series, and covariates. It uses
-    a masked encoder-based transformer architecture with multi-patch size projection
-    layers and Any-Variate Attention, enabling zero-shot and probabilistic
-    forecasting. See the [official repo](https://github.com/
-    SalesforceAIResearch/uni2ts),
-    [Hugging Face](https://huggingface.co/collections/
-    Salesforce/moirai-r-models-65c8d3a94c51428c300e0742), and
+    Moirai is a universal foundation model for time series forecasting,
+    designed to handle a wide range of frequencies, multivariate series, and
+    covariates. It uses a masked encoder-based transformer architecture with
+    multi-patch size projection layers and Any-Variate Attention, enabling
+    zero-shot and probabilistic forecasting.
+
+    See the [official repo](https://github.com/SalesforceAIResearch/uni2ts),
+    [Hugging Face](https://huggingface.co/collections/Salesforce/
+    moirai-r-models-65c8d3a94c51428c300e0742), and
     [arXiv:2402.02592](https://arxiv.org/abs/2402.02592) for more details.
     """
 

@@ -16,8 +16,8 @@ from gluonts.transform.feature import (
     MissingValueImputation,
 )
 
-from ..models.utils.forecaster import Forecaster
-from .utils import QUANTILE_LEVELS
+from src.data.utils import QUANTILE_LEVELS
+from .forecaster import Forecaster
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,8 @@ class GluonTSPredictor(RepresentablePredictor):
     Adapter to use a TimeCopilot Forecaster as a GluonTS Predictor.
 
     This class wraps a TimeCopilot Forecaster and exposes the GluonTS Predictor
-    interface, allowing it to be used with GluonTS evaluation and processing utilities.
+    interface, allowing it to be used with GluonTS evaluation and processing
+    utilities.
     """
 
     def __init__(
@@ -46,20 +47,21 @@ class GluonTSPredictor(RepresentablePredictor):
 
         Args:
             forecaster (Forecaster): The TimeCopilot forecaster to wrap.
-                You can use any forecaster from TimeCopilot, and create your own
-                forecaster by subclassing
-                [Forecaster][timecopilot.models.utils.forecaster.Forecaster].
+                You can use any forecaster from TimeCopilot, and create your
+                own forecaster by subclassing
+                [Forecaster][src.models.common.forecaster.Forecaster].
             h (int | None): Forecast horizon. If None (default), the horizon is
                 inferred from the dataset.
-            freq (str | None): Frequency string (e.g., 'D', 'H').
+            freq (str | None): Frequency string (e.g., "D", "H").
                 If None (default), the frequency is inferred from the dataset.
-            level (list[int | float] | None): Not supported; use quantiles instead.
-            quantiles (list[float] | None): Quantiles to forecast. If None (default),
-                the default quantiles [0.1, 0.2, ..., 0.9] are used.
+            level (list[int | float] | None): Not supported; use quantiles
+                instead.
+            quantiles (list[float] | None): Quantiles to forecast. If None
+                (default), the default quantiles [0.1, 0.2, ..., 0.9] are used.
             max_length (int | None): Maximum length of input series.
-            imputation_method (MissingValueImputation | None): Imputation method for
-                missing values. If None (default), the last value is used
-                with LastValueImputation().
+            imputation_method (MissingValueImputation | None): Imputation
+                method for missing values. If None (default), the last value
+                is used with LastValueImputation().
             batch_size (int | None): Batch size for prediction.
 
         Raises:
@@ -70,7 +72,9 @@ class GluonTSPredictor(RepresentablePredictor):
         self.freq = freq
         self.level = level
         if level is not None:
-            raise NotImplementedError("level is not supported, use quantiles instead")
+            raise NotImplementedError(
+                "level is not supported, use quantiles instead",
+            )
         self.quantiles = quantiles or QUANTILE_LEVELS
         self.max_length = max_length
         self.imputation_method = imputation_method or LastValueImputation()
@@ -105,7 +109,7 @@ class GluonTSPredictor(RepresentablePredictor):
                     "unique_id": uid,
                     "ds": ds,
                     "y": target,
-                }
+                },
             )
             dfs.append(uid_df)
             metadata[uid] = {
@@ -294,4 +298,6 @@ class GluonTSPredictor(RepresentablePredictor):
         output_path.parent.mkdir(parents=True, exist_ok=True)
         cv_df.to_csv(output_path, index=False)
 
-        logger.info(f"Finished cross-validation! Results saved to {output_path}")
+        logger.info(
+            f"Finished cross-validation! Results saved to {output_path}",
+        )

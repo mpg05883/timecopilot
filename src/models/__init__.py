@@ -1,27 +1,29 @@
-from .stats import (
-    ADIDA,
-    IMAPA,
-    AutoARIMA,
-    AutoCES,
-    AutoETS,
-    CrostonClassic,
-    DynamicOptimizedTheta,
-    HistoricAverage,
-    SeasonalNaive,
-    Theta,
-    ZeroModel,
+from .common import (
+    Forecaster,
+    GluonTSForecaster,
+    GluonTSPredictor,
+    TimeCopilotForecaster,
+)
+from .ensembles import SLSQPEnsemble
+from .foundation import (
+    Moirai,
+    Sundial,
+    TabPFN,
+    TimesFM,
+    TiRex,
+    Toto,
 )
 
 __all__ = [
-    "ADIDA",
-    "IMAPA",
-    "AutoARIMA",
-    "AutoCES",
-    "AutoETS",
-    "CrostonClassic",
-    "DynamicOptimizedTheta",
-    "HistoricAverage",
-    "SeasonalNaive",
-    "Theta",
-    "ZeroModel",
+    "Forecaster",
+    "GluonTSForecaster",
+    "GluonTSPredictor",
+    "TimeCopilotForecaster",
+    "SLSQPEnsemble",
+    "Moirai",
+    "Sundial",
+    "TabPFN",
+    "TimesFM",
+    "TiRex",
+    "Toto",
 ]

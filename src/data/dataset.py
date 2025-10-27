@@ -15,7 +15,7 @@ from gluonts.time_feature import get_seasonality, norm_freq_str
 from pandas.tseries.frequencies import to_offset
 from toolz import compose
 
-from src.gift_eval.utils import (
+from src.data.utils import (
     M4_PRED_LENGTH_MAP,
     PRED_LENGTH_MAP,
     MultivariateToUnivariate,
