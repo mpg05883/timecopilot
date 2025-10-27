@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .forecaster import Forecaster
+from src.models.common.forecaster import Forecaster
 
 
 class TimeCopilotForecaster(Forecaster):
@@ -76,6 +76,7 @@ class TimeCopilotForecaster(Forecaster):
         # infer just once to avoid multiple calls to _maybe_infer_freq
         freq = self._maybe_infer_freq(df, freq)
         res_df: pd.DataFrame | None = None
+        
         for model in self.models:
             known_kwargs = {
                 "df": df,

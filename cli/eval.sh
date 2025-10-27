@@ -36,10 +36,10 @@ batch_size=128
 imputation="dummy_value"
 
 if python -m pipeline.eval -cp ../conf \
-    --ensemble.metric="${metric}" \
-    --ensemble.n_windows="${n_windows}" \
-    --ensemble.batch_size="${batch_size}" \
-    --imputation="${imputation}"; then
+    ensemble.metric="${metric}" \
+    ensemble.n_windows="${n_windows}" \
+    ensemble.batch_size="${batch_size}" \
+    imputation="${imputation}"; then
 
     log_info "Successfully finished $(get_slurm_message)!"
     log_error "No errors!"

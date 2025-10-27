@@ -2,28 +2,27 @@ import logging
 import os
 
 import hydra
-import torch
-from hydra.utils import instantiate
 from omegaconf import DictConfig
 from pytorch_lightning import seed_everything
-from src.data import Dataset, Evaluator
-from src.models import GluonTSPredictor, SLSQPEnsemble
+from src.data.dataset import Dataset
+from src.data.evaluator import Evaluator
+from src.models.common.gluonts_predictor import GluonTSPredictor
+from src.models.ensembles.slsqp import SLSQPEnsemble
+from src.models.foundation import Moirai, Sundial, Toto, TimesFM
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig) -> None:
     # Set seed, precision, and logging
     seed_everything(seed=cfg.seed, workers=cfg.workers, verbose=cfg.verbose)
-    torch.set_float32_matmul_precision(cfg.precision)
     logging.basicConfig(**cfg.logging)
 
     # Load models
     models = [
-        instantiate(
-            model,
-            batch_size=cfg.batch_size,
-        )
-        for model in cfg.models
+        Moirai(batch_size=cfg.batch_size),
+        Sundial(batch_size=cfg.batch_size),
+        Toto(batch_size=cfg.batch_size),
+        TimesFM(batch_size=cfg.batch_size),
     ]
 
     # Ensemble the models

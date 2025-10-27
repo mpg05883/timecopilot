@@ -28,14 +28,21 @@ def resolve_storage_path(storage_env_var: str = "GIFT_EVAL") -> Path:
     return root_dir / data_dir
 
 
+def resolve_metadata_path() -> Path:
+    """
+    Resolve the directory path where GIFT-Eval dataset metadata is stored.
+    """
+    # Resolve path to src directory
+    src_dir = Path(__file__).resolve().parent.parent
+    return src_dir / "data" / "meta" / "metadata.json"
+
 def resolve_dataset_properties_path() -> Path:
     """
     Resolve the directory path where GIFT-Eval dataset properties are stored.
     """
     # Resolve path to src directory
     src_dir = Path(__file__).resolve().parent.parent
-    return src_dir / "gift_eval" / "dataset_properties.json"
-
+    return src_dir / "data" / "meta" / "dataset_properties.json"
 
 def resolve_output_path(
     alias: str,

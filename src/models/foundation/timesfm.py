@@ -239,7 +239,7 @@ class TimesFM(Forecaster):
 
     def __new__(
         cls,
-        repo_id: str = "google/timesfm-2.0-500m-pytorch",
+        repo_id: str = "google/timesfm-2.5-200m-pytorch",
         context_length: int = 2048,
         batch_size: int = 64,
         alias: str = "TimesFM",
@@ -273,7 +273,7 @@ class TimesFM(Forecaster):
 
     def __init__(
         self,
-        repo_id: str = "google/timesfm-2.0-500m-pytorch",
+        repo_id: str = "google/timesfm-2.5-200m-pytorch",
         context_length: int = 2048,
         batch_size: int = 64,
         alias: str = "TimesFM",

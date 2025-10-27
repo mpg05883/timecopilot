@@ -12,11 +12,8 @@ from scipy.optimize import OptimizeResult, minimize
 from sklearn.isotonic import IsotonicRegression
 from tabulate import tabulate
 
-from src.models.common import (
-    Forecaster,
-    QuantileConverter,
-    TimeCopilotForecaster,
-)
+from src.models.common.forecaster import Forecaster, QuantileConverter
+from src.models.common.timecopilot_forecaster import TimeCopilotForecaster
 from .metrics import (
     crps_fn,
     mae_fn,
@@ -282,157 +279,143 @@ class SLSQPEnsemble(Forecaster):
         opt_n_windows: int = 1,
         opt_step_size: int | None = None,
         opt_h: int | None = None,
-        use_analogue: bool = False,
         verbose: bool = False,
     ) -> pd.DataFrame:
         qc = QuantileConverter(level=level, quantiles=quantiles)
+        
+        kwargs = {
+            "attr": "cross_validation",
+            "merge_on": ["unique_id", "ds", "cutoff"],
+            "df": df,
+            "h": h if opt_h is None else opt_h,
+            "freq": freq,
+            "level": None,
+            "quantiles": qc.quantiles,
+            "n_windows": opt_n_windows,
+            "step_size": opt_step_size,
+        }
+        cv_df = self.tcf._call_models(**kwargs)
+        
+        print(f"DEBUG: CV dataframe shape: {cv_df.shape}")
+        
+        model_cols = [m.alias for m in self.tcf.models]
 
-        if weights is not None and len(weights) != len(self.tcf.models):
-            raise ValueError(
-                "Number of weights must match number of models. Got "
-                f"{len(weights)} weights and {len(self.tcf.models)} models."
+        # Use Toto's median forecasts
+        model_cols = [
+            col.replace("Toto", "Toto-q-50") if col == "Toto" else col
+            for col in model_cols
+        ]
+
+        # Ensure all base models have cross-validation forecasts
+        missing = [c for c in model_cols if c not in cv_df]
+        if missing:
+            raise RuntimeError(
+                "Missing model columns in CV dataframe: " f"{missing}."
             )
 
-        # Optimize weights if they're not given
-        if weights is None:
-            kwargs = {
-                "attr": (
-                    "cross_validation"
-                    if not use_analogue
-                    else "cross_validation_analogue"
-                ),
-                "merge_on": ["unique_id", "ds", "cutoff"],
-                "df": df,
-                "h": h if opt_h is None else opt_h,
-                "freq": freq,
-                "level": None,
-                "quantiles": qc.quantiles,
-                "n_windows": opt_n_windows,
-                "step_size": opt_step_size,
-            }
-            cv_df = self.tcf._call_models(**kwargs)
+        # Get the ground truth values
+        y = cv_df["y"].to_numpy(dtype=float)
 
-            # Column names used to access each model's point forecasts
+        # Handle special metrics that need additional processing
+        if self.metric == "crps" and qc.quantiles is not None:
+            # Get quantile columns for each model
+            quantile_data = []
             model_cols = [m.alias for m in self.tcf.models]
 
-            # Use Toto's median forecasts
-            model_cols = [
-                col.replace("Toto", "Toto-q-50") if col == "Toto" else col
-                for col in model_cols
-            ]
+            for model in model_cols:
+                model_quantiles = []
+                for q in sorted(qc.quantiles):
+                    pct = int(q * 100)
+                    q_col = f"{model}-q-{pct}"
+                    if q_col not in cv_df:
+                        raise RuntimeError(
+                            f"Missing quantile column: {q_col}.",
+                        )
+                    model_quantiles.append(cv_df[q_col].to_numpy(dtype=float))
 
-            # Ensure all base models have cross-validation forecasts
-            missing = [c for c in model_cols if c not in cv_df]
-            if missing:
+                # Stack quantiles for this model: shape (n_samples,
+                # n_quantiles)
+                model_quantiles = np.stack(model_quantiles, axis=1)
+                quantile_data.append(model_quantiles)
+
+            # Stack all models: shape (n_samples, n_models, n_quantiles)
+            X_quantiles = np.stack(quantile_data, axis=1)
+
+            # guard against NaNs
+            mask = ~np.isnan(y) & ~np.any(
+                np.isnan(X_quantiles.reshape(X_quantiles.shape[0], -1)),
+                axis=1,
+            )
+            y_clean = y[mask]
+
+            # shape: (n_clean_samples, n_models, n_quantiles)
+            X_clean = X_quantiles[mask]
+
+            if y_clean.size == 0:
                 raise RuntimeError(
-                    "Missing model columns in CV dataframe: " f"{missing}."
+                    "No valid rows available for weight optimization."
                 )
 
-            # Get the ground truth values
-            y = cv_df["y"].to_numpy(dtype=float)
+            # Optimize weights for quantile predictions
+            opt_res = self._optimize_weights_quantile(
+                y_clean,
+                X_clean,
+                self.metric,
+            )
 
-            # Handle special metrics that need additional processing
-            if self.metric == "crps" and qc.quantiles is not None:
-                # Get quantile columns for each model
-                quantile_data = []
-                model_cols = [m.alias for m in self.tcf.models]
+        elif self.metric == "mase":
+            # Enhanced MASE calculation with training data context
+            X = cv_df[model_cols].to_numpy(dtype=float)
 
-                for model in model_cols:
-                    model_quantiles = []
-                    for q in sorted(qc.quantiles):
-                        pct = int(q * 100)
-                        q_col = f"{model}-q-{pct}"
-                        if q_col not in cv_df:
-                            raise RuntimeError(
-                                f"Missing quantile column: {q_col}.",
-                            )
-                        model_quantiles.append(cv_df[q_col].to_numpy(dtype=float))
-
-                    # Stack quantiles for this model: shape (n_samples,
-                    # n_quantiles)
-                    model_quantiles = np.stack(model_quantiles, axis=1)
-                    quantile_data.append(model_quantiles)
-
-                # Stack all models: shape (n_samples, n_models, n_quantiles)
-                X_quantiles = np.stack(quantile_data, axis=1)
-
-                # guard against NaNs
-                mask = ~np.isnan(y) & ~np.any(
-                    np.isnan(X_quantiles.reshape(X_quantiles.shape[0], -1)),
-                    axis=1,
+            # Try to extract training data for better MASE calculation
+            # Group by unique_id to get per-series training data
+            enhanced_mase_data = []
+            for uid in cv_df["unique_id"].unique():
+                uid_data = cv_df[cv_df["unique_id"] == uid].sort_values(
+                    "ds",
                 )
-                y_clean = y[mask]
+                uid_y = uid_data["y"].values
+                uid_X = uid_data[model_cols].values
 
-                # shape: (n_clean_samples, n_models, n_quantiles)
-                X_clean = X_quantiles[mask]
+                # Use the validation data as both training context and
+                # target.
+                # This is a limitation of the CV approach - we don't have
+                # separate training data
+                enhanced_mase_data.append((uid_y, uid_X))
 
-                if y_clean.size == 0:
-                    raise RuntimeError(
-                        "No valid rows available for weight optimization."
-                    )
-
-                # Optimize weights for quantile predictions
-                opt_res = self._optimize_weights_quantile(
-                    y_clean,
-                    X_clean,
-                    self.metric,
+            # For now, fall back to simple MASE since we don't have clean
+            # training/validation split
+            mask = ~np.isnan(y) & ~np.any(np.isnan(X), axis=1)
+            y_clean = y[mask]
+            X_clean = X[mask]
+            if y_clean.size == 0:
+                raise RuntimeError(
+                    "No valid rows available for weight optimization."
                 )
 
-            elif self.metric == "mase":
-                # Enhanced MASE calculation with training data context
-                X = cv_df[model_cols].to_numpy(dtype=float)
+            print(
+                f"DEBUG: MASE optimization - y_clean.shape: "
+                f"{y_clean.shape}, X_clean.shape: {X_clean.shape}"
+            )
+            opt_res = self._optimize_weights(y_clean, X_clean, self.metric)
 
-                # Try to extract training data for better MASE calculation
-                # Group by unique_id to get per-series training data
-                enhanced_mase_data = []
-                for uid in cv_df["unique_id"].unique():
-                    uid_data = cv_df[cv_df["unique_id"] == uid].sort_values(
-                        "ds",
-                    )
-                    uid_y = uid_data["y"].values
-                    uid_X = uid_data[model_cols].values
+        else:
+            # Original logic for point predictions
+            X = cv_df[model_cols].to_numpy(dtype=float)
+            # guard against NaNs
+            mask = ~np.isnan(y) & ~np.any(np.isnan(X), axis=1)
 
-                    # Use the validation data as both training context and
-                    # target.
-                    # This is a limitation of the CV approach - we don't have
-                    # separate training data
-                    enhanced_mase_data.append((uid_y, uid_X))
+            y_clean = y[mask]  # Ground truth
+            X_clean = X[mask]  # Predictions
 
-                # For now, fall back to simple MASE since we don't have clean
-                # training/validation split
-                mask = ~np.isnan(y) & ~np.any(np.isnan(X), axis=1)
-                y_clean = y[mask]
-                X_clean = X[mask]
-                if y_clean.size == 0:
-                    raise RuntimeError(
-                        "No valid rows available for weight optimization."
-                    )
-
-                print(
-                    f"DEBUG: MASE optimization - y_clean.shape: "
-                    f"{y_clean.shape}, X_clean.shape: {X_clean.shape}"
+            if y_clean.size == 0:
+                raise RuntimeError(
+                    "No valid rows available for weight optimization."
                 )
-                opt_res = self._optimize_weights(y_clean, X_clean, self.metric)
-
-            else:
-                # Original logic for point predictions
-                X = cv_df[model_cols].to_numpy(dtype=float)
-                # guard against NaNs
-                mask = ~np.isnan(y) & ~np.any(np.isnan(X), axis=1)
-
-                y_clean = y[mask]  # Ground truth
-                X_clean = X[mask]  # Predictions
-
-                if y_clean.size == 0:
-                    raise RuntimeError(
-                        "No valid rows available for weight optimization."
-                    )
-                opt_res = self._optimize_weights(y_clean, X_clean, self.metric)
+            opt_res = self._optimize_weights(y_clean, X_clean, self.metric)
 
             weights = opt_res.weights
             self.opt_result_ = opt_res
-        else:
-            self.opt_result_ = None
 
         self.weights_ = [float(w) for w in weights]
 

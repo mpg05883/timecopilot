@@ -7,8 +7,9 @@ from .models import (
     TimesFM,
     TiRex,
     Toto,
+    GluonTSPredictor,
 )
-from .utils import Domain, Term, resolve_output_path, resolve_storage_path
+from .utils import Domain, Term, resolve_output_path, resolve_storage_path, resolve_metadata_path, resolve_dataset_properties_path
 
 __all__ = [
     "Dataset",
@@ -20,8 +21,11 @@ __all__ = [
     "TimesFM",
     "TiRex",
     "Toto",
+    "GluonTSPredictor",
     "Domain",
     "Term",
     "resolve_output_path",
     "resolve_storage_path",
+    "resolve_metadata_path",
+    "resolve_dataset_properties_path",
 ]

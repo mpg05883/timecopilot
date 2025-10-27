@@ -1,4 +1,4 @@
-_target_: src.models.foundational.moirai.Moirai
+_target_: src.models.foundation.moirai.Moirai
 repo_id: "Salesforce/moirai-2.0-R-small"
 filename: "model.ckpt"
 context_length: 4096

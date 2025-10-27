@@ -2,8 +2,7 @@ import warnings
 
 import numpy as np
 
-from ...gift_eval.utils import QUANTILE_LEVELS
-
+from src.data.utils import QUANTILE_LEVELS
 
 def mse_fn(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return float(np.mean((y_true - y_pred) ** 2))

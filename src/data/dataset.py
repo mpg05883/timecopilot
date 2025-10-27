@@ -23,7 +23,7 @@ from src.data.utils import (
 )
 from src.utils.enums import Domain, Term
 from src.utils.path import (
-    resolve_dataset_properties_path,
+    resolve_metadata_path,
     resolve_storage_path,
 )
 
@@ -93,7 +93,7 @@ class Dataset:
         storage_path = resolve_storage_path(
             storage_env_var=self.storage_env_var,
         )
-        return load_from_disk(storage_path)
+        return load_from_disk(storage_path / self.name)
 
     @cached_property
     def metadata(self) -> DottedDict:
@@ -104,7 +104,7 @@ class Dataset:
             DottedDict: A DottedDict containing the dataset's metadata. Allows
                 key names to be accessed using dot notation.
         """
-        with open(resolve_dataset_properties_path()) as f:
+        with open(resolve_metadata_path()) as f:
             metadata = json.load(f)
         return DottedDict(metadata[self.name])
 

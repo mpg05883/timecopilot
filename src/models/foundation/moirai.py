@@ -25,7 +25,7 @@ class Moirai(GluonTSForecaster):
 
     def __init__(
         self,
-        repo_id: str = "Salesforce/moirai-1.0-R-large",
+        repo_id: str = "Salesforce/moirai-2.0-R-small",
         filename: str = "model.ckpt",
         context_length: int = 4096,
         patch_size: int = 32,

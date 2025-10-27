@@ -1,12 +1,13 @@
 import logging
 from pathlib import Path
-
+import json
 import pandas as pd
 from gluonts.model import evaluate_model
 
 from src.data.dataset import Dataset
 from src.data.utils import get_metrics
-from src.models.gluonts_predictor import GluonTSPredictor
+from src.models.common.gluonts_predictor import GluonTSPredictor
+from src.utils.path import resolve_dataset_properties_path, resolve_output_path
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,27 @@ class Evaluator:
         self.dataset = dataset
         self.batch_size = batch_size
         self.verbose = verbose
+        
+    @property
+    def dataset_properties_map(self) -> dict:
+        dataset_properties_path = resolve_dataset_properties_path()
+        with open(dataset_properties_path, "r") as f:
+            return json.load(f)
+        
+    @property
+    def ds_key(self) -> str:
+        pretty_names = {
+            "saugeenday": "saugeen",
+            "temperature_rain_with_missing": "temperature_rain",
+            "kdd_cup_2018_with_missing": "kdd_cup_2018",
+            "car_parts_with_missing": "car_parts",
+        }
+        if "/" in self.dataset.name:
+            ds_key = self.dataset.name.split("/").iloc[0]
+            ds_key = ds_key.lower()
+        else:
+            ds_key = self.dataset.name.lower()
+        return pretty_names.get(ds_key, ds_key)
 
     def evaluate(self, predictor: GluonTSPredictor) -> None:
         """
@@ -53,38 +75,33 @@ class Evaluator:
             axis=None,
             mask_invalid_label=True,
             allow_nan_forecast=False,
-            seasonality=self.seasonality,
+            seasonality=self.dataset.seasonality,
         )
 
         # Prepare the results for the CSV file
-        model_name = (
-            predictor.__class__.__name__
-            if not isinstance(predictor, GluonTSPredictor)
-            else predictor.alias
-        )
         results_data = [
             [
-                self.ds_config,
-                model_name,
-                res["MSE[mean]"][0],
-                res["MSE[0.5]"][0],
-                res["MAE[0.5]"][0],
-                res["MASE[0.5]"][0],
-                res["MAPE[0.5]"][0],
-                res["sMAPE[0.5]"][0],
-                res["MSIS"][0],
-                res["RMSE[mean]"][0],
-                res["NRMSE[mean]"][0],
-                res["ND[0.5]"][0],
-                res["mean_weighted_sum_quantile_loss"][0],
+                self.dataset.config,
+                predictor.alias,
+                res["MSE[mean]"].iloc[0],
+                res["MSE[0.5]"].iloc[0],
+                res["MAE[0.5]"].iloc[0],
+                res["MASE[0.5]"].iloc[0],
+                res["MAPE[0.5]"].iloc[0],
+                res["sMAPE[0.5]"].iloc[0],
+                res["MSIS"].iloc[0],
+                res["RMSE[mean]"].iloc[0],
+                res["NRMSE[mean]"].iloc[0],
+                res["ND[0.5]"].iloc[0],
+                res["mean_weighted_sum_quantile_loss"].iloc[0],
                 self.dataset_properties_map[self.ds_key]["domain"],
                 self.dataset_properties_map[self.ds_key]["num_variates"],
             ]
         ]
 
         if self.verbose:
-            mase = res["MASE[0.5]"][0]
-            crps = res["mean_weighted_sum_quantile_loss"][0]
+            mase = res["MASE[0.5]"].iloc[0]
+            crps = res["mean_weighted_sum_quantile_loss"].iloc[0]
             logging.info(f"MASE: {mase:.4f}, CRPS: {crps:.4f}")
 
         results_df = pd.DataFrame(
@@ -107,7 +124,9 @@ class Evaluator:
                 "num_variates",
             ],
         )
-        csv_file_path = Path(self.output_path) / "results.csv"
+        
+        output_path = resolve_output_path(alias=predictor.alias, dataset_config=self.dataset.config)
+        csv_file_path = output_path / "results.csv"
         csv_file_path.parent.mkdir(parents=True, exist_ok=True)
         if csv_file_path.exists():
             results_df = pd.concat(
