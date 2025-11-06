@@ -87,7 +87,7 @@ class Chronos(Forecaster):
 
     @contextmanager
     def _get_model(self) -> BaseChronosPipeline:
-        device_map = "gpu" if torch.cuda.is_available() else "cpu"
+        device_map = "cuda:0" if torch.cuda.is_available() else "cpu"
         model = BaseChronosPipeline.from_pretrained(
             self.repo_id,
             device_map=device_map,
