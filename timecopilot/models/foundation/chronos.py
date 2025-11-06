@@ -117,8 +117,6 @@ class Chronos(Forecaster):
                 for batch in tqdm(dataset)
             ]  # list of tuples
             fcsts_quantiles, fcsts_mean = zip(*fcsts, strict=False)
-            print(len(fcsts_mean))
-            print(fcsts_mean)
             if isinstance(model, Chronos2Pipeline):
                 fcsts_mean = [f_mean for fcst in fcsts_mean for f_mean in fcst]  # type: ignore
                 fcsts_quantiles = [
