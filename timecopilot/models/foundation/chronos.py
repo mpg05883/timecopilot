@@ -117,9 +117,15 @@ class Chronos(Forecaster):
                 for batch in tqdm(dataset)
             ]  # list of tuples
             fcsts_quantiles, fcsts_mean = zip(*fcsts, strict=False)
+            print(len(fcsts_mean))
+            print(fcsts_mean)
             if isinstance(model, Chronos2Pipeline):
-                fcsts_mean = fcsts_mean[0]
-                fcsts_quantiles = fcsts_quantiles[0]
+                fcsts_mean = [f_mean for fcst in fcsts_mean for f_mean in fcst]  # type: ignore
+                fcsts_quantiles = [
+                    f_quantile
+                    for fcst in fcsts_quantiles
+                    for f_quantile in fcst  # type: ignore
+                ]
             fcsts_mean_np = torch.cat(fcsts_mean).numpy()
             fcsts_quantiles_np = torch.cat(fcsts_quantiles).numpy()
         else:
@@ -131,7 +137,7 @@ class Chronos(Forecaster):
                 for batch in tqdm(dataset)
             ]
             if isinstance(model, Chronos2Pipeline):
-                fcsts = fcsts[0]
+                fcsts = [f_fcst for fcst in fcsts for f_fcst in fcst]  # type: ignore
             fcsts = torch.cat(fcsts)
             if isinstance(model, ChronosPipeline):
                 # for t5 models, `predict` returns a tensor of shape
