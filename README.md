@@ -331,7 +331,7 @@ Our pre-print paper is [available in arxiv](https://arxiv.org/abs/2509.00616).
 ```
 @misc{garza2025timecopilot,
       title={TimeCopilot}, 
-      author={Azul Garza and Reneé Rosillo},
+      author={Azul Garza and Renée Rosillo},
       year={2025},
       eprint={2509.00616},
       archivePrefix={arXiv},
