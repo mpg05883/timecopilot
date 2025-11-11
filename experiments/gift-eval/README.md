@@ -8,7 +8,9 @@ This section documents the evaluation of a foundation model ensemble built using
 
 TimeCopilot is an open‑source AI agent for time series forecasting that provides a unified interface to multiple forecasting approaches, from foundation models to classical statistical, machine learning, and deep learning methods, along with built‑in ensemble capabilities for robust and explainable forecasting.
 
-<img width="1002" height="1029" alt="image" src="https://github.com/user-attachments/assets/6fa8d459-0ca3-45ce-afe5-7fac8400167f" />
+<img width="1002" height="1029" alt="image" src="https://github.com/user-attachments/assets/69724886-d37e-46e6-8a10-d82396695b49" />
+
+
 
 
 
