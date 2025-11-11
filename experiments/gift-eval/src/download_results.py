@@ -18,8 +18,11 @@ def download_results():
             f"s3://{bucket}/results/timecopilot/{dataset_name}/{term}/all_results.csv"
         )
         logging.info(f"Downloading {csv_path}")
-        df = pd.read_csv(csv_path, storage_options={"anon": False})
-        dfs.append(df)
+        try:
+            df = pd.read_csv(csv_path, storage_options={"anon": False})
+            dfs.append(df)
+        except Exception as e:
+            logging.error(f"Error downloading {csv_path}: {e}")
 
     df = pd.concat(dfs, ignore_index=True)
     output_dir = Path("results/timecopilot")
