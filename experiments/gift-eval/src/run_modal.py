@@ -30,8 +30,8 @@ volume = {
 @app.function(
     image=image,
     volumes=volume,
-    # 3 hours timeout
-    timeout=60 * 60 * 3,
+    # 6 hours timeout
+    timeout=60 * 60 * 6,
     gpu="A10G",
     # as my local
     cpu=8,

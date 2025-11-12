@@ -3,12 +3,14 @@
 This section documents the evaluation of a foundation model ensemble built using the [TimeCopilot](https://timecopilot.dev) library on the [GIFT-Eval](https://huggingface.co/spaces/Salesforce/GIFT-Eval) benchmark.
 
 !!! success ""
-    With less than $30 in compute cost, TimeCopilot achieved first place in probabilistic accuracy (CRPS) among non-leaking models on this large-scale benchmark, which spans 24 datasets, 144k+ time series, and 177M data points.
+    With less than $30 in compute cost, TimeCopilot achieved first place in probabilistic accuracy (CRPS) among open-source solution on this large-scale benchmark, which spans 24 datasets, 144k+ time series, and 177M data points.
 
 
 TimeCopilot is an open‑source AI agent for time series forecasting that provides a unified interface to multiple forecasting approaches, from foundation models to classical statistical, machine learning, and deep learning methods, along with built‑in ensemble capabilities for robust and explainable forecasting.
 
-<img width="1002" height="1029" alt="image" src="https://github.com/user-attachments/assets/6fa8d459-0ca3-45ce-afe5-7fac8400167f" />
+<img width="1002" height="1029" alt="image" src="https://github.com/user-attachments/assets/69724886-d37e-46e6-8a10-d82396695b49" />
+
+
 
 
 
@@ -16,10 +18,9 @@ TimeCopilot is an open‑source AI agent for time series forecasting that provid
 
 This ensemble leverages [**TimeCopilot's MedianEnsemble**](https://timecopilot.dev/api/models/ensembles/#timecopilot.models.ensembles.median.MedianEnsemble) feature, which combines three state-of-the-art foundation models:
 
-- [**Moirai** (Salesforce AI Research)](https://timecopilot.dev/api/models/foundation/models/#timecopilot.models.foundation.moirai.Moirai).
-- [**Sundial** (THUML @ Tsinghua University)](https://timecopilot.dev/api/models/foundation/models/#timecopilot.models.foundation.sundial.Sundial) 
-- [**Toto** (DataDog)](https://timecopilot.dev/api/models/foundation/models/#timecopilot.models.foundation.toto.Toto).
-
+- [**Chronos-2** (AWS)](https://timecopilot.dev/api/models/foundation/models/#timecopilot.models.foundation.chronos.Chronos).
+- [**TimesFM-2.5** (Google Research)](https://timecopilot.dev/api/models/foundation/models/#timecopilot.models.foundation.timesfm.TimesFM).
+- [**TiRex** (NXAI)](https://timecopilot.dev/api/models/foundation/models/#timecopilot.models.foundation.tirex.TiRex).
 
 ## Setup
 
@@ -110,4 +111,10 @@ Results are saved to `results/timecopilot/all_results.csv` in GIFT-Eval format.
 
 ## Changelog
 
-- **2025-08-05**: GIFT‑Eval recently [enhanced its evaluation dashboard](https://github.com/SalesforceAIResearch/gift-eval?tab=readme-ov-file#2025-08-05) with a new flag that identifies models likely affected by data leakage (i.e., having seen parts of the test set during training). While the test set itself hasn’t changed, this new insight helps us better interpret model performance. To keep our results focused on truly unseen data, we’ve excluded any flagged models from this experiment and added the Sundial model to the ensemble. The previous experiment details remain available [here](https://github.com/AzulGarza/timecopilot/tree/v0.0.14/experiments/gift-eval).
+### **2025-11-06**
+
+We introduced newer models based on the most recent progress in the field: Chronos-2, TimesFM-2.5 and TiRex.
+
+### **2025-08-05**
+
+GIFT‑Eval recently [enhanced its evaluation dashboard](https://github.com/SalesforceAIResearch/gift-eval?tab=readme-ov-file#2025-08-05) with a new flag that identifies models likely affected by data leakage (i.e., having seen parts of the test set during training). While the test set itself hasn’t changed, this new insight helps us better interpret model performance. To keep our results focused on truly unseen data, we’ve excluded any flagged models from this experiment and added the Sundial model to the ensemble. The previous experiment details remain available [here](https://github.com/AzulGarza/timecopilot/tree/v0.0.14/experiments/gift-eval).
