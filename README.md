@@ -316,8 +316,8 @@ You can ask other types of questions:
     - Share your use cases and feedback
 2. **Contribute**:
     - We are passionate about contributions!
-    - Submit [feature requests and bug reports](https://timecopilot.dev/help/)
-    - Pick an item from the [roadmap](https://timecopilot.dev/roadmap/)
+    - Submit [feature requests and bug reports](https://timecopilot.dev/community/help/)
+    - Pick an item from the [roadmap](https://timecopilot.dev/community/roadmap/)
     - Follow our [contributing](https://timecopilot.dev/contributing/) guide
 3. **Stay Updated**:
     - Star the repository 
