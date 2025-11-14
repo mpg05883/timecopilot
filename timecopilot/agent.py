@@ -7,6 +7,7 @@ import pandas as pd
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.agent import AgentRunResult
+from pydantic_ai.models import Model
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -406,7 +407,7 @@ class TimeCopilot:
 
     def __init__(
         self,
-        llm: str,
+        llm: str | Model,
         forecasters: list[Forecaster] | None = None,
         **kwargs: Any,
     ):
